@@ -50,12 +50,12 @@ func AuraElementalFocus(tick int) Aura {
 		ID:      "elefocus",
 		Expires: tick + (15 * tickPerSecond),
 		OnCast: func(sim *Simulation, c *Cast) {
-			if c.ManaCost <= 0 {
-				return // Don't consume charges from free spells.
-			}
 			c.ManaCost *= .6 // reduced by 40%
 		},
 		OnCastComplete: func(sim *Simulation, c *Cast) {
+			if c.ManaCost <= 0 {
+				return // Don't consume charges from free spells.
+			}
 			count--
 			if count == 0 {
 				sim.cleanAuraName("elefocus")
@@ -69,10 +69,9 @@ func AuraEleMastery() Aura {
 		ID:      "elemastery",
 		Expires: math.MaxInt32,
 		OnCast: func(sim *Simulation, c *Cast) {
-			debug("ele mastery...")
+			debug(" -ele mastery active- ")
 			c.Crit = 1.01 // 101% chance of crit
 			c.ManaCost = 0
-			sim.cleanAuraName("elemastery")
 		},
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			sim.cleanAuraName("elemastery")
@@ -85,20 +84,31 @@ func AuraStormcaller(tick int) Aura {
 		ID:      "stormcaller",
 		Expires: tick + (8 * tickPerSecond),
 		OnCast: func(sim *Simulation, c *Cast) {
-			debug("stormcaller...")
+			debug(" -stormcaller- ")
 			c.Spellpower += 50
 		},
 	}
 }
 
-func AuraQuagsEye() Aura {
+func ActivateSilverCrescent(sim *Simulation) Aura {
+	debug(" -silver crescent active- ")
+	return Aura{
+		ID:      "silvercrescent",
+		Expires: sim.currentTick + 20*tickPerSecond,
+		OnCast: func(sim *Simulation, c *Cast) {
+			c.Spellpower += 155
+		},
+	}
+}
+
+func ActivateQuagsEye(sim *Simulation) Aura {
 	lastActivation := math.MinInt32
 	return Aura{
 		ID:      "quageye",
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			if lastActivation+(45*tickPerSecond) < sim.currentTick && sim.rando.Float64() < 0.1 {
-				debug("\n\tQuags Eye Procced...\n")
+				debug(" -quags eye- ")
 				sim.addAura(AuraFungalFrenzy(sim.currentTick))
 				sim.Buffs[StatHaste] += 601
 				lastActivation = sim.currentTick

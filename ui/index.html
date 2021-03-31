@@ -111,7 +111,7 @@
 
             // Globals
             var allgear = {};
-            var defaultGear = ["Shamanistic Helmet of Second Sight","Brooch of Heightened Potential","Pauldrons of Wild Magic","Ogre Slayer's Cover","Tidefury Chestpiece","World's End Bracers","Earth Mantle Handwraps","Wave-Song Girdle","Stormsong Kilt","Magma Plume Boots","Cobalt Band of Tyrigosa","Scintillating Coral Band","Totem of the Void","Khadgar's Knapsack","Bleeding Hollow Warhammer", "Quagmirran's Eye"];
+            var defaultGear = ["Shamanistic Helmet of Second Sight","Brooch of Heightened Potential","Pauldrons of Wild Magic","Ogre Slayer's Cover","Tidefury Chestpiece","World's End Bracers","Earth Mantle Handwraps","Wave-Song Girdle","Stormsong Kilt","Magma Plume Boots","Cobalt Band of Tyrigosa","Scintillating Coral Band","Totem of the Void","Khadgar's Knapsack","Bleeding Hollow Warhammer", "Quagmirran's Eye", "Icon of the Silver Crescent"];
             var currentGear = {};
 
             // converts a slot number to its string id. Useful for finding the slot in the UI for an item.
@@ -488,13 +488,13 @@
                 <li><a href="#">Stats</a></li>
             </ul>
             <ul id="calcs" class="uk-switcher uk-margin">
-                <li style="height: 35%">
+                <li>
                     <div>
                         <div style="text-align: right">
                             <button onclick="runsim();">Run Simulation</button>
                             Iterations: <input id="iters" type="text" value="100" style="width: 100px"></input>
                         </div>
-                        <pre id="output"></pre>
+                        <pre id="output" style="height: 30%;overflow: auto"></pre>
                     </div>    
                 </li>
                 <li style="height: 35%">

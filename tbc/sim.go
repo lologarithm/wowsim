@@ -18,8 +18,8 @@ type Simulation struct {
 	CurrentMana float64
 
 	Stats         Stats
-	Buffs         Stats // temp increases
-	Equip         Equipment
+	Buffs         Stats     // temp increases
+	Equip         Equipment // Current Gear
 	SpellRotation []string
 	RotationIdx   int
 
@@ -68,22 +68,33 @@ func (sim *Simulation) reset() {
 	sim.rseed++
 	sim.rando.Seed(sim.rseed)
 
+	sim.currentTick = 0
 	sim.CurrentMana = sim.Stats[StatMana]
 	sim.CastingSpell = nil
 	sim.Buffs = Stats{StatLen: 0}
 	sim.CDs = map[string]int{}
-	sim.Auras = []Aura{AuraLightningOverload()}
+	sim.Auras = []Aura{}
 	sim.metrics = SimMetrics{}
 
+	// Activate all talent - TODO: make this configurable input
+
+	// Lightning Overload 5/5
+	sim.addAura(AuraLightningOverload())
+	// Unrelenting Storm 3/5
+	sim.Buffs[StatMP5] += sim.Stats[StatInt] * 0.06
+
+	debug("Effective MP5: %0.1f\n", sim.Stats[StatMP5]+sim.Buffs[StatMP5])
+	// Activate all permanent item effects.
 	for _, item := range sim.Equip {
-		if item.Aura != nil {
-			sim.addAura(item.Aura())
+		if item.Activate != nil && item.ActivateCD == -1 {
+			sim.addAura(item.Activate(sim))
 		}
 	}
 }
 
 func (sim *Simulation) Run(seconds int) SimMetrics {
 	sim.reset()
+
 	ticks := seconds * tickPerSecond
 	for i := 0; i < ticks; i++ {
 		sim.currentTick = i
@@ -93,36 +104,22 @@ func (sim *Simulation) Run(seconds int) SimMetrics {
 	return sim.metrics
 }
 
-func (sim *Simulation) Tick(i int) {
+func (sim *Simulation) Tick(tickID int) {
 	if sim.CurrentMana < 0 {
 		panic("you should never have negative mana.")
 	}
-	// MP5 regen
-	sim.CurrentMana += (sim.Stats[StatMP5] / 5.0) / float64(tickPerSecond)
 
-	// Unrelenting Storm 3/5 lol TODO: make this configurable input
-	sim.CurrentMana += ((sim.Stats[StatInt] * 0.06) / 5.0) / float64(tickPerSecond)
+	secondID := tickID / tickPerSecond
+	// MP5 regen
+	sim.CurrentMana += ((sim.Stats[StatMP5] + sim.Buffs[StatMP5]) / 5.0) / float64(tickPerSecond)
 
 	if sim.CurrentMana > sim.Stats[StatMana] {
 		sim.CurrentMana = sim.Stats[StatMana]
 	}
 
-	if sim.Stats[StatMana]-sim.CurrentMana >= 1500 && sim.CDs["darkrune"] < 1 {
-		// Restores 900 to 1500 mana. (2 Min Cooldown)
-		sim.CurrentMana += float64(900 + sim.rando.Intn(1500-900))
-		sim.CDs["darkrune"] = 120 * tickPerSecond
-		debug("[%d] Used Mana Potion\n", i/tickPerSecond)
-	}
-	if sim.Stats[StatMana]-sim.CurrentMana >= 3000 && sim.CDs["potion"] < 1 {
-		// Restores 1800 to 3000 mana. (2 Min Cooldown)
-		sim.CurrentMana += float64(1800 + sim.rando.Intn(3000-1800))
-		sim.CDs["potion"] = 120 * tickPerSecond
-		debug("[%d] Used Mana Potion\n", i/tickPerSecond)
-	}
-
 	if sim.CastingSpell == nil && sim.metrics.OOMAt == 0 {
 		if sim.CurrentMana < 500 {
-			sim.metrics.OOMAt = i / tickPerSecond
+			sim.metrics.OOMAt = secondID
 		}
 		// debug("(%0.0f/%0.0f mana)\n", sim.CurrentMana, sim.Stats[StatMana])
 	}
@@ -133,11 +130,38 @@ func (sim *Simulation) Tick(i int) {
 			sim.Cast(sim.CastingSpell)
 		}
 	}
+
 	if sim.CastingSpell == nil {
+		// Pop potion before next cast.
+		if sim.Stats[StatMana]-sim.CurrentMana >= 1500 && sim.CDs["darkrune"] < 1 {
+			// Restores 900 to 1500 mana. (2 Min Cooldown)
+			sim.CurrentMana += float64(900 + sim.rando.Intn(1500-900))
+			sim.CDs["darkrune"] = 120 * tickPerSecond
+			debug("[%d] Used Mana Potion\n", secondID)
+		}
+		if sim.Stats[StatMana]-sim.CurrentMana >= 3000 && sim.CDs["potion"] < 1 {
+			// Restores 1800 to 3000 mana. (2 Min Cooldown)
+			sim.CurrentMana += float64(1800 + sim.rando.Intn(3000-1800))
+			sim.CDs["potion"] = 120 * tickPerSecond
+			debug("[%d] Used Mana Potion\n", secondID)
+		}
+		// Pop any on-use trinkets
+
+		for _, item := range sim.Equip {
+			if item.Activate == nil || item.ActivateCD == -1 { // ignore non-activatable, and always active items.
+				continue
+			}
+			if sim.CDs[item.CoolID] > 0 {
+				continue
+			}
+			sim.addAura(item.Activate(sim))
+			sim.CDs[item.CoolID] = item.ActivateCD * tickPerSecond
+		}
+
 		// Choose next spell
 		sim.ChooseSpell()
 		if sim.CastingSpell != nil {
-			debug("[%d] Casting %s ...", i/tickPerSecond, sim.CastingSpell.Spell.ID)
+			debug("[%d] Casting %s (%0.1f) ...", secondID, sim.CastingSpell.Spell.ID, float64(sim.CastingSpell.TicksUntilCast)/float64(tickPerSecond))
 		}
 	}
 	// CDS
@@ -150,12 +174,12 @@ func (sim *Simulation) Tick(i int) {
 
 	todel := []int{}
 	for i := range sim.Auras {
-		if sim.Auras[i].Expires <= i {
+		if sim.Auras[i].Expires <= tickID {
 			todel = append(todel, i)
 		}
 	}
 	for i := len(todel) - 1; i >= 0; i-- {
-		sim.cleanAura(i)
+		sim.cleanAura(todel[i])
 	}
 }
 
@@ -177,7 +201,7 @@ func (sim *Simulation) cleanAura(i int) {
 	sim.Auras[i].OnSpellHit = nil
 	sim.Auras[i].OnExpire = nil
 
-	debug("- removing aura: %s -", sim.Auras[i].ID)
+	debug(" -removed: %s- ", sim.Auras[i].ID)
 	sim.Auras = sim.Auras[:i+copy(sim.Auras[i:], sim.Auras[i+1:])]
 }
 

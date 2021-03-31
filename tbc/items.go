@@ -1,6 +1,8 @@
 package tbc
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // TODO: is the item separated structure better?
 //   or should it just be a giant list?
@@ -291,7 +293,10 @@ var items = struct {
 	},
 	Trinket: []Item{
 		{Slot: EquipTrinket, Name: "Quagmirran's Eye", SourceZone: "The Slave Pens", SourceDrop: "Quagmirran", Stats: Stats{StatInt: 15},
-			Aura: AuraQuagsEye},
+			Activate: ActivateQuagsEye, ActivateCD: -1}, // -1 will trigger an activation only once
+		{Slot: EquipTrinket, Name: "Icon of the Silver Crescent", SourceZone: "Shattrath", SourceDrop: "G'eras - 41 Badges", Stats: Stats{StatSpellDmg: 44},
+			Activate: ActivateSilverCrescent, ActivateCD: 120 * tickPerSecond, CoolID: "trinket"},
+		{Slot: EquipTrinket, Name: "Neltharion's Tear", SourceZone: "BWL", SourceDrop: "Nefarian", Stats: Stats{StatSpellDmg: 44, StatSpellHit: 16}},
 	},
 }
 
@@ -396,9 +401,17 @@ type Item struct {
 	Name       string
 	SourceZone string
 	SourceDrop string
-	Stats      Stats       // Stats applied to wearer
-	Aura       func() Aura `json:"-"` // Aura item applies when worn
+	Stats      Stats // Stats applied to wearer
+
+	// For simplicity all items that produce an aura are 'activatable'.
+	// Since we activate all items on CD, this works fine for stuff like Quags Eye.
+	// TODO: is this the best design for this?
+	Activate   ItemActivation // Activatable Ability, produces an aura
+	ActivateCD int            // cooldown on activation, -1 means perm effect.
+	CoolID     string         // ID used for cooldown
 }
+
+type ItemActivation func(*Simulation) Aura
 
 type Equipment []Item
 

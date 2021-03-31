@@ -38,6 +38,7 @@ import (
 
 func main() {
 	var isDebug = flag.Bool("debug", false, "Include --debug to spew the entire simulation log.")
+	var rotation = flag.String("rotation", "", "Custom comma separated rotation to simulate.\n\tFor Example: --rotation=CL6,LB12")
 	var runWebUI = flag.Bool("web", false, "Use to run sim in web interface instead of in terminal")
 	flag.Parse()
 
@@ -65,6 +66,7 @@ func main() {
 		"Khadgar's Knapsack",
 		"Bleeding Hollow Warhammer",
 		"Quagmirran's Eye",
+		"Icon of the Silver Crescent",
 	)
 
 	gearStats := gear.Stats()
@@ -106,19 +108,28 @@ func main() {
 	if *isDebug {
 		sims = 1
 	}
-	results := runTBCSim(stats, gear, 120, sims)
+	rotArray := []string{}
+	if rotation != nil && len(*rotation) > 0 {
+		rotArray = strings.Split(*rotation, ",")
+	}
+	results := runTBCSim(stats, gear, 120, sims, rotArray)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
 }
 
-func runTBCSim(stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int) []string {
+func runTBCSim(stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int, customRotation []string) []string {
 	fmt.Printf("\nSim Duration: %d sec\nNum Simulations: %d\n", seconds, numSims)
+
 	spellOrders := [][]string{
-		{"CL6", "LB12", "LB12", "LB12"},
+		// {"CL6", "LB12", "LB12", "LB12"},
 		{"CL6", "LB12", "LB12", "LB12", "LB12"},
-		// {"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
-		{"LB12"}, // only LB
+		{"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
+		{"LB12"},               // only LB
+	}
+	if len(customRotation) > 0 {
+		fmt.Printf("Using Custom Rotation: %v\n", customRotation)
+		spellOrders = [][]string{customRotation}
 	}
 
 	statchan := make(chan string, 3)
