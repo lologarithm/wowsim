@@ -113,9 +113,9 @@ func (sim *Simulation) Tick(i int) {
 		sim.CDs["darkrune"] = 120 * tickPerSecond
 		debug("[%d] Used Mana Potion\n", i/tickPerSecond)
 	}
-	if sim.Stats[StatMana]-sim.CurrentMana >= 2250 && sim.CDs["potion"] < 1 {
-		// Restores 1350 to 2250 mana. (2 Min Cooldown)
-		sim.CurrentMana += float64(1350 + sim.rando.Intn(2250-1350))
+	if sim.Stats[StatMana]-sim.CurrentMana >= 3000 && sim.CDs["potion"] < 1 {
+		// Restores 1800 to 3000 mana. (2 Min Cooldown)
+		sim.CurrentMana += float64(1800 + sim.rando.Intn(3000-1800))
 		sim.CDs["potion"] = 120 * tickPerSecond
 		debug("[%d] Used Mana Potion\n", i/tickPerSecond)
 	}

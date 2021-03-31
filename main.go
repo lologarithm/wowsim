@@ -68,8 +68,6 @@ func main() {
 	)
 
 	gearStats := gear.Stats()
-	fmt.Printf("Gear Stats:\n")
-	gearStats.Print()
 
 	stats := tbc.Stats{
 		tbc.StatInt:       104,         // Base
@@ -84,11 +82,10 @@ func main() {
 
 	buffs := tbc.Stats{
 		tbc.StatInt:       40, //arcane int
-		tbc.StatSpellCrit: 0,
+		tbc.StatSpellCrit: 14, // brill wiz oil
 		tbc.StatSpellHit:  0,
-		tbc.StatSpellDmg:  42, // sup wiz oil
-		tbc.StatMP5:       0,
-		tbc.StatMana:      0,
+		tbc.StatSpellDmg:  36, // brill wiz oil
+		tbc.StatMP5:       16, // maj mageblood
 		tbc.StatHaste:     0,
 		tbc.StatSpellPen:  0,
 	}
@@ -104,7 +101,7 @@ func main() {
 	stats[tbc.StatMana] += stats[tbc.StatInt] * 15
 
 	fmt.Printf("Final Stats:\n")
-	stats.Print()
+	fmt.Printf(stats.Print())
 	sims := 10000
 	if *isDebug {
 		sims = 1

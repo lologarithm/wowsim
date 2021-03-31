@@ -88,10 +88,10 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 
 	buffs := tbc.Stats{
 		tbc.StatInt:       40, //arcane int
-		tbc.StatSpellCrit: 0,
+		tbc.StatSpellCrit: 14, // brill wiz oil
 		tbc.StatSpellHit:  0,
-		tbc.StatSpellDmg:  42, // sup wiz oil
-		tbc.StatMP5:       0,
+		tbc.StatSpellDmg:  36, // brill wiz oil
+		tbc.StatMP5:       16, // maj mageblood
 		tbc.StatMana:      0,
 		tbc.StatHaste:     0,
 		tbc.StatSpellPen:  0,
