@@ -8,7 +8,7 @@ import (
 	"syscall/js"
 	"time"
 
-	"gitlab.com/lologarithm/wowsim/tbc"
+	"github.com/lologarithm/wowsim/tbc"
 )
 
 func main() {

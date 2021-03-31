@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gitlab.com/lologarithm/wowsim/tbc"
+	"github.com/lologarithm/wowsim/tbc"
 )
 
 // This was used to parse a CSV from an item spreadsheet.
