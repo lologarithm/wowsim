@@ -1,0 +1,503 @@
+<html>
+    <head>
+        <title>TBC Elemental Simulator</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="uikit.min.css" />
+
+        <script src="wasm_exec.js"></script>
+        <script src="uikit.min.js"></script>
+        <script src="uikit-icons.min.js"></script>
+
+        <style>
+            .lisearch {
+                border: 1px solid orange;
+            }
+            button:hover {
+                color: #F0F0F0;
+                background-color: #aa6900;
+            }
+            input:focus {
+                outline: none !important;
+                border:1px solid orange;
+            }
+            h2, pre, button, input {
+                color: #D0D0D0;
+                background-color: #303030;
+            }
+            .uk-tab {
+                background-color: #303030;
+                color: #D0D0D0;
+            }
+            .uk-tab > .uk-active > a {
+                background-color: #303030;
+                color: #D0D0D0;
+            }
+            .uk-tab > * > a:hover {
+                color: #F0F0F0;
+            }
+            .uk-tab > .uk-active > a:hover {
+                color: #F0F0F0;
+                border:1px solid orange;
+            }
+            .uk-button:hover {
+                color: #F0F0F0;
+                border:1px solid orange;
+            }
+            .uk-button:active, .uk-button:focus {
+                color: #F0F0F0;
+                border:1px solid orange;
+            }
+            .uk-button {
+                line-height: 1.1;
+                width: 250px;
+                height: 40px;
+                padding: 1px;
+                color: #D0D0D0;
+            }
+            .uk-dropdown {
+                color: #D0D0D0;
+                background-color: #404040;
+            }
+            .uk-dropdown-nav {
+                width: 300px;
+                color: #D0D0D0;
+                background-color: #404040;
+            }
+            body {
+                background-color: #303030;
+                color: #D0D0D0;
+            }
+            #root {
+                max-width: 1200px;
+                margin: 5px auto;
+                padding: 0px;
+            }
+            @media only screen and (min-width: 1240px) {
+                #root {
+                    box-shadow: 8px 8px 5px #101010;
+                    border: 1px solid #101010;
+                    max-width: 1220px;
+                    padding: 20px;
+                    transition: all 1.0s ease-in-out;
+                }
+            }
+        </style>
+        </head>
+    </head>
+    <body style="height:100%">
+        <script>
+            if (!WebAssembly.instantiateStreaming) { // polyfill
+                WebAssembly.instantiateStreaming = async (resp, importObject) => {
+                    const source = await (await resp).arrayBuffer();
+                    return await WebAssembly.instantiate(source, importObject);
+                };
+            }
+    
+            const go = new Go();
+            let mod, inst;
+            WebAssembly.instantiateStreaming(fetch("lib.wasm"), go.importObject).then(
+                async result => {
+                    mod = result.module;
+                    inst = result.instance;
+                    console.log("loading wasm...")
+                    await go.run(inst);
+                }
+            );
+
+            // Globals
+            var allgear = {};
+            var defaultGear = ["Shamanistic Helmet of Second Sight","Brooch of Heightened Potential","Pauldrons of Wild Magic","Ogre Slayer's Cover","Tidefury Chestpiece","World's End Bracers","Earth Mantle Handwraps","Wave-Song Girdle","Stormsong Kilt","Magma Plume Boots","Cobalt Band of Tyrigosa","Scintillating Coral Band","Totem of the Void","Khadgar's Knapsack","Bleeding Hollow Warhammer"];
+            var currentGear = {};
+
+            // converts a slot number to its string id. Useful for finding the slot in the UI for an item.
+            var slotToID = [
+                "equipnone",
+                "equiphead",
+                "equipneck",
+                "equipshoulder",
+                "equipback",
+                "equipchest",
+                "equipwrist",
+                "equiphands",
+                "equipwaist",
+                "equiplegs",
+                "equipfeet",
+                "equipfinger",
+                "equipfinger1",
+                "equipfinger2",
+                "equiptrinket",
+                "equiptrinket1",
+                "equiptrinket2",
+                "equipweapon",
+                "equipoffhand",
+                "equiptotem"
+            ]
+            // Actually runs the sim. Uses the 'currentGear' global to populate the call.
+            function runsim() {
+                var iters = document.getElementById("iters").value;
+                var gearlist = [];
+                slotToID.forEach(k => {
+                    var item = currentGear[k];
+                    if (item != null && item.name != "") {
+                        gearlist.push(item.name);
+                    }
+                });
+                var resStr = tbcsim(parseInt(iters), gearlist);
+                console.log(resStr);
+                var output = JSON.parse(resStr);
+                
+                var outele = document.getElementById("output");
+                var statele = document.getElementById("fstats");
+                outele.innerHTML = output.results.join("\n");
+                statele.innerHTML = JSON.stringify(output.stats).replaceAll(",", "\n", );
+            }
+            
+            function popgear() {
+                var geararray = JSON.parse(gearlist());
+                geararray.forEach(g => {
+                    allgear[g.name] = g;
+
+                    try {
+                        var listItem = document.createElement("li");
+                        listItem.innerText = g.name;
+                        
+                        slotid = slotToID[g.slot];
+                        if (slotid == "equipfinger") {
+                            var nav = UIkit.nav("#equipfinger1 div.uk-dropdown ul.uk-nav.uk-dropdown-nav");
+                            nav.$el.appendChild(listItem);
+
+                            var listItem2 = document.createElement("li");
+                            listItem2.innerText = g.name;
+                            var nav = UIkit.nav("#equipfinger2 div.uk-dropdown ul.uk-nav.uk-dropdown-nav");
+                            nav.$el.appendChild(listItem2);
+                        } else if (slotid == "equiptrinket") {
+                            var nav = UIkit.nav("#equiptrinket1 div.uk-dropdown ul.uk-nav.uk-dropdown-nav");
+                            nav.$el.appendChild(listItem);
+                            
+                            var listItem2 = document.createElement("li");
+                            listItem2.innerText = g.name;
+                            var nav = UIkit.nav("#equiptrinket2 div.uk-dropdown ul.uk-nav.uk-dropdown-nav");
+                            nav.$el.appendChild(listItem2);
+                        } else {
+                            var nav = UIkit.nav("#" + slotid + " div.uk-dropdown ul.uk-nav.uk-dropdown-nav");
+                            nav.$el.addEventListener("click", gearClickHandler);
+                            nav.$el.appendChild(listItem);
+                        }
+                    } catch (e) {
+                        console.log("Failed to intialize lootz: ", e);
+                    }
+                });
+
+                // TODO: make this store in like local storage or something so people cache gear choices.
+                var finger1done = false;
+                var trink1done = false;
+                defaultGear.forEach(inm => {
+                    var item = allgear[inm];
+                    var slotid = slotToID[item.slot];
+
+                    if (slotid == "equipfinger") {
+                        if (!finger1done) {
+                            slotid = "equipfinger1";
+                            finger1done = true;
+                        } else {
+                            slotid = "equipfinger2";
+                        }
+                    } else if (slotid == "equiptrinket") {
+                        if (!trink1done) {
+                            slotid = "equiptrinket1";
+                            trink1done   = true;
+                        } else {
+                            slotid = "equiptrinket2";
+                        }
+                    }
+                    currentGear[slotid] = item;
+                })
+
+                updateGear(currentGear);
+
+                UIkit.update(element = document.body, type = 'update');
+            }
+
+            function gearClickHandler(event) {
+                var slotid = event.target.parentElement.parentElement.parentElement.id;
+                currentGear[slotid] = allgear[event.target.innerText];
+                updateGear(currentGear);
+            }
+
+            function updateGear(newGear) {
+                slotToID.forEach(k => {
+                    var item = newGear[k];
+                    if (item != null && item.name != "") {
+                        var button = document.getElementById(k).firstElementChild;
+                        button.innerText = item.name;
+                    }
+                });
+
+                currentGear = newGear;
+            }
+
+            // searches an item in the list.
+            // ignores case and punctuation unless punctuation is included in the search.
+            function searchItem(ele, event) {
+                if (event.keyCode == 13) {
+                    var numChild = ele.parentElement.children[2].childElementCount;
+                    for (var i = 0; i < numChild; i++) {
+                        var le = ele.parentElement.children[2].children[i];
+                        if (le.style.display != "none") {
+                            var slotid = ele.parentElement.parentElement.id;
+                            currentGear[slotid] = allgear[le.innerText];
+                            updateGear(currentGear);
+                            break;
+                        }
+                    }
+                    var $dropdown = UIkit.dropdown(ele.parentElement);
+                    $dropdown.hide(0);
+                }
+                var search = ele.value.toLowerCase();
+                var snp = search.replace(/[^\w\s]|_/g, "");
+                var doPunc = false;
+                if (snp != search) {
+                    doPunc = true;
+                }
+                var numChild = ele.parentElement.children[2].childElementCount;
+                var firstFound = false;
+                for (var i = 0; i < numChild; i++) {
+                    var le = ele.parentElement.children[2].children[i];
+                    var value = le.innerText.toLowerCase();
+                    if (!doPunc) {
+                        value = value.replace(/[^\w\s]|_/g, "");
+                    }
+                    if (!value.includes(search)) {
+                        le.style.display = "none";
+                        le.classList.remove("lisearch");
+                    } else {
+                        if (!firstFound) {
+                            le.classList.add("lisearch");
+                            firstFound = true;
+                        } else {
+                            le.classList.remove("lisearch");
+                        }
+                        le.style.display = "block";
+                    }
+                }
+            }
+
+            function clearSearch(e) {
+                e.value = "";
+                var numChild = e.parentElement.children[2].childElementCount;
+                for (var i = 0; i < numChild; i++) {
+                    var le = e.parentElement.children[2].children[i];
+                    le.style.display = "block";
+                    le.classList.remove("lisearch");
+                }
+                console.log("blurred");
+            }
+
+            // focuses the search box (useful for making UI better)
+            function focusSearch(ele, event) {
+                var tb = ele.parentElement.children[1].children[0];
+                setTimeout( () => {
+                    console.log("focus: ", ele.parentElement.children[1].children[0]);
+                    tb.focus();
+                }, 1);
+            }
+
+            // function 
+        </script>
+        <div id="root">
+            <h2>TBC Elemental Shaman Simulator</h2>
+            <ul id="inputtabs" uk-tab="connect: #inputdata;swiping" >
+                <li class="uk-active"><a href="#">Gear</a></li>
+                <li><a href="#">Talents</a></li>
+                <li><a href="#">Buffs</a></li>
+            </ul>
+            <ul id="inputdata" class="uk-switcher uk-margin">
+                <li id="gear" style="height: 35%;overflow: auto;">
+                    <div class="uk-grid-small uk-child-width-expand@s uk-text-center" uk-grid>
+                        <div>
+                            <div class="uk-grid-small uk-child-width-expand@s uk-text-center" uk-grid>
+                                <div>
+                                    <div id="equiphead">
+                                        <button id="equipheaditem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equipheadsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equipneck">
+                                        <button id="equipneckitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equipnecksearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equipshoulder">
+                                        <button id="equipshoulderitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equipshouldersearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equipback">
+                                        <button id="equipbackitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equipbacksearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equipchest">
+                                        <button id="equipchestitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equipchestsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equipwrist">
+                                        <button id="equipwristitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equipwristsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equipweapon">
+                                        <button id="equipweaponitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equipweaponsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equipoffhand">
+                                        <button id="equipoffhanditem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equipoffhandsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="uk-grid-small uk-child-width-expand@s uk-text-center" uk-grid>
+                                <div>
+                                    <div id="equiphands">
+                                        <button id="equiphandsitem"class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equiphandssearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equipwaist">
+                                        <button id="equipwaistitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equipwaistsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equiplegs">
+                                        <button id="equiplegsitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equiplegssearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equipfeet">
+                                        <button id="equipfeetitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equipfeetsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equipfinger1">
+                                        <button id="equipfinger1item" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equipfinger1search" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equipfinger2">
+                                        <button id="equipfinger2item" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equipfinger2search" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equiptrinket1">
+                                        <button id="equiptrinket1item" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equiptrinket1search" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equiptrinket2">
+                                        <button id="equiptrinket2item" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equiptrinket2search" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div id="equiptotem">
+                                        <button id="equiptotemitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
+                                        <div uk-dropdown="mode: click">
+                                            <input id="equiptotemsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button>Clear</button></button></input>
+                                            <ul class="uk-nav uk-dropdown-nav">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li id="talents" style="height: 35%;overflow: auto;">
+                    <h4>Standard Elemental Build</h4>
+                    <b>Elemental:</b> Convection, Concussion, Call of Thunder, Elemental Focus, Elemental Fury, Lightning Mastery, Elemental Mastery, Lightning Overload, Totem of Wrath<br />
+                    <b>Resto:</b> Natures Guidance, Tidal Mastery<br />
+                </li>
+                <li id="buffs" style="height: 35%;overflow: auto;">
+                    <b>Raid:</b> Arcane Int, Gift of the Wild, Blessing of Kings<br />
+                </li>
+            </ul>
+            <ul id="calctabs" uk-tab="connect: #calcs">
+                <li class="uk-active"><a href="#">Sim</a></li>
+                <li><a href="#">Histogram</a></li>
+                <li><a href="#">Stats</a></li>
+            </ul>
+            <ul id="calcs" class="uk-switcher uk-margin">
+                <li style="height: 35%">
+                    <div>
+                        <div style="text-align: right">
+                            <button onclick="runsim();">Run Simulation</button>
+                            Iterations: <input id="iters" type="text" value="100" style="width: 100px"></input>
+                        </div>
+                        <pre id="output"></pre>
+                    </div>    
+                </li>
+                <li style="height: 35%">
+                    DPS Histogram
+                </li>
+                <li style="height: 35%">
+                    Final Stats:
+                    <pre id="fstats"></pre>
+                </li>
+
+            </ul>
+        </div>
+    </body>
+</html>
