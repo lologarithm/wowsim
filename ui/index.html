@@ -236,6 +236,7 @@
 
                 var slotid = event.target.parentElement.parentElement.parentElement.id;
                 console.log("Slot: ", slotid);
+                console.log("Gear: ", event.target.innerText);
                 currentGear[slotid] = allgear[event.target.innerText];
                 updateGear(currentGear);
 
@@ -268,11 +269,14 @@
             // searches an item in the list.
             // ignores case and punctuation unless punctuation is included in the search.
             function searchItem(ele, event) {
+                
+                // TODO: key up/down through positive search results
+
                 if (event.keyCode == 13) {
                     var numChild = ele.parentElement.children[2].childElementCount;
                     for (var i = 0; i < numChild; i++) {
                         var le = ele.parentElement.children[2].children[i];
-                        if (le.style.display != "none") {
+                        if (le.classList.contains("lisearch")) {
                             var slotid = ele.parentElement.parentElement.id;
                             currentGear[slotid] = allgear[le.innerText];
                             updateGear(currentGear);
@@ -321,9 +325,9 @@
                         } else {
                             le.classList.remove("lisearch");
                         }
-                        le.style.display = "block";
+                        le.style.color = "#F0F0F0";
                     } else {
-                        le.style.display = "none";
+                        le.style.color = "#888888";
                         le.classList.remove("lisearch");
                     }
                 }
@@ -334,7 +338,8 @@
                 var numChild = e.parentElement.children[2].childElementCount;
                 for (var i = 0; i < numChild; i++) {
                     var le = e.parentElement.children[2].children[i];
-                    le.style.display = "block";
+                    // le.style.display = "block";
+                    le.style.color = "#F0F0F0";
                     le.classList.remove("lisearch");
                 }
                 console.log("blurred");
