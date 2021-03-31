@@ -10,6 +10,10 @@
         <script src="uikit-icons.min.js"></script>
 
         <style>
+            li:hover {
+                color: orange;
+                cursor: pointer;
+            }
             .lisearch {
                 border: 1px solid orange;
             }
@@ -223,6 +227,9 @@
                 var slotid = event.target.parentElement.parentElement.parentElement.id;
                 currentGear[slotid] = allgear[event.target.innerText];
                 updateGear(currentGear);
+
+                var $dropdown = UIkit.dropdown(event.target.parentElement.parentElement);
+                $dropdown.hide(0);
             }
 
             function updateGear(newGear) {

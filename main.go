@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lologarithm/wowsim/elesim"
 	"github.com/lologarithm/wowsim/tbc"
 )
 
@@ -42,7 +41,7 @@ func main() {
 	var runWebUI = flag.Bool("web", false, "Use to run sim in web interface instead of in terminal")
 	flag.Parse()
 
-	elesim.IsDebug = *isDebug
+	// this is silly lol
 	tbc.IsDebug = *isDebug
 
 	if *runWebUI {
