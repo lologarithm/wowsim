@@ -64,6 +64,7 @@ func main() {
 		"Totem of the Void",
 		"Khadgar's Knapsack",
 		"Bleeding Hollow Warhammer",
+		"Quagmirran's Eye",
 	)
 
 	gearStats := gear.Stats()
@@ -108,13 +109,13 @@ func main() {
 	if *isDebug {
 		sims = 1
 	}
-	results := runTBCSim(stats, 120, sims)
+	results := runTBCSim(stats, gear, 120, sims)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
 }
 
-func runTBCSim(stats tbc.Stats, seconds int, numSims int) []string {
+func runTBCSim(stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int) []string {
 	fmt.Printf("\nSim Duration: %d sec\nNum Simulations: %d\n", seconds, numSims)
 	spellOrders := [][]string{
 		{"CL6", "LB12", "LB12", "LB12"},
@@ -131,7 +132,7 @@ func runTBCSim(stats tbc.Stats, seconds int, numSims int) []string {
 			histogram := map[int]int{}
 
 			rseed := time.Now().Unix()
-			sim := tbc.NewSim(stats, spo, rseed)
+			sim := tbc.NewSim(stats, equip, spo, rseed)
 			for ns := 0; ns < numSims; ns++ {
 				metrics := sim.Run(seconds)
 				simDmgs = append(simDmgs, metrics.TotalDamage)
@@ -201,7 +202,7 @@ func runTBCSim(stats tbc.Stats, seconds int, numSims int) []string {
 			statchan <- output
 		}(spells)
 		if tbc.IsDebug {
-			time.Sleep(time.Second)
+			time.Sleep(time.Second * 2)
 		}
 	}
 

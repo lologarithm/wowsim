@@ -289,6 +289,10 @@ var items = struct {
 		{Slot: EquipOffhand, Name: "Chronicle of Dark Secrets", SourceZone: "Hyjal", SourceDrop: "Winterchill",
 			Stats: Stats{StatStm: 16, StatInt: 12, StatSpellDmg: 42, StatHaste: 0, StatSpellCrit: 23, StatSpellHit: 17, StatMP5: 0}}, //, 0, 0, 0, 0, 0},
 	},
+	Trinket: []Item{
+		{Slot: EquipTrinket, Name: "Quagmirran's Eye", SourceZone: "The Slave Pens", SourceDrop: "Quagmirran", Stats: Stats{StatInt: 15},
+			Aura: AuraQuagsEye},
+	},
 }
 
 var ItemLookup = map[string]*Item{}
@@ -360,6 +364,9 @@ func init() {
 			// log.Printf("Found dup item: %s", v.Name)
 			statsMatch := it.Slot == v.Slot
 			for i, v := range v.Stats {
+				if len(it.Stats) <= i {
+					break
+				}
 				if it.Stats[i] != v {
 					statsMatch = false
 				}
@@ -389,8 +396,8 @@ type Item struct {
 	Name       string
 	SourceZone string
 	SourceDrop string
-	Stats      Stats // Stats applied to wearer
-	Aura       Aura  `json:"-"` // Aura item applies when worn
+	Stats      Stats       // Stats applied to wearer
+	Aura       func() Aura `json:"-"` // Aura item applies when worn
 }
 
 type Equipment []Item

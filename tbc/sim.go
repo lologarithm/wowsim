@@ -18,6 +18,8 @@ type Simulation struct {
 	CurrentMana float64
 
 	Stats         Stats
+	Buffs         Stats // temp increases
+	Equip         Equipment
 	SpellRotation []string
 	RotationIdx   int
 
@@ -42,21 +44,24 @@ type SimMetrics struct {
 	Casts       []*Cast
 }
 
-func NewSim(stats Stats, spellOrder []string, rseed int64) *Simulation {
+func NewSim(stats Stats, equip Equipment, spellOrder []string, rseed int64) *Simulation {
 	rotIdx := 0
 	if spellOrder[0] == "pri" {
 		rotIdx = -1
 		spellOrder = spellOrder[1:]
 	}
-	return &Simulation{
+	sim := &Simulation{
 		RotationIdx:   rotIdx,
 		Stats:         stats,
 		SpellRotation: spellOrder,
 		CDs:           map[string]int{},
+		Buffs:         Stats{StatLen: 0},
 		Auras:         []Aura{AuraLightningOverload()},
+		Equip:         equip,
 		rseed:         rseed,
 		rando:         rand.New(rand.NewSource(rseed)),
 	}
+	return sim
 }
 
 func (sim *Simulation) reset() {
@@ -65,9 +70,16 @@ func (sim *Simulation) reset() {
 
 	sim.CurrentMana = sim.Stats[StatMana]
 	sim.CastingSpell = nil
+	sim.Buffs = Stats{StatLen: 0}
 	sim.CDs = map[string]int{}
 	sim.Auras = []Aura{AuraLightningOverload()}
 	sim.metrics = SimMetrics{}
+
+	for _, item := range sim.Equip {
+		if item.Aura != nil {
+			sim.addAura(item.Aura())
+		}
+	}
 }
 
 func (sim *Simulation) Run(seconds int) SimMetrics {
@@ -156,17 +168,23 @@ func (sim *Simulation) cleanAuraName(name string) {
 	}
 }
 func (sim *Simulation) cleanAura(i int) {
+	if sim.Auras[i].OnExpire != nil {
+		sim.Auras[i].OnExpire(sim, nil)
+	}
 	// clean up mem
 	sim.Auras[i].OnCast = nil
 	sim.Auras[i].OnStruck = nil
 	sim.Auras[i].OnSpellHit = nil
-	debug("removing aura: %s", sim.Auras[i].ID)
+	sim.Auras[i].OnExpire = nil
+
+	debug("- removing aura: %s -", sim.Auras[i].ID)
 	sim.Auras = sim.Auras[:i+copy(sim.Auras[i:], sim.Auras[i+1:])]
 }
 
 func (sim *Simulation) addAura(a Aura) {
 	for i := range sim.Auras {
 		if sim.Auras[i].ID == a.ID {
+			// TODO: some auras can stack X values. Figure out plan
 			sim.Auras[i] = a // replace
 			return
 		}
@@ -187,6 +205,11 @@ func (sim *Simulation) ChooseSpell() {
 			so := sim.SpellRotation[i]
 			sp := spellmap[so]
 			cast := NewCast(sim, sp, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
+			for _, aur := range sim.Auras {
+				if aur.OnCast != nil {
+					aur.OnCast(sim, cast)
+				}
+			}
 			if sim.CDs[so] == 0 && (sim.CurrentMana >= cast.ManaCost) {
 				sim.CastingSpell = cast
 				break
@@ -196,6 +219,12 @@ func (sim *Simulation) ChooseSpell() {
 		so := sim.SpellRotation[sim.RotationIdx]
 		sp := spellmap[so]
 		cast := NewCast(sim, sp, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
+		// Apply any on cast effects.
+		for _, aur := range sim.Auras {
+			if aur.OnCast != nil {
+				aur.OnCast(sim, cast)
+			}
+		}
 		if sim.CDs[so] == 0 && (sim.CurrentMana >= cast.ManaCost) {
 			sim.CastingSpell = cast
 			sim.RotationIdx++
@@ -207,17 +236,13 @@ func (sim *Simulation) ChooseSpell() {
 }
 
 func (sim *Simulation) Cast(cast *Cast) {
-
-	// Apply any on cast effects.
 	for _, aur := range sim.Auras {
-		if aur.OnCast != nil {
-			aur.OnCast(sim, cast)
+		if aur.OnCastComplete != nil {
+			aur.OnCastComplete(sim, cast)
 		}
 	}
-
 	if sim.rando.Float64() < cast.Hit {
 		dmg := (float64(sim.rando.Intn(int(cast.Spell.MaxDmg-cast.Spell.MinDmg))) + cast.Spell.MinDmg) + (sim.Stats[StatSpellDmg] * cast.Spell.Coeff)
-
 		cast.DidHit = true
 		if sim.rando.Float64() < cast.Crit {
 			cast.DidCrit = true
@@ -241,8 +266,6 @@ func (sim *Simulation) Cast(cast *Cast) {
 			dmg *= .75
 			debug("(partial resist)")
 		}
-		debug(": %0.0f\n", dmg)
-
 		cast.DidDmg = dmg
 		// Apply any on spell hit effects.
 		for _, aur := range sim.Auras {
@@ -250,7 +273,11 @@ func (sim *Simulation) Cast(cast *Cast) {
 				aur.OnSpellHit(sim, cast)
 			}
 		}
-
+		// Apply any effects specific to this cast.
+		for _, eff := range cast.Effects {
+			eff(sim, cast)
+		}
+		debug(": %0.0f\n", cast.DidDmg)
 		sim.metrics.TotalDamage += cast.DidDmg
 		sim.metrics.Casts = append(sim.metrics.Casts, cast)
 	} else {

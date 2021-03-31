@@ -35,7 +35,7 @@ func NewCast(sim *Simulation, sp *Spell, spellDmg, spHit, spCrit float64) *Cast 
 		// Talent to reduce cast time.
 		castTime -= 0.5
 	}
-	castTime /= (1 + (sim.Stats[StatHaste] / 1576)) // 15.76 rating grants 1% spell haste
+	castTime /= (1 + ((sim.Stats[StatHaste] + sim.Stats[StatHaste]) / 1576)) // 15.76 rating grants 1% spell haste
 	cast.TicksUntilCast = int(castTime * float64(tickPerSecond))
 
 	// TODO:

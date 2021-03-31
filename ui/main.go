@@ -111,7 +111,7 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 	if simi == 1 {
 		tbc.IsDebug = true
 	}
-	results := runTBCSim(stats, 120, simi)
+	results := runTBCSim(stats, gear, 120, simi)
 	// for _, res := range results {
 	// 	fmt.Printf("\n%s\n", res)
 	// }
@@ -128,7 +128,7 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 	return jsstr
 }
 
-func runTBCSim(stats tbc.Stats, seconds int, numSims int) []string {
+func runTBCSim(stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int) []string {
 	print("\nSim Duration:", seconds)
 	print("\nNum Simulations: ", numSims)
 	print("\n")
@@ -146,7 +146,7 @@ func runTBCSim(stats tbc.Stats, seconds int, numSims int) []string {
 		simOOMs := []int{}
 
 		rseed := time.Now().Unix()
-		sim := tbc.NewSim(stats, spells, rseed)
+		sim := tbc.NewSim(stats, equip, spells, rseed)
 		for ns := 0; ns < numSims; ns++ {
 			metrics := sim.Run(seconds)
 			simDmgs = append(simDmgs, metrics.TotalDamage)
