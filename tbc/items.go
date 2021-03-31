@@ -622,7 +622,6 @@ var moreItems = []Item{
 	{Slot: 11, Name: "Seal of the Exorcist", SourceZone: "50 Spirit Shards ", SourceDrop: "", Stats: Stats{0, 24, 0, 12, 28, 0, 0}},
 	{Slot: 11, Name: "Lola's Eve", SourceZone: "BoE World Drop", SourceDrop: "", Stats: Stats{14, 15, 0, 0, 29, 0, 0}},
 	{Slot: 11, Name: "Yor's Collapsing Band", SourceZone: "H MT - Yor (Summoned Boss)", SourceDrop: "", Stats: Stats{20, 0, 0, 0, 23, 0, 0}},
-	{Slot: 11, Name: "Click Here for Trinket/Set Bonus Sims", SourceZone: "", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
 	{Slot: 11, Name: "Darkmoon Card: Crusade", SourceZone: "Blessings Deck", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
 	{Slot: 11, Name: "Scryer's Bloodgem", SourceZone: "The Scryers - Revered", SourceDrop: "", Stats: Stats{0, 0, 0, 32, 0, 0, 0}},
 	{Slot: 11, Name: "Quagmirran's Eye", SourceZone: "H SP - Quagmirran", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 37, 0, 0}},
