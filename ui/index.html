@@ -8,92 +8,8 @@
         <script src="wasm_exec.js"></script>
         <script src="uikit.min.js"></script>
         <script src="uikit-icons.min.js"></script>
+        <link rel="stylesheet" href="ui.css" />
 
-        <style>
-            #calcdiv {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-            }
-            li:hover {
-                color: orange;
-                cursor: pointer;
-            }
-            .lisearch {
-                border: 1px solid orange;
-            }
-            button:hover {
-                color: #F0F0F0;
-                background-color: #aa6900;
-            }
-            input:focus {
-                outline: none !important;
-                border:1px solid orange;
-            }
-            h2, pre, button, input {
-                color: #D0D0D0;
-                background-color: #303030;
-            }
-            .uk-tab {
-                background-color: #303030;
-                color: #D0D0D0;
-            }
-            .uk-tab > .uk-active > a {
-                background-color: #303030;
-                color: #D0D0D0;
-            }
-            .uk-tab > * > a:hover {
-                color: #F0F0F0;
-            }
-            .uk-tab > .uk-active > a:hover {
-                color: #F0F0F0;
-            }
-            .uk-button:hover {
-                color: #F0F0F0;
-                border:1px solid orange;
-            }
-            .uk-button:active, .uk-button:focus {
-                color: #F0F0F0;
-                border:1px solid orange;
-            }
-            .uk-button {
-                line-height: 1.1;
-                width: 250px;
-                height: 40px;
-                padding: 1px;
-                color: #D0D0D0;
-            }
-            .uk-dropdown {
-                color: #D0D0D0;
-                background-color: #404040;
-            }
-            .uk-dropdown-nav {
-                width: 300px;
-                color: #D0D0D0;
-                background-color: #404040;
-            }
-            html, body {
-                background-color: #303030;
-                color: #D0D0D0;
-            }
-            #root {
-                max-width: 1200px;
-                margin: 5px auto;
-                padding: 0px;
-            }
-            @media only screen and (min-width: 1240px) {
-                #root {
-                    box-shadow: 8px 8px 5px #101010;
-                    border: 1px solid #101010;
-                    max-width: 1220px;
-                    padding: 20px;
-                    transition: all 1.0s ease-in-out;
-                }
-            }
-        </style>
-        </head>
-    </head>
-    <body>
         <script>
             if (!WebAssembly.instantiateStreaming) { // polyfill
                 WebAssembly.instantiateStreaming = async (resp, importObject) => {
@@ -161,6 +77,7 @@
                 statele.innerHTML = JSON.stringify(output.stats).replaceAll(",", "\n", );
             }
             
+            // popgear will populate the allgear map from sim.
             function popgear() {
                 var geararray = JSON.parse(gearlist());
                 geararray.forEach(g => {
@@ -231,6 +148,7 @@
                 UIkit.update(element = document.body, type = 'update');
             }
 
+            // Click handler for each item in slot list dropdown.
             function gearClickHandler(event) {
                 console.log("Gear Clicked: ", event);
 
@@ -244,6 +162,7 @@
                 $dropdown.hide(0);
             }
 
+            // Click handler for 'remove' button on each slot.
             function removeGear(ele) {
                 var slotid = ele.parentElement.parentElement.id;
                 console.log("Remove Slot: ", slotid);
@@ -254,6 +173,7 @@
                 $dropdown.hide(0);
             }
 
+            // updateGear will update the gear UI elements (to redraw when new gear is selected)
             function updateGear(newGear) {
                 slotToID.forEach(k => {
                     var item = newGear[k];
@@ -266,28 +186,10 @@
                 currentGear = newGear;
             }
 
-            // searches an item in the list.
-            // ignores case and punctuation unless punctuation is included in the search.
-            function searchItem(ele, event) {
-                
-                // TODO: key up/down through positive search results
-
-                if (event.keyCode == 13) {
-                    var numChild = ele.parentElement.children[2].childElementCount;
-                    for (var i = 0; i < numChild; i++) {
-                        var le = ele.parentElement.children[2].children[i];
-                        if (le.classList.contains("lisearch")) {
-                            var slotid = ele.parentElement.parentElement.id;
-                            currentGear[slotid] = allgear[le.innerText];
-                            updateGear(currentGear);
-                            break;
-                        }
-                    }
-                    var $dropdown = UIkit.dropdown(ele.parentElement);
-                    $dropdown.hide(0);
-                }
+            // turns a search string into a list of lowercase terms and if there is punctuation or not.
+            function getSearchTerms(text) {
                 // Use lower case in search
-                var search = ele.value.toLowerCase();
+                var search = text.toLowerCase();
 
                 // Check for punctuation. ya ya ya, I should just use regex check instead of replace.
                 var snp = search.replace(/[^\w\s]|_/g, "");
@@ -299,24 +201,107 @@
                 // Now split search into terms
                 var sterms = search.split(' ')
 
+                return {"terms": sterms, "punc": doPunc}
+            }
+
+            // takes search result from 'getSearchTerms' and searches the value string.
+            function find(search, value) {
+                value = value.toLowerCase();
+                if (!search.punc) {
+                    value = value.replace(/[^\w\s]|_/g, "");
+                }
+                
+                var found = true;
+                search.terms.forEach(st => {
+                    // If value is missing any search term, break search.
+                    if (!value.includes(st)) {
+                        found = false;
+                        return false;
+                    }
+                });
+                return found;
+            }
+
+            // completeSearch finds the highlighted element and assigns it to the current gear set.
+            // Then closes the search area.
+            function completeSearch(ele) {
                 var numChild = ele.parentElement.children[2].childElementCount;
+                for (var i = 0; i < numChild; i++) {
+                    var le = ele.parentElement.children[2].children[i];
+                    if (le.classList.contains("lisearch")) {
+                        var slotid = ele.parentElement.parentElement.id;
+                        currentGear[slotid] = allgear[le.innerText];
+                        updateGear(currentGear);
+                        break;
+                    }
+                }
+                var $dropdown = UIkit.dropdown(ele.parentElement);
+                $dropdown.hide(0);
+            }
+
+            function arrow(ele, search, numChild) {
+                var mark = false;
+                var last;
+                var found = false;
+
+                return function(i) {
+                    var le = ele.parentElement.children[2].children[i];
+                    if (mark) { // find next correct search result.
+                        found = find(search, le.innerText);
+                        if (found) {
+                            le.classList.add("lisearch");
+                            last.classList.remove("lisearch");
+                            return true; // exit now.
+                        }
+                    } else {
+                        if (le.classList.contains("lisearch")) {
+                            mark = true;
+                            last = le;
+                        }
+                    }
+                    return false;
+                }
+            }
+            function handleSearchDown(ele, search, numChild) {
+                var handledir = arrow(ele, search, numChild);
+                for (var i = 0; i < numChild; i++) {
+                    if (handledir(i)) {
+                        return;
+                    }
+                }
+            }
+            function handleSearchUp(ele, search, numChild) {
+                var handledir = arrow(ele, search, numChild);
+                for (var i = numChild-1; i>=0; i--) {
+                    if (handledir(i)) {
+                        return;
+                    }
+                }
+            }
+            // Uses text from element to find item slot list.
+            // Ignores case and punctuation unless punctuation is included in the search.
+            // Spaces in search are implicit 'and'
+            function searchHandler(ele, event) {
+                if (event.keyCode == 13 && ele.value != "") { // Enter
+                    completeSearch(ele)
+                    return;
+                }
+
+                var search = getSearchTerms(ele.value);
+                // Number of things to search
+                var numChild = ele.parentElement.children[2].childElementCount;
+
+                if (event.keyCode == 38) {
+                    handleSearchUp(ele, search, numChild);
+                    return
+                } else if (event.keyCode == 40) {
+                    handleSearchDown(ele, search, numChild);
+                    return
+                }
                 var firstFound = false;
                 for (var i = 0; i < numChild; i++) {
                     var le = ele.parentElement.children[2].children[i];
-                    var value = le.innerText.toLowerCase();
-                    if (!doPunc) {
-                        value = value.replace(/[^\w\s]|_/g, "");
-                    }
-                    
-                    var found = true;
-                    sterms.forEach(st => {
-                        // If value is missing any search term, break search.
-                        if (!value.includes(st)) {
-                            found = false;
-                            return false;
-                        }
-                    });
-
+                    var found = find(search, le.innerText)
                     // Show / Hide item
                     if (found) {
                         if (!firstFound) {
@@ -351,20 +336,22 @@
                 setTimeout( () => {
                     console.log("focus: ", ele.parentElement.children[1].children[0]);
                     tb.focus();
-                }, 1);
+                }, 10);
             }
 
             // function 
         </script>
+    </head>
+    <body>
         <div id="root">
-            <h2>TBC Elemental Shaman Simulator</h2>
+            <h4>TBC Elemental Shaman Simulator</h4>
             <ul id="inputtabs" uk-tab="connect: #inputdata;swiping" >
                 <li class="uk-active"><a href="#">Gear</a></li>
                 <li><a href="#">Talents</a></li>
                 <li><a href="#">Buffs</a></li>
             </ul>
             <ul id="inputdata" class="uk-switcher uk-margin">
-                <li id="gear" style="height: 35%;overflow: auto;">
+                <li id="gear" style="height: 35%;overflow: auto;min-height: 400px;">
                     <div class="uk-grid-small uk-child-width-expand@s uk-text-center" uk-grid>
                         <div>
                             <div class="uk-grid-small uk-child-width-expand@s uk-text-center" uk-grid>
@@ -372,7 +359,7 @@
                                     <div id="equiphead">
                                         <button id="equipheaditem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equipheadsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equipheadsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -380,7 +367,7 @@
                                     <div id="equipneck">
                                         <button id="equipneckitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equipnecksearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equipnecksearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -388,7 +375,7 @@
                                     <div id="equipshoulder">
                                         <button id="equipshoulderitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equipshouldersearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equipshouldersearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -396,7 +383,7 @@
                                     <div id="equipback">
                                         <button id="equipbackitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equipbacksearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equipbacksearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -404,7 +391,7 @@
                                     <div id="equipchest">
                                         <button id="equipchestitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equipchestsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equipchestsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -412,7 +399,7 @@
                                     <div id="equipwrist">
                                         <button id="equipwristitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equipwristsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equipwristsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -420,7 +407,7 @@
                                     <div id="equipweapon">
                                         <button id="equipweaponitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equipweaponsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equipweaponsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -428,7 +415,7 @@
                                     <div id="equipoffhand">
                                         <button id="equipoffhanditem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equipoffhandsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equipoffhandsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -442,7 +429,7 @@
                                     <div id="equiphands">
                                         <button id="equiphandsitem"class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equiphandssearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equiphandssearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -450,7 +437,7 @@
                                     <div id="equipwaist">
                                         <button id="equipwaistitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equipwaistsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equipwaistsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -458,7 +445,7 @@
                                     <div id="equiplegs">
                                         <button id="equiplegsitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equiplegssearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equiplegssearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -466,7 +453,7 @@
                                     <div id="equipfeet">
                                         <button id="equipfeetitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equipfeetsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equipfeetsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -474,7 +461,7 @@
                                     <div id="equipfinger1">
                                         <button id="equipfinger1item" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equipfinger1search" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equipfinger1search" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -482,7 +469,7 @@
                                     <div id="equipfinger2">
                                         <button id="equipfinger2item" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equipfinger2search" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equipfinger2search" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -490,7 +477,7 @@
                                     <div id="equiptrinket1">
                                         <button id="equiptrinket1item" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equiptrinket1search" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equiptrinket1search" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -498,7 +485,7 @@
                                     <div id="equiptrinket2">
                                         <button id="equiptrinket2item" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equiptrinket2search" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equiptrinket2search" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -506,7 +493,7 @@
                                     <div id="equiptotem">
                                         <button id="equiptotemitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
                                         <div uk-dropdown="mode: click">
-                                            <input id="equiptotemsearch" onkeyup="searchItem(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
+                                            <input id="equiptotemsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
                                             <ul class="uk-nav uk-dropdown-nav">
                                             </ul>
                                         </div>
@@ -538,7 +525,7 @@
                             <button onclick="runsim();">Run Simulation</button>
                             Iterations: <input id="iters" type="text" value="100" style="width: 100px"></input>
                         </div>
-                        <pre id="output" style="overflow: auto; flex: 1;  display: flex; flex-direction: column;"></pre>
+                        <pre id="output" style="overflow: auto; top: 0px; bottom: 0px;"></pre>
                     </li>
                     <li style="height: 35%">
                         DPS Histogram

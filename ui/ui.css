@@ -1,0 +1,89 @@
+#calcdiv {
+    flex: 1;
+}
+li:hover {
+    /* color: orange; */
+    cursor: pointer;
+}
+.lisearch {
+    border: 1px solid orange;
+    margin: -1px;
+}
+button:hover {
+    color: #F0F0F0;
+    background-color: #aa6900;
+}
+button {
+    background-color: #a36500;
+    color: #E0E0E0;
+    cursor: pointer;
+}
+input:focus {
+    outline: none !important;
+    border:1px solid orange;
+}
+h2, h3, h4, pre, input {
+    color: #D0D0D0;
+    background-color: #303030;
+}
+h4 {
+    font-size: 1em;
+}
+.uk-tab {
+    color: #D0D0D0;
+}
+.uk-tab > .uk-active > a {
+    background-color: #303030;
+    color: #D0D0D0;
+}
+.uk-tab > * > a:hover {
+    color: #F0F0F0;
+}
+.uk-tab > .uk-active > a:hover {
+    color: #F0F0F0;
+}
+.uk-button:hover {
+    color: #F0F0F0;
+    border:1px solid orange;
+}
+.uk-button:active, .uk-button:focus {
+    color: #F0F0F0;
+    border:1px solid orange;
+}
+.uk-button {
+    line-height: 1.1;
+    width: 250px;
+    height: 40px;
+    padding: 1px;
+    color: #D0D0D0;
+}
+.uk-dropdown {
+    color: #D0D0D0;
+    background-color: #404040;
+}
+.uk-dropdown-nav {
+    width: 300px;
+    color: #D0D0D0;
+    background-color: #404040;
+}
+html, body {
+    background-color: #303030;
+    color: #D0D0D0;
+}
+#root {
+    max-width: 1200px;
+    margin: 0px auto;
+    padding: 5px;
+    height: 90%;
+    box-shadow: 0px 0px 5px #101010;
+    border: 1px solid #101010;
+}
+@media only screen and (min-width: 1240px) {
+    #root {
+        box-shadow: 8px 8px 5px #101010;
+        border: 1px solid #101010;
+        max-width: 1230px;
+        padding: 10px;
+        transition: all 1.0s ease-in-out;
+    }
+}
