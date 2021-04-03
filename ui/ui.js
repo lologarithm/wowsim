@@ -32,22 +32,22 @@ function getOptions() {
     var options = {};
 
 
-    options.buffai =  document.getElementById("buffai").value == "on";
-    options.buffgotw =  document.getElementById("buffgotw").value == "on";
-    options.buffbk =  document.getElementById("buffbk").value == "on";
-    options.buffibow =  document.getElementById("buffibow").value == "on";
-    options.buffmoon =  document.getElementById("buffmoon").value == "on";
-    options.sbufws =  document.getElementById("sbufws").value == "on";
-    options.debuffjow =  document.getElementById("debuffjow").value == "on";
-    options.confbl =  document.getElementById("confbl").value == "on";
-    options.confmr =  document.getElementById("confmr").value == "on";
-    options.conbwo =  document.getElementById("conbwo").value == "on";
-    options.conmm =  document.getElementById("conmm").value == "on";
-    options.conbb =  document.getElementById("conbb").value == "on";
-    options.consmp =  document.getElementById("consmp").value == "on";
-    options.condr =  document.getElementById("condr").value == "on";
-    options.totms =  document.getElementById("totms").value == "on";
-    options.totwoa =  document.getElementById("totwoa").value == "on";
+    options.buffai =  document.getElementById("buffai").checked;
+    options.buffgotw =  document.getElementById("buffgotw").checked;
+    options.buffbk =  document.getElementById("buffbk").checked;
+    options.buffibow =  document.getElementById("buffibow").checked;
+    options.buffmoon =  document.getElementById("buffmoon").checked;
+    options.sbufws =  document.getElementById("sbufws").checked;
+    options.debuffjow =  document.getElementById("debuffjow").checked;
+    options.confbl =  document.getElementById("confbl").checked;
+    options.confmr =  document.getElementById("confmr").checked;
+    options.conbwo =  document.getElementById("conbwo").checked;
+    options.conmm =  document.getElementById("conmm").checked;
+    options.conbb =  document.getElementById("conbb").checked;
+    options.consmp =  document.getElementById("consmp").checked;
+    options.condr =  document.getElementById("condr").checked;
+    options.totms =  document.getElementById("totms").checked;
+    options.totwoa =  document.getElementById("totwoa").checked;
 
     options.buffbl =  parseInt(document.getElementById("buffbl").value);
     options.buffspriest =  parseInt(document.getElementById("buffspriest").value);
