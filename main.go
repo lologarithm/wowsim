@@ -133,7 +133,7 @@ func main() {
 		rotArray = strings.Split(*rotation, ",")
 	}
 
-	results := runTBCSim(gear, opt, 60, sims, rotArray, *noopt)
+	results := runTBCSim(gear, opt, 180, sims, rotArray, *noopt)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
@@ -157,7 +157,7 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 
 	fmt.Printf("\nFinal Stats: %s\n", stats.Print())
 	statchan := make(chan string, 3)
-	for _, spells := range spellOrders {
+	for spi, spells := range spellOrders {
 		go func(spo []string) {
 			simDmgs := []float64{}
 			simOOMs := []int{}
@@ -247,7 +247,7 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 			}
 			statchan <- output
 		}(spells)
-		if tbc.IsDebug {
+		if tbc.IsDebug && spi != len(spellOrders)-1 {
 			time.Sleep(time.Second * 2)
 		}
 	}

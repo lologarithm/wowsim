@@ -295,7 +295,7 @@ var items = struct {
 			Stats: Stats{StatStm: 16, StatInt: 12, StatSpellDmg: 42, StatHaste: 0, StatSpellCrit: 23, StatSpellHit: 17, StatMP5: 0}}, //, 0, 0, 0, 0, 0},
 	},
 	Trinket: []Item{
-		{Slot: EquipTrinket, Name: "Quagmirran's Eye", SourceZone: "The Slave Pens", SourceDrop: "Quagmirran", Stats: Stats{StatInt: 15},
+		{Slot: EquipTrinket, Name: "Quagmirran's Eye", SourceZone: "The Slave Pens", SourceDrop: "Quagmirran", Stats: Stats{StatSpellDmg: 37},
 			Activate: ActivateQuagsEye, ActivateCD: -1}, // -1 will trigger an activation only once
 		{Slot: EquipTrinket, Name: "Icon of the Silver Crescent", SourceZone: "Shattrath", SourceDrop: "G'eras - 41 Badges", Stats: Stats{StatSpellDmg: 44},
 			Activate: ActivateSilverCrescent, ActivateCD: 120 * TicksPerSecond, CoolID: "icsctrink"},

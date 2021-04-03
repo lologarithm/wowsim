@@ -52,7 +52,6 @@ func AuraLightningOverload(lvl int) Aura {
 					DidDmg:     dmg,
 					Effects: []AuraEffect{
 						func(sim *Simulation, c *Cast) {
-							debug("\nLO Dmg Before: %0.0f\n", c.DidDmg)
 							c.DidDmg /= 2
 						},
 					},
@@ -123,7 +122,7 @@ func ActivateSilverCrescent(sim *Simulation) Aura {
 
 func ActivateQuagsEye(sim *Simulation) Aura {
 	lastActivation := math.MinInt32
-	const hasteBonus = 601.0
+	const hasteBonus = 320.0
 	return Aura{
 		ID:      "quageye",
 		Expires: math.MaxInt32,

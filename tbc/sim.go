@@ -397,7 +397,6 @@ func (sim *Simulation) Cast(cast *Cast) {
 		// Apply any effects specific to this cast.
 		for _, eff := range cast.Effects {
 			eff(sim, cast)
-			debug("\nLO Dmg Aft: %0.0f\n", cast.DidDmg)
 		}
 		// Apply any on spell hit effects.
 		for _, aur := range sim.Auras {
