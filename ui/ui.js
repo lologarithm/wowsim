@@ -49,9 +49,9 @@ function getOptions() {
     options.totms =  document.getElementById("totms").checked;
     options.totwoa =  document.getElementById("totwoa").checked;
 
-    options.buffbl =  parseInt(document.getElementById("buffbl").value);
-    options.buffspriest =  parseInt(document.getElementById("buffspriest").value);
-    options.totwr =  parseInt(document.getElementById("totwr").value);
+    options.buffbl =  parseInt(document.getElementById("buffbl").value) || 0;
+    options.buffspriest = parseInt(document.getElementById("buffspriest").value) || 0;
+    options.totwr =  parseInt(document.getElementById("totwr").value) || 0;
     options.buffdrum = 0; // todo, drums
 
     return options;

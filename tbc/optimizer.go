@@ -60,6 +60,9 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 		// avgOOMAt := int(float64(oomat) / float64(numoom))
 		if avgOOM < 0.1 {
 			newLB := (numLB + minLB) / 2
+			if numLB-minLB == 1 { // im lazy and this is easy to write...
+				newLB = minLB
+			}
 			if newLB == numLB {
 				// I guess we fail.
 				fmt.Printf("TopNLB = %d, %0.0f DPS\n", topNLB, topDmg/float64(seconds)/float64(numSims))
@@ -71,6 +74,9 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 			continue
 		} else if avgOOM > 0.33 {
 			newLB := (numLB + maxLB) / 2
+			if maxLB-numLB == 1 { // im lazy and this is easy to write...
+				newLB = maxLB
+			}
 			if newLB == numLB {
 				// I guess we fail.
 				fmt.Printf("TopNLB = %d, %0.0f DPS\n", topNLB, topDmg/float64(numSims))
