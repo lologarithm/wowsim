@@ -103,26 +103,53 @@ func parseOptions(val js.Value) tbc.Options {
 	return opt
 }
 
+func parseRotation(val js.Value) [][]string {
+
+	out := [][]string{}
+
+	for i := 0; i < val.Length(); i++ {
+		rot := []string{}
+		jsrot := val.Index(i)
+		for j := 0; j < jsrot.Length(); j++ {
+			rot = append(rot, jsrot.Index(j).String())
+		}
+		out = append(out, rot)
+	}
+
+	return out
+}
+
 // Simulate takes in number of iterations, duration, a gear list, and simulation options.
-// (iterations, duration, gearlist, options)
+// (iterations, duration, gearlist, options, <optional, custom rotation)
 func Simulate(this js.Value, args []js.Value) interface{} {
 	// TODO: Accept talents, buffs, and consumes as inputs.
 
-	if len(args) != 4 {
-		print("Expected 4 arguments:  (iterations, duration, gearlist, options)")
+	if len(args) < 4 {
+		print("Expected 4 min arguments:  (#iterations, duration, gearlist, options)")
 		return `{"error": "invalid arguments supplied"}`
 	}
 
+	customRotation := [][]string{}
+	customHaste := 0.0
+	if len(args) == 6 {
+		customRotation = parseRotation(args[4])
+		customHaste = args[5].Float()
+	}
 	gear := getGear(args[2])
+	fmt.Printf("Gear Stats: %s", gear.Stats().Print())
 	opt := parseOptions(args[3])
 	stats := opt.StatTotal(gear)
+	if customHaste != 0 {
+		stats[tbc.StatHaste] = customHaste
+	}
+	fmt.Printf("Total Stats: %s", stats.Print())
 
 	simi := args[0].Int()
 	if simi == 1 {
 		tbc.IsDebug = true
 	}
 	dur := args[1].Int()
-	results := runTBCSim(opt, stats, gear, dur, simi)
+	results := runTBCSim(opt, stats, gear, dur, simi, customRotation)
 
 	st := time.Now()
 	output, err := json.Marshal(results)
@@ -162,7 +189,7 @@ type CastMetric struct {
 	Time  float64 // seconds it took to cast this spell
 }
 
-func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int) []SimResult {
+func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int, customRotation [][]string) []SimResult {
 	print("\nSim Duration:", seconds)
 	print("\nNum Simulations: ", numSims)
 	print("\n")
@@ -171,7 +198,11 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		{"LB12"},               // only LB
 		{"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
 	}
-
+	doingCustom := false
+	if len(customRotation) > 0 {
+		doingCustom = true
+		spellOrders = customRotation
+	}
 	results := []SimResult{}
 	var simMetrics SimResult
 
@@ -192,13 +223,14 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 				Time:  float64(v.TicksUntilCast) / float64(tbc.TicksPerSecond),
 			})
 		}
-		if rotation == 0 {
-			if metrics.OOMAt > 0 {
+		if metrics.OOMAt > 0 {
+			// DmgAtOOMs
+			simMetrics.DmgAtOOMs = append(simMetrics.DmgAtOOMs, metrics.DamageAtOOM)
+			// Min/Max tracking
+			if rotation == 0 {
 				lboom += metrics.OOMAt
 				lboomCount++
-			}
-		} else if rotation == 1 {
-			if metrics.OOMAt > 0 {
+			} else if rotation == 1 {
 				prioom += metrics.OOMAt
 				prioomCount++
 			}
@@ -226,46 +258,46 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 
 	}
 
-	if len(spellOrders) > 0 {
+	if !doingCustom {
 		for i, spells := range spellOrders {
 			dosim(spells, i, 600)
 		}
-	}
 
-	if lboomCount == 0 {
-		lboom = 1000
-	} else {
-		lboom /= lboomCount
-	}
-	if prioomCount == 0 {
-		prioom = 1000
-	} else {
-		prioom /= prioomCount
-	}
-
-	fmt.Printf("Avg LB OOM: %ds, Avg Pri OOM: %ds, Input %ds\n", lboom, prioom, seconds)
-
-	if seconds >= lboom {
-		fmt.Printf("LB only is optimal.\n")
-		// LB spam is optimal.
-		// Probably need to downrank.
-		dosim(spellOrders[0], 3, seconds)
-	} else if seconds < prioom {
-		fmt.Printf("CL always is optimal.\n")
-		dosim(spellOrders[1], 3, seconds)
-		// Priority spam is optimal
-	} else {
-		bestRotMetrics, rotation := tbc.OptimalRotation(stats, opts, equip, seconds, numSims)
-		simMetrics = SimResult{Rotation: rotation}
-		for _, rotmet := range bestRotMetrics {
-			pm(rotmet, 2)
+		if lboomCount == 0 {
+			lboom = 1000
+		} else {
+			lboom /= lboomCount
 		}
-		simMetrics.SimSeconds = seconds
-		results = append(results, simMetrics)
-	}
+		if prioomCount == 0 {
+			prioom = 1000
+		} else {
+			prioom /= prioomCount
+		}
 
-	// else {
-	// 	tbc.OptimalRotation(stats, tbc.Options{RSeed: time.Now().Unix()}, equip, seconds, numSims)
-	// }
+		fmt.Printf("Avg LB OOM: %ds, Avg Pri OOM: %ds, Input %ds\n", lboom, prioom, seconds)
+
+		if seconds >= lboom {
+			fmt.Printf("LB only is optimal.\n")
+			// LB spam is optimal.
+			// Probably need to downrank.
+			dosim(spellOrders[0], 3, seconds)
+		} else if seconds < prioom {
+			fmt.Printf("CL always is optimal.\n")
+			dosim(spellOrders[1], 3, seconds)
+			// Priority spam is optimal
+		} else {
+			bestRotMetrics, rotation := tbc.OptimalRotation(stats, opts, equip, seconds, numSims)
+			simMetrics = SimResult{Rotation: rotation}
+			for _, rotmet := range bestRotMetrics {
+				pm(rotmet, 2)
+			}
+			simMetrics.SimSeconds = seconds
+			results = append(results, simMetrics)
+		}
+	} else {
+		for i, spells := range spellOrders {
+			dosim(spells, i+3, seconds)
+		}
+	}
 	return results
 }

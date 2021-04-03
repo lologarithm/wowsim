@@ -37,6 +37,7 @@
                 <li class="uk-active"><a href="#">Gear</a></li>
                 <li><a href="#">Talents</a></li>
                 <li><a href="#">Buffs</a></li>
+                <li><a href="#">Notes</a></li>
             </ul>
             <ul id="inputdata" class="uk-switcher uk-margin">
                 <li id="gear" style="height: 35%;overflow: auto;min-height: 400px;">
@@ -251,12 +252,20 @@
                         </div>
                     </div>
                 </li>
+                <li id="notes" style="height: 35%;overflow: auto;">
+                    <ul>
+                        <li>All activatable abilities and items are activated on CD (usually at the start of fight).</li>
+                        <li>Gems and gemming bonuses are not implemented.</li>
+                        <li>Set bonuses are not implemented.</li>
+                    </ul>
+                </li>
             </ul>
             <div id="calcdiv">
                 <ul id="calctabs" uk-tab="connect: #calcs">
                     <li class="uk-active"><a href="#">Sim</a></li>
                     <li><a href="#">Histogram</a></li>
                     <li><a href="#">Stats</a></li>
+                    <li><a href="#">Hasted Rotations</a></li>
                 </ul>
                 <ul id="calcs" class="uk-switcher uk-margin">
                     <li>
@@ -273,6 +282,18 @@
                     <li style="height: 35%">
                         Final Stats:
                         <div id="fstats"></div>
+                    </li>
+                    <li style="height: 35%">
+                        <div style="text-align: right;">
+                            <button onclick="hastedRotations();">Optimize Haste Rotation</button>
+                        </div>
+                        <ul>
+                            <li>Does not use bloodlust (ignores BL settings above)</li>
+                            <li>Uses all other options, but replaces the haste stat.</li>
+                            <li>Do not recommend using Quags Eye</li>
+                            <li>Not mana optimized, this is showing max dps for a 60s fight</li>
+                        </ul>
+                        <div id="hasterots"></div>
                     </li>
                 </ul>    
             </div>

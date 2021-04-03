@@ -75,6 +75,17 @@ h4 {
     background-color: #404040;
     color: #F0F0F0;
 }
+.hastetable {
+    margin: 15px auto;
+    border-collapse: collapse;
+    background-color: #505050;
+    border:1px solid #D0D0D0;
+}
+.hastetable td {
+    padding: 10px;
+    border:1px solid #D0D0D0;
+}
+
 html, body {
     background-color: #303030;
     color: #D0D0D0;

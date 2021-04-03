@@ -107,7 +107,14 @@ function runsim() {
             return sum;
         }, 0);
         if (numOOM > 0) {
+            var values = out.DmgAtOOMs;
+            console.log(values);
+            var avg = average(values);
+            var dev = standardDeviation(values, avg);
+            var simdur = Math.round(oomat/numOOM);
+    
             fulloutput += "Went OOM: " + numOOM + " / " + iters + " simulations. Average time when OOM: " + Math.round(oomat/numOOM) + " seconds.<br />";
+            fulloutput += "DPS at time of OOM: " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";    
         }
         fulloutput += "<br />";
     });
@@ -132,6 +139,69 @@ function runsim() {
 
     metricHTML += fulloutput;
     outele.innerHTML = metricHTML;
+    // statele.innerHTML = JSON.stringify(output.stats).replaceAll(",", "\n", );
+}
+
+function hastedRotations() {
+    console.log("Starting hasted rotations...");
+    var gearlist = [];
+    slotToID.forEach(k => {
+        var item = currentGear[k];
+        if (item != null && item.name != "") {
+            gearlist.push(item.name);
+        }
+    });
+    var opts = getOptions();
+    opts.buffbl = 0;
+
+    var fulloutput = "<table class=\"hastetable\"><tr><th>Haste</th><th>Rotation</th><th>DPS</th></tr>";
+
+    var hastes = [100, 200, 300, 400, 500, 600, 700, 788];
+    var rots = [
+        ["CL6", "LB12", "LB12", "LB12", "LB12"],
+        ["CL6", "LB12", "LB12", "LB12", "LB12", "LB12"],
+        ["CL6", "LB12", "LB12", "LB12", "LB12", "LB12", "LB12"]
+    ];
+
+    hastes.forEach( haste => {
+        console.log("Running haste: ", haste);
+        var opts = getOptions();
+        opts.buffbl = 0;
+        opts.buffdrum = 0;
+
+        var resStr = simulate(200, 60, gearlist, opts, rots, haste);
+        var output = JSON.parse(resStr);
+        
+        var maxdmg = 0.0;
+        var maxrot = {};
+
+        output.forEach(out => {
+            var total = out.TotalDmgs.reduce(function(sum, value){
+                return sum + value;
+            }, 0);
+            if (total > maxdmg) {
+                maxrot = out;
+                maxdmg = total;
+            }
+        });
+        
+        var values = maxrot.TotalDmgs;
+        var avg = average(values);
+        var dev = standardDeviation(values, avg);
+        var simdur = maxrot.SimSeconds;
+        var rotTitle = "CL / " + (maxrot.Rotation.length-1).toString() + "xLB";
+        fulloutput += "<tr><td>" + haste + "</td>"
+        fulloutput += "<td>"
+        fulloutput += rotTitle
+        fulloutput += "</td>"
+        fulloutput += "<td>"
+        fulloutput += "" + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";
+        fulloutput += "</td>"
+    });
+
+    fulloutput += "</table>"
+    var outele = document.getElementById("hasterots");
+    outele.innerHTML = fulloutput;
     // statele.innerHTML = JSON.stringify(output.stats).replaceAll(",", "\n", );
 }
 
