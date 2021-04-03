@@ -80,6 +80,7 @@ function runsim() {
         var total = out.TotalDmgs.reduce(function(sum, value){
             return sum + value;
         }, 0);
+        var dps = total / out.SimSeconds;
         if (total/out.SimSeconds > maxdps) {
             maxdps = total/out.SimSeconds;
             optimal = out;
@@ -88,12 +89,13 @@ function runsim() {
         var values = out.TotalDmgs;
         var avg = average(values);
         var dev = standardDeviation(values, avg);
-        var simdur = out.SimSeconds
+        var simdur = out.SimSeconds;
         if (out.Rotation[0] == "pri") {
             fulloutput += "Priority: " + out.Rotation.slice(1).join(", ") + "<br />";
         } else {
             fulloutput += "Rotation: " + out.Rotation.join(", ") + "<br />";
         }
+        fulloutput += "Duration: " + out.SimSeconds + " seconds.<br />"
         fulloutput += "DPS: " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";
 
         var oomat = 0;
@@ -112,17 +114,22 @@ function runsim() {
 
     var outele = document.getElementById("output");
     var statele = document.getElementById("fstats");
-
-    var metricHTML = "<br /><hr />Optimal Casting Rotation -> ";
+    
+    var simdur = optimal.SimSeconds;
+    var metricHTML = "<br /><hr />Optimal Casting Rotation for a " + simdur + " second fight -> ";
     if (optimal.Rotation.length == 1) {
-        metricHTML += "<b>LB12 Spam</b<<hr /><br /><br />";
+        metricHTML += "<b>LB12 Spam</b>";
     } else if (optimal.Rotation[0] == "pri") {
-        metricHTML += "<b>CL on CD</b><hr /><br /><br />";
+        metricHTML += "<b>CL on CD</b>";
     } else {
         var numLB = optimal.Rotation.length - 1
-        metricHTML += " " + numLB + "LB : 1CL <hr /><br /><br />";
+        metricHTML += " <b>" + numLB + "LB : 1CL</b>";
     }
-    
+    var values = optimal.TotalDmgs;
+    var avg = average(values);
+    var dev = standardDeviation(values, avg);
+    metricHTML += " @ " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + " DPS<hr /><br /><br />";
+
     metricHTML += fulloutput;
     outele.innerHTML = metricHTML;
     // statele.innerHTML = JSON.stringify(output.stats).replaceAll(",", "\n", );

@@ -147,6 +147,7 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 type SimResult struct {
 	Casts        [][]CastMetric
 	TotalDmgs    []float64
+	DmgAtOOMs    []float64
 	OOMAt        []float64 // oom time totals
 	Rotation     []string
 	SimSeconds   int
@@ -207,22 +208,27 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		simMetrics.TotalDmgs = append(simMetrics.TotalDmgs, metrics.TotalDamage)
 	}
 
+	dosim := func(spells []string, rotIdx int, simsec int) {
+		simMetrics = SimResult{Rotation: spells}
+		st := time.Now()
+		rseed := time.Now().Unix()
+		optNow := opts
+		optNow.SpellOrder = spells
+		optNow.RSeed = rseed
+		sim := tbc.NewSim(stats, equip, optNow)
+		for ns := 0; ns < numSims; ns++ {
+			metrics := sim.Run(simsec)
+			pm(metrics, rotIdx)
+		}
+		simMetrics.SimSeconds = simsec
+		simMetrics.RealDuration = time.Now().Sub(st)
+		results = append(results, simMetrics)
+
+	}
+
 	if len(spellOrders) > 0 {
 		for i, spells := range spellOrders {
-			simMetrics = SimResult{Rotation: spells}
-			st := time.Now()
-			rseed := time.Now().Unix()
-			optNow := opts
-			optNow.SpellOrder = spells
-			optNow.RSeed = rseed
-			sim := tbc.NewSim(stats, equip, optNow)
-			for ns := 0; ns < numSims; ns++ {
-				metrics := sim.Run(600)
-				pm(metrics, i)
-			}
-			simMetrics.SimSeconds = 600
-			simMetrics.RealDuration = time.Now().Sub(st)
-			results = append(results, simMetrics)
+			dosim(spells, i, 600)
 		}
 	}
 
@@ -239,12 +245,14 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 
 	fmt.Printf("Avg LB OOM: %ds, Avg Pri OOM: %ds, Input %ds\n", lboom, prioom, seconds)
 
-	if seconds > lboom {
+	if seconds >= lboom {
 		fmt.Printf("LB only is optimal.\n")
 		// LB spam is optimal.
 		// Probably need to downrank.
+		dosim(spellOrders[0], 3, seconds)
 	} else if seconds < prioom {
 		fmt.Printf("CL always is optimal.\n")
+		dosim(spellOrders[1], 3, seconds)
 		// Priority spam is optimal
 	} else {
 		bestRotMetrics, rotation := tbc.OptimalRotation(stats, opts, equip, seconds, numSims)
