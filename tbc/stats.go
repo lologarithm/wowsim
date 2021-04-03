@@ -4,7 +4,7 @@ import (
 	"strconv"
 )
 
-var tickPerSecond = 10
+var TicksPerSecond = 30
 
 type Stats []float64
 
@@ -20,6 +20,7 @@ const (
 	StatMP5
 	StatMana
 	StatSpellPen
+
 	StatLen
 )
 
@@ -46,6 +47,14 @@ func (s Stat) StatName() string {
 	}
 
 	return "none"
+}
+
+func (st Stats) Clone() Stats {
+	ns := make(Stats, StatLen)
+	for i, v := range st {
+		ns[i] = v
+	}
+	return ns
 }
 
 func (st Stats) Print() string {

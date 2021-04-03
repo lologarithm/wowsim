@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+// TODO: Implement gems and socket bonuses.
+
 // TODO: is the item separated structure better?
 //   or should it just be a giant list?
 var items = struct {
@@ -21,6 +23,7 @@ var items = struct {
 	Trinket  []Item
 	MainHand []Item
 	OffHand  []Item
+	Totem    []Item
 }{
 	Head: []Item{
 		{Slot: EquipHead, Name: "Uni-Mind Headdress", SourceZone: "Kara", SourceDrop: "Netherspite",
@@ -295,8 +298,12 @@ var items = struct {
 		{Slot: EquipTrinket, Name: "Quagmirran's Eye", SourceZone: "The Slave Pens", SourceDrop: "Quagmirran", Stats: Stats{StatInt: 15},
 			Activate: ActivateQuagsEye, ActivateCD: -1}, // -1 will trigger an activation only once
 		{Slot: EquipTrinket, Name: "Icon of the Silver Crescent", SourceZone: "Shattrath", SourceDrop: "G'eras - 41 Badges", Stats: Stats{StatSpellDmg: 44},
-			Activate: ActivateSilverCrescent, ActivateCD: 120 * tickPerSecond, CoolID: "trinket"},
+			Activate: ActivateSilverCrescent, ActivateCD: 120 * TicksPerSecond, CoolID: "trinket"},
 		{Slot: EquipTrinket, Name: "Neltharion's Tear", SourceZone: "BWL", SourceDrop: "Nefarian", Stats: Stats{StatSpellDmg: 44, StatSpellHit: 16}},
+	},
+	Totem: []Item{
+		{Slot: EquipTotem, Name: "Skycall Totem", SourceZone: "Geras", SourceDrop: "20 Badges", Stats: Stats{},
+			Activate: ActivateSkycall, ActivateCD: -1}, // -1 will trigger an activation only once
 	},
 }
 
@@ -360,6 +367,10 @@ func init() {
 		ItemLookup[cv.Name] = &cv
 	}
 	for _, v := range items.OffHand {
+		cv := v
+		ItemLookup[cv.Name] = &cv
+	}
+	for _, v := range items.Totem {
 		cv := v
 		ItemLookup[cv.Name] = &cv
 	}
@@ -631,7 +642,7 @@ var moreItems = []Item{
 	{Slot: 11, Name: "Xi'ri's Gift", SourceZone: "The Sha'tar - Revered", SourceDrop: "", Stats: Stats{0, 0, 32, 0, 0, 0, 0}},
 	{Slot: 11, Name: "Vengeance of the Illidari", SourceZone: "Cruel's Intentions/Overlord - HFP Quest", SourceDrop: "", Stats: Stats{0, 0, 26, 0, 0, 0, 0}},
 	{Slot: 11, Name: "Figurine - Living Ruby Serpent", SourceZone: "Jewelcarfting BoP", SourceDrop: "", Stats: Stats{23, 33, 0, 0, 0, 0, 0}},
-	{Slot: 19, Name: "Totem of the Void", SourceZone: "Mech - Cache of the Legion", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
+	{Slot: 19, Name: "Totem of the Void", SourceZone: "Mech - Cache of the Legion", SourceDrop: "", Stats: Stats{StatSpellDmg: 55}}, // TODO: Make an aura that effects only LB/CL
 	{Slot: 19, Name: "Totem of the Pulsing Earth", SourceZone: "15 Badge of Justice - G'eras", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
 	{Slot: 19, Name: "Totem of Impact", SourceZone: "15 Mark of Thrallmar/ Honor Hold", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
 	{Slot: 19, Name: "Totem of Lightning", SourceZone: "Colossal Menace - HFP Quest", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},

@@ -1,0 +1,8 @@
+This directory contains the SPA client application and the go main function that binds the UI to wasm compiled simulator.
+
+To compile the wasm 
+    `GOARCH=wasm GOOS=js go build -o lib.wasm main_wasm.go`
+
+To serve this client for development
+    (from root) go run main.go web.go --web (this will host the ui directory at http://localhost:3333/ui)
+

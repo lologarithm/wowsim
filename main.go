@@ -7,36 +7,51 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"os"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/lologarithm/wowsim/tbc"
+
+	// /script print(GetSpellBonusDamage(4))
+
+	// Buffs
+	//  - Additive
+	//  - Multiplicative
+	//
+	// 'Aura' Effects
+	//  - On Hitting
+	//  - On Cast
+	//	- On Being Hit
+	//  - Always
+	//
+	// Applies to
+	//  - Specific Spell
+	//  - All Spells
+	//
+	// Modifiers
+	//  - Dmg
+	//  - Cast Time
+	//  - Hit Chance
+	//  - Mana Cost
+
+	_ "net/http/pprof"
 )
 
-// /script print(GetSpellBonusDamage(4))
-
-// Buffs
-//  - Additive
-//  - Multiplicative
-//
-// 'Aura' Effects
-//  - On Hitting
-//  - On Cast
-//	- On Being Hit
-//  - Always
-//
-// Applies to
-//  - Specific Spell
-//  - All Spells
-//
-// Modifiers
-//  - Dmg
-//  - Cast Time
-//  - Hit Chance
-//  - Mana Cost
-
 func main() {
+
+	f, err := os.Create("profile2.cpu")
+	if err != nil {
+		log.Fatal("could not create CPU profile: ", err)
+	}
+	defer f.Close() // error handling omitted for example
+	if err := pprof.StartCPUProfile(f); err != nil {
+		log.Fatal("could not start CPU profile: ", err)
+	}
+	defer pprof.StopCPUProfile()
+
 	var isDebug = flag.Bool("debug", false, "Include --debug to spew the entire simulation log.")
 	var rotation = flag.String("rotation", "", "Custom comma separated rotation to simulate.\n\tFor Example: --rotation=CL6,LB12")
 	var runWebUI = flag.Bool("web", false, "Use to run sim in web interface instead of in terminal")
@@ -70,40 +85,44 @@ func main() {
 	)
 
 	gearStats := gear.Stats()
+	fmt.Printf("Gear Stats:\n%s", gearStats.Print())
 
-	stats := tbc.Stats{
-		tbc.StatInt:       104,         // Base
-		tbc.StatSpellCrit: 48.62 + 243, // Base + Talents + Totem
-		tbc.StatSpellHit:  151.2,       // Totem + Talents
-		tbc.StatSpellDmg:  101,         // Totem
-		tbc.StatMP5:       50 + 25,     // Water Shield + Mana Stream
-		tbc.StatMana:      2958,        // level 70 shaman
-		tbc.StatHaste:     0,
-		tbc.StatSpellPen:  0,
+	opt := tbc.Options{
+		NumBloodlust: 1,
+		NumDrums:     0,
+		Buffs: tbc.Buffs{
+			ArcaneInt:                true,
+			GiftOftheWild:            true,
+			BlessingOfKings:          true,
+			ImprovedBlessingOfWisdom: true,
+			JudgementOfWisdom:        true,
+			Moonkin:                  true,
+			SpriestDPS:               0,
+			WaterShield:              true,
+		},
+		Consumes: tbc.Consumes{
+			BrilliantWizardOil: true,
+			MajorMageblood:     true,
+			BlackendBasilisk:   true,
+			SuperManaPotion:    true,
+			DarkRune:           true,
+		},
+		Talents: tbc.Talents{
+			LightninOverload:   5,
+			ElementalPrecision: 3,
+			NaturesGuidance:    3,
+			TidalMastery:       5,
+			ElementalMastery:   true,
+			UnrelentingStorm:   3,
+			CallOfThunder:      5,
+		},
+		Totems: tbc.Totems{
+			TotemOfWrath: 1,
+			WrathOfAir:   true,
+			ManaStream:   true,
+		},
 	}
 
-	buffs := tbc.Stats{
-		tbc.StatInt:       40, //arcane int
-		tbc.StatSpellCrit: 14, // brill wiz oil
-		tbc.StatSpellHit:  0,
-		tbc.StatSpellDmg:  36, // brill wiz oil
-		tbc.StatMP5:       16, // maj mageblood
-		tbc.StatHaste:     0,
-		tbc.StatSpellPen:  0,
-	}
-
-	for i, v := range buffs {
-		stats[i] += v
-		stats[i] += gearStats[i]
-	}
-
-	stats[tbc.StatInt] *= 1.1 // blessing of kings
-
-	stats[tbc.StatSpellCrit] += (stats[tbc.StatInt] / 80) / 100 // 1% crit per 59.5 int
-	stats[tbc.StatMana] += stats[tbc.StatInt] * 15
-
-	fmt.Printf("Final Stats:\n")
-	fmt.Printf(stats.Print())
 	sims := 10000
 	if *isDebug {
 		sims = 1
@@ -112,18 +131,25 @@ func main() {
 	if rotation != nil && len(*rotation) > 0 {
 		rotArray = strings.Split(*rotation, ",")
 	}
-	results := runTBCSim(stats, gear, 120, sims, rotArray)
+
+	results := runTBCSim(gear, opt, 250, sims, rotArray)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
 }
 
-func runTBCSim(stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int, customRotation []string) []string {
+func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, customRotation []string) []string {
 	fmt.Printf("\nSim Duration: %d sec\nNum Simulations: %d\n", seconds, numSims)
+
+	stats := opt.StatTotal(equip)
+
+	tbc.OptimalRotation(stats, opt, equip, seconds, numSims)
+
+	return nil
 
 	spellOrders := [][]string{
 		// {"CL6", "LB12", "LB12", "LB12"},
-		{"CL6", "LB12", "LB12", "LB12", "LB12"},
+		// {"CL6", "LB12", "LB12", "LB12", "LB12"},
 		{"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
 		{"LB12"},               // only LB
 	}
@@ -132,23 +158,45 @@ func runTBCSim(stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int, c
 		spellOrders = [][]string{customRotation}
 	}
 
+	fmt.Printf("\nFinal Stats: %s\n", stats.Print())
 	statchan := make(chan string, 3)
 	for _, spells := range spellOrders {
 		go func(spo []string) {
 			simDmgs := []float64{}
 			simOOMs := []int{}
 			histogram := map[int]int{}
+			casts := map[string]int{}
+			manaSpent := 0.0
+			manaLeft := 0.0
+			oomdps := 0.0
+			ooms := 0
+			numOoms := 0
 
 			rseed := time.Now().Unix()
-			sim := tbc.NewSim(stats, equip, spo, rseed)
+			opt.SpellOrder = spo
+			opt.RSeed = rseed
+			sim := tbc.NewSim(stats, equip, opt)
 			for ns := 0; ns < numSims; ns++ {
 				metrics := sim.Run(seconds)
 				simDmgs = append(simDmgs, metrics.TotalDamage)
 				simOOMs = append(simOOMs, metrics.OOMAt)
+				manaLeft += float64(metrics.ManaAtEnd)
+				oomdps += metrics.DamageAtOOM
 
+				ooms += metrics.OOMAt
+				if metrics.OOMAt > 0 {
+					numOoms++
+				}
+
+				for _, cast := range metrics.Casts {
+					casts[cast.Spell.ID] += 1
+					manaSpent += cast.ManaCost
+				}
 				rv := int(math.Round(math.Round(metrics.TotalDamage/float64(seconds))/10) * 10)
 				histogram[rv] += 1
 			}
+
+			oomdps /= float64(numOoms)
 
 			// TODO: do this better... for now just dumping histograph data to disk lol.
 			out := ""
@@ -173,39 +221,32 @@ func runTBCSim(stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int, c
 			mean := totalDmg / float64(numSims)
 			stdev := math.Sqrt(meanSq - mean*mean)
 
-			// mean - dev*conf, mean + dev*conf
-			// Z
-			// 80% 	1.282
-			// 85% 	1.440
-			// 90% 	1.645
-			// 95% 	1.960
-			// 99% 	2.576
-			// 99.5% 	2.807
-			// 99.9% 	3.291
-
 			output := ""
 			output += fmt.Sprintf("Spell Order: %v\n", spo)
 			output += fmt.Sprintf("DPS:")
 			output += fmt.Sprintf("\tMean: %0.1f\n", (mean / float64(seconds)))
 			output += fmt.Sprintf("\tMax: %0.1f\n", (max / float64(seconds)))
 			output += fmt.Sprintf("\tStd.Dev: %0.1f\n", stdev/float64(seconds))
+			output += fmt.Sprintf("Total Casts:\n")
 
-			ooms := 0
-			numOoms := 0
-			for _, oa := range simOOMs {
-				ooms += oa
-				if oa > 0 {
-					numOoms++
-				}
+			for k, v := range casts {
+				output += fmt.Sprintf("\t%s: %d\n", k, v/numSims)
 			}
+			// output += fmt.Sprintf("Avg Mana Spent: %d\n", int(manaSpent)/numSims)
+			// output += fmt.Sprintf("Avg Mana Left: %d\n", int(manaLeft)/numSims)
 
-			avg := 0
+			// avgleft := (manaLeft) / float64(numSims)
+			// extraCL := int(avgleft / 414) // 414 is cost of difference casting CL instead of LB
+			// output += fmt.Sprintf("Add CL: %d\n", extraCL)
+
+			avgoomSec := 0
 			if numOoms > 0 {
-				avg = ooms / numOoms
+				avgoomSec = ooms / numOoms
 			}
 			output += fmt.Sprintf("Went OOM: %d/%d sims\n", numOoms, numSims)
 			if numOoms > 0 {
-				output += fmt.Sprintf("Avg OOM Time: %d seconds\n", avg)
+				output += fmt.Sprintf("Avg OOM Time: %d seconds\n", avgoomSec)
+				output += fmt.Sprintf("Avg DPS At OOM: %0.0f\n", oomdps/float64(avgoomSec))
 			}
 			statchan <- output
 		}(spells)

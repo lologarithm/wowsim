@@ -66,23 +66,32 @@ h4 {
     color: #D0D0D0;
     background-color: #404040;
 }
+.buffs {
+    margin: 7px !important;
+    background-color: #404040;
+    padding: 3px;
+}
+.buffdrop {
+    background-color: #404040;
+    color: #F0F0F0;
+}
 html, body {
     background-color: #303030;
     color: #D0D0D0;
 }
 #root {
-    max-width: 1200px;
+    max-width: 1600px;
     margin: 0px auto;
     padding: 5px;
     height: 90%;
     box-shadow: 0px 0px 5px #101010;
     border: 1px solid #101010;
 }
-@media only screen and (min-width: 1240px) {
+@media only screen and (min-width: 1640px) {
     #root {
         box-shadow: 8px 8px 5px #101010;
         border: 1px solid #101010;
-        max-width: 1230px;
+        max-width: 1620px;
         padding: 10px;
         transition: all 1.0s ease-in-out;
     }

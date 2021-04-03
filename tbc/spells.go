@@ -15,7 +15,7 @@ type Cast struct {
 	DidHit  bool
 	DidCrit bool
 	DidDmg  float64
-	CastAt  int // simulation second the spell cast
+	CastAt  int // simulation tick the spell cast
 
 	Effects []AuraEffect // effects applied ONLY to this cast.
 }
@@ -33,26 +33,25 @@ func NewCast(sim *Simulation, sp *Spell, spellDmg, spHit, spCrit float64) *Cast 
 
 	if isLB || isCL {
 		// Talent to reduce cast time.
-		castTime -= 0.5
+		castTime -= 0.5 // Talent Lightning Mastery
 	}
 	castTime /= (1 + ((sim.Stats[StatHaste] + sim.Buffs[StatHaste]) / 1576)) // 15.76 rating grants 1% spell haste
-	cast.TicksUntilCast = int(castTime * float64(tickPerSecond))
-
-	// TODO:
-	//   Real equipment and talent checks
+	cast.TicksUntilCast = int(castTime * float64(TicksPerSecond))
 
 	if isLB || isCL {
-		// totem of the void
-		cast.Spellpower += 55
-
-		// Talent Convection
-		cast.ManaCost *= 0.9
-
-		cast.ManaCost -= 37 // Judgement of Wisdom
+		cast.ManaCost *= 1 - (0.2 * float64(sim.Options.Talents.Convection))
 	}
 
 	cast.Hit = 0.83 + (spHit / 1260.0) // 12.6 hit == 1% hit
 	cast.Crit = (spCrit / 2208.0)      // 22.08 crit == 1% crit
+
+	// Apply any on cast effects.
+	for _, aur := range sim.Auras {
+		if aur.OnCast != nil {
+			aur.OnCast(sim, cast)
+		}
+	}
+
 	return cast
 }
 

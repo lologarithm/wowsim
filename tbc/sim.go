@@ -2,6 +2,7 @@ package tbc
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"strings"
 )
@@ -17,9 +18,12 @@ func debug(s string, vals ...interface{}) {
 type Simulation struct {
 	CurrentMana float64
 
-	Stats         Stats
-	Buffs         Stats     // temp increases
-	Equip         Equipment // Current Gear
+	Stats       Stats
+	Buffs       Stats     // temp increases
+	Equip       Equipment // Current Gear
+	activeEquip Equipment // cache of gear that can activate.
+
+	Options       Options
 	SpellRotation []string
 	RotationIdx   int
 
@@ -40,26 +44,193 @@ type Simulation struct {
 
 type SimMetrics struct {
 	TotalDamage float64
+	DamageAtOOM float64
 	OOMAt       int
 	Casts       []*Cast
+	ManaAtEnd   int
+	Rotation    []string
 }
 
-func NewSim(stats Stats, equip Equipment, spellOrder []string, rseed int64) *Simulation {
+type Options struct {
+	SpellOrder []string
+	RSeed      int64
+	ExitOnOOM  bool
+
+	NumBloodlust int
+	NumDrums     int
+
+	Buffs    Buffs
+	Consumes Consumes
+	Talents  Talents
+	Totems   Totems
+}
+
+func (o Options) StatTotal(e Equipment) Stats {
+	gearStats := e.Stats()
+	stats := o.BaseStats()
+	for i := range stats {
+		stats[i] += gearStats[i]
+	}
+
+	stats = o.Talents.AddStats(o.Buffs.AddStats(o.Consumes.AddStats(o.Totems.AddStats(stats))))
+
+	if o.Buffs.BlessingOfKings {
+		stats[StatInt] *= 1.1 // blessing of kings
+	}
+
+	// Final calculations
+	stats[StatSpellCrit] += (stats[StatInt] / 80) / 100
+	stats[StatMana] += stats[StatInt] * 15
+	fmt.Printf("\fFinal MP5: %f", (stats[StatMP5] + (stats[StatInt] * 0.06)))
+
+	return stats
+}
+
+func (o Options) BaseStats() Stats {
+	stats := Stats{
+		StatInt:  104,  // Base
+		StatMana: 2958, // level 70 shaman
+		StatLen:  0,
+	}
+	return stats
+}
+
+type Totems struct {
+	TotemOfWrath int
+	WrathOfAir   bool
+	ManaStream   bool
+}
+
+func (tt Totems) AddStats(s Stats) Stats {
+	s[StatSpellCrit] += 66.24 * float64(tt.TotemOfWrath)
+	s[StatSpellHit] += 37.8 * float64(tt.TotemOfWrath)
+	if tt.WrathOfAir {
+		s[StatSpellDmg] += 104
+	}
+	if tt.ManaStream {
+		s[StatMP5] += 50
+	}
+	return s
+}
+
+type Talents struct {
+	LightninOverload   int
+	ElementalPrecision int
+	NaturesGuidance    int
+	TidalMastery       int
+	ElementalMastery   bool
+	UnrelentingStorm   int
+	CallOfThunder      int
+	Convection         int
+	Concussion         int
+}
+
+func (t Talents) AddStats(s Stats) Stats {
+	s[StatSpellHit] += 25.2 * float64(t.ElementalPrecision)
+	s[StatSpellHit] += 12.6 * float64(t.NaturesGuidance)
+	s[StatSpellCrit] += 22.08 * float64(t.TidalMastery)
+	s[StatSpellCrit] += 22.08 * float64(t.CallOfThunder)
+
+	return s
+}
+
+type Buffs struct {
+	// Raid buffs
+	ArcaneInt                bool
+	GiftOftheWild            bool
+	BlessingOfKings          bool
+	ImprovedBlessingOfWisdom bool
+
+	// Party Buffs
+	Moonkin    bool
+	SpriestDPS int // adds Mp5 ~ 25% (dps*5%*5sec = 25%)
+
+	// Self Buffs
+	WaterShield    bool
+	WaterShieldPPM int // how many procs per minute does watershield get? Every 3 requires a recast.
+
+	// Target Debuff
+	JudgementOfWisdom bool
+}
+
+func (b Buffs) AddStats(s Stats) Stats {
+	if b.ArcaneInt {
+		s[StatInt] += 40
+	}
+	if b.GiftOftheWild {
+		s[StatInt] += 18 // assumes improved gotw, rounded down to nearest int... not sure if that is accurate.
+	}
+	if b.ImprovedBlessingOfWisdom {
+		s[StatMP5] += 42
+	}
+	if b.Moonkin {
+		s[StatSpellCrit] += 110.4
+	}
+	if b.WaterShield {
+		s[StatMP5] += 50
+	}
+	s[StatMP5] += float64(b.SpriestDPS) * 0.25
+
+	return s
+}
+
+type Consumes struct {
+	// Buffs
+	BrilliantWizardOil       bool
+	MajorMageblood           bool
+	FlaskOfBlindingLight     bool
+	FlaskOfMightyRestoration bool
+	BlackendBasilisk         bool
+
+	// Used in rotations
+	SuperManaPotion bool
+	DarkRune        bool
+}
+
+func (c Consumes) AddStats(s Stats) Stats {
+	if c.BrilliantWizardOil {
+		s[StatSpellCrit] += 14
+		s[StatSpellDmg] += 36
+	}
+	if c.MajorMageblood {
+		s[StatMP5] += 16.0
+	}
+	if c.FlaskOfBlindingLight {
+		s[StatSpellDmg] += 80
+	}
+	if c.FlaskOfMightyRestoration {
+		s[StatMP5] += 25
+	}
+	if c.BlackendBasilisk {
+		s[StatSpellDmg] += 23
+	}
+	return s
+}
+
+// New sim contructs a simulator with the given stats / equipment / options.
+//   Technically we can calculate stats from equip/options but want the ability to override those stats
+//   mostly for stat weight purposes.
+func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
+	if len(options.SpellOrder) == 0 {
+		fmt.Printf("[ERROR] No rotation given to sim.\n")
+		return nil
+	}
 	rotIdx := 0
-	if spellOrder[0] == "pri" {
+	if options.SpellOrder[0] == "pri" {
 		rotIdx = -1
-		spellOrder = spellOrder[1:]
+		options.SpellOrder = options.SpellOrder[1:]
 	}
 	sim := &Simulation{
 		RotationIdx:   rotIdx,
 		Stats:         stats,
-		SpellRotation: spellOrder,
+		SpellRotation: options.SpellOrder,
+		Options:       options,
 		CDs:           map[string]int{},
 		Buffs:         Stats{StatLen: 0},
-		Auras:         []Aura{AuraLightningOverload()},
+		Auras:         []Aura{},
 		Equip:         equip,
-		rseed:         rseed,
-		rando:         rand.New(rand.NewSource(rseed)),
+		rseed:         options.RSeed,
+		rando:         rand.New(rand.NewSource(options.RSeed)),
 	}
 	return sim
 }
@@ -76,111 +247,31 @@ func (sim *Simulation) reset() {
 	sim.Auras = []Aura{}
 	sim.metrics = SimMetrics{}
 
-	// Activate all talent - TODO: make this configurable input
+	// Activate all talents
+	if sim.Options.Talents.LightninOverload > 0 {
+		sim.addAura(AuraLightningOverload(sim.Options.Talents.LightninOverload))
+	}
 
-	// Lightning Overload 5/5
-	sim.addAura(AuraLightningOverload())
-	// Unrelenting Storm 3/5
-	sim.Buffs[StatMP5] += sim.Stats[StatInt] * 0.06
+	// Judgement of Wisdom
+	if sim.Options.Buffs.JudgementOfWisdom {
+		sim.addAura(AuraJudgementOfWisdom())
+	}
 
-	debug("Effective MP5: %0.1f\n", sim.Stats[StatMP5]+sim.Buffs[StatMP5])
 	// Activate all permanent item effects.
 	for _, item := range sim.Equip {
 		if item.Activate != nil && item.ActivateCD == -1 {
 			sim.addAura(item.Activate(sim))
 		}
 	}
+
+	debug("\nRotation: %v\n", sim.SpellRotation)
+	debug("Effective MP5: %0.1f\n", sim.Stats[StatMP5]+sim.Buffs[StatMP5])
+	debug("----------------------\n")
 }
 
 func (sim *Simulation) Run(seconds int) SimMetrics {
-	sim.reset()
-
-	ticks := seconds * tickPerSecond
-	for i := 0; i < ticks; i++ {
-		sim.currentTick = i
-		sim.Tick(i)
-	}
-	debug("(%0.0f/%0.0f mana)\n", sim.CurrentMana, sim.Stats[StatMana])
-	return sim.metrics
-}
-
-func (sim *Simulation) Tick(tickID int) {
-	if sim.CurrentMana < 0 {
-		panic("you should never have negative mana.")
-	}
-
-	secondID := tickID / tickPerSecond
-	// MP5 regen
-	sim.CurrentMana += ((sim.Stats[StatMP5] + sim.Buffs[StatMP5]) / 5.0) / float64(tickPerSecond)
-
-	if sim.CurrentMana > sim.Stats[StatMana] {
-		sim.CurrentMana = sim.Stats[StatMana]
-	}
-
-	if sim.CastingSpell == nil && sim.metrics.OOMAt == 0 {
-		if sim.CurrentMana < 500 {
-			sim.metrics.OOMAt = secondID
-		}
-		// debug("(%0.0f/%0.0f mana)\n", sim.CurrentMana, sim.Stats[StatMana])
-	}
-
-	if sim.CastingSpell != nil {
-		sim.CastingSpell.TicksUntilCast-- // advance state of current cast.
-		if sim.CastingSpell.TicksUntilCast == 0 {
-			sim.Cast(sim.CastingSpell)
-		}
-	}
-
-	if sim.CastingSpell == nil {
-		// Pop potion before next cast.
-		if sim.Stats[StatMana]-sim.CurrentMana >= 1500 && sim.CDs["darkrune"] < 1 {
-			// Restores 900 to 1500 mana. (2 Min Cooldown)
-			sim.CurrentMana += float64(900 + sim.rando.Intn(1500-900))
-			sim.CDs["darkrune"] = 120 * tickPerSecond
-			debug("[%d] Used Mana Potion\n", secondID)
-		}
-		if sim.Stats[StatMana]-sim.CurrentMana >= 3000 && sim.CDs["potion"] < 1 {
-			// Restores 1800 to 3000 mana. (2 Min Cooldown)
-			sim.CurrentMana += float64(1800 + sim.rando.Intn(3000-1800))
-			sim.CDs["potion"] = 120 * tickPerSecond
-			debug("[%d] Used Mana Potion\n", secondID)
-		}
-		// Pop any on-use trinkets
-
-		for _, item := range sim.Equip {
-			if item.Activate == nil || item.ActivateCD == -1 { // ignore non-activatable, and always active items.
-				continue
-			}
-			if sim.CDs[item.CoolID] > 0 {
-				continue
-			}
-			sim.addAura(item.Activate(sim))
-			sim.CDs[item.CoolID] = item.ActivateCD * tickPerSecond
-		}
-
-		// Choose next spell
-		sim.ChooseSpell()
-		if sim.CastingSpell != nil {
-			debug("[%d] Casting %s (%0.1f) ...", secondID, sim.CastingSpell.Spell.ID, float64(sim.CastingSpell.TicksUntilCast)/float64(tickPerSecond))
-		}
-	}
-	// CDS
-	for k := range sim.CDs {
-		sim.CDs[k]--
-		if sim.CDs[k] <= 0 {
-			delete(sim.CDs, k)
-		}
-	}
-
-	todel := []int{}
-	for i := range sim.Auras {
-		if sim.Auras[i].Expires <= tickID {
-			todel = append(todel, i)
-		}
-	}
-	for i := len(todel) - 1; i >= 0; i-- {
-		sim.cleanAura(todel[i])
-	}
+	// For now use the new 'event' driven state advancement.
+	return sim.Run2(seconds)
 }
 
 func (sim *Simulation) cleanAuraName(name string) {
@@ -216,47 +307,58 @@ func (sim *Simulation) addAura(a Aura) {
 	sim.Auras = append(sim.Auras, a)
 }
 
-func (sim *Simulation) ChooseSpell() {
-	// Ele Mastery up, pop!
-	if sim.CDs["elemastery"] <= 0 {
-		// Apply auras
-		sim.addAura(AuraEleMastery())
-		sim.CDs["elemastery"] = 180 * tickPerSecond
-	}
-
+func (sim *Simulation) ChooseSpell() int {
 	if sim.RotationIdx == -1 {
+		lowestWait := math.MaxInt32
+		wasMana := false
 		for i := 0; i < len(sim.SpellRotation); i++ {
 			so := sim.SpellRotation[i]
 			sp := spellmap[so]
 			cast := NewCast(sim, sp, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
-			for _, aur := range sim.Auras {
-				if aur.OnCast != nil {
-					aur.OnCast(sim, cast)
+			if sim.CDs[so] > 0 { // if
+				if sim.CDs[so] < lowestWait {
+					lowestWait = sim.CDs[so]
 				}
+				continue
 			}
-			if sim.CDs[so] == 0 && (sim.CurrentMana >= cast.ManaCost) {
+			if sim.CurrentMana >= cast.ManaCost {
 				sim.CastingSpell = cast
-				break
+				return cast.TicksUntilCast
+			}
+			manaRegenTicks := int(math.Ceil((cast.ManaCost - sim.CurrentMana) / sim.manaRegen()))
+			if manaRegenTicks < lowestWait {
+				lowestWait = manaRegenTicks
+				wasMana = true
 			}
 		}
-	} else {
-		so := sim.SpellRotation[sim.RotationIdx]
-		sp := spellmap[so]
-		cast := NewCast(sim, sp, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
-		// Apply any on cast effects.
-		for _, aur := range sim.Auras {
-			if aur.OnCast != nil {
-				aur.OnCast(sim, cast)
-			}
+		if wasMana && sim.metrics.OOMAt == 0 { // loop only completes if no spell was found.
+			sim.metrics.OOMAt = sim.currentTick / TicksPerSecond
+			sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
 		}
-		if sim.CDs[so] == 0 && (sim.CurrentMana >= cast.ManaCost) {
+		return lowestWait
+	}
+
+	so := sim.SpellRotation[sim.RotationIdx]
+	sp := spellmap[so]
+	cast := NewCast(sim, sp, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
+	if sim.CDs[so] < 1 {
+		if sim.CurrentMana >= cast.ManaCost {
 			sim.CastingSpell = cast
 			sim.RotationIdx++
 			if sim.RotationIdx == len(sim.SpellRotation) {
 				sim.RotationIdx = 0
 			}
+			return cast.TicksUntilCast
+		} else {
+			debug("Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
+			if sim.metrics.OOMAt == 0 {
+				sim.metrics.OOMAt = sim.currentTick / TicksPerSecond
+				sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
+			}
+			return int(math.Ceil((cast.ManaCost - sim.CurrentMana) / sim.manaRegen()))
 		}
 	}
+	return sim.CDs[so]
 }
 
 func (sim *Simulation) Cast(cast *Cast) {
@@ -267,20 +369,21 @@ func (sim *Simulation) Cast(cast *Cast) {
 	}
 	if sim.rando.Float64() < cast.Hit {
 		dmg := (float64(sim.rando.Intn(int(cast.Spell.MaxDmg-cast.Spell.MinDmg))) + cast.Spell.MinDmg) + (sim.Stats[StatSpellDmg] * cast.Spell.Coeff)
+		if cast.DidDmg != 0 { // use the pre-set dmg
+			dmg = cast.DidDmg
+		}
 		cast.DidHit = true
+		dbgCast := "hit"
 		if sim.rando.Float64() < cast.Crit {
 			cast.DidCrit = true
 			dmg *= 2
-			debug("crit")
-
 			sim.addAura(AuraElementalFocus(sim.currentTick))
-		} else {
-			debug("hit")
+			dbgCast = "crit"
 		}
 
-		if strings.HasPrefix(cast.Spell.ID, "LB") || strings.HasPrefix(cast.Spell.ID, "CL") {
+		if sim.Options.Talents.Concussion > 0 && (strings.HasPrefix(cast.Spell.ID, "LB") || strings.HasPrefix(cast.Spell.ID, "CL")) {
 			// Talent Concussion
-			dmg *= 1.05
+			dmg *= 1 + (0.01 * float64(sim.Options.Talents.Concussion))
 		}
 
 		// Average Resistance = (Target's Resistance / (Caster's Level * 5)) * 0.75 "AR"
@@ -291,17 +394,18 @@ func (sim *Simulation) Cast(cast *Cast) {
 			debug("(partial resist)")
 		}
 		cast.DidDmg = dmg
+		// Apply any effects specific to this cast.
+		for _, eff := range cast.Effects {
+			eff(sim, cast)
+			debug("\nLO Dmg Aft: %0.0f\n", cast.DidDmg)
+		}
 		// Apply any on spell hit effects.
 		for _, aur := range sim.Auras {
 			if aur.OnSpellHit != nil {
 				aur.OnSpellHit(sim, cast)
 			}
 		}
-		// Apply any effects specific to this cast.
-		for _, eff := range cast.Effects {
-			eff(sim, cast)
-		}
-		debug(": %0.0f\n", cast.DidDmg)
+		debug("%s: %0.0f\n", dbgCast, cast.DidDmg)
 		sim.metrics.TotalDamage += cast.DidDmg
 		sim.metrics.Casts = append(sim.metrics.Casts, cast)
 	} else {
@@ -311,6 +415,6 @@ func (sim *Simulation) Cast(cast *Cast) {
 	sim.CurrentMana -= cast.ManaCost
 	sim.CastingSpell = nil
 	if cast.Spell.Cooldown > 0 {
-		sim.CDs[cast.Spell.ID] = cast.Spell.Cooldown * tickPerSecond
+		sim.CDs[cast.Spell.ID] = cast.Spell.Cooldown * TicksPerSecond
 	}
 }

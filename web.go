@@ -29,6 +29,12 @@ func simTBCPage(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Failed to read file: %s", err)
 	}
 
+	// TODO: remove this page because the new UI can just be wired up to endpoints instead of form based.
+	// This web system would need to implement the functions found in ui/main.go
+	//   	Simulate
+	// 		GearStats
+	// 		GearList
+
 	if r.ContentLength > 0 {
 		// parse form.
 		r.ParseForm()
@@ -55,7 +61,7 @@ func simTBCPage(w http.ResponseWriter, r *http.Request) {
 
 		stats.Print()
 
-		results := runTBCSim(stats, 300, 500)
+		results := runTBCSim(stats, tbc.NewEquipmentSet(), 300, 500, nil)
 		fileData = append(fileData, "<pre>"...)
 		for _, res := range results {
 			fileData = append(fileData, res...)
