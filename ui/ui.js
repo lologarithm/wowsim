@@ -108,7 +108,6 @@ function runsim() {
         }, 0);
         if (numOOM > 0) {
             var values = out.DmgAtOOMs;
-            console.log(values);
             var avg = average(values);
             var dev = standardDeviation(values, avg);
             var simdur = Math.round(oomat/numOOM);
@@ -302,8 +301,6 @@ function gearClickHandler(event) {
     console.log("Gear Clicked: ", event);
 
     var slotid = event.target.parentElement.parentElement.parentElement.id;
-    console.log("Slot: ", slotid);
-    console.log("Gear: ", event.target.innerText);
     currentGear[slotid] = allgear[event.target.innerText];
     updateGear(currentGear);
 
@@ -476,14 +473,12 @@ function clearSearch(e) {
         le.style.color = "#F0F0F0";
         le.classList.remove("lisearch");
     }
-    console.log("blurred");
 }
 
 // focuses the search box (useful for making UI better)
 function focusSearch(ele, event) {
     var tb = ele.parentElement.children[1].children[0];
     setTimeout( () => {
-        console.log("focus: ", ele.parentElement.children[1].children[0]);
         tb.focus();
     }, 10);
 }
