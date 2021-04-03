@@ -169,3 +169,15 @@ func ActivateSkycall(sim *Simulation) Aura {
 		},
 	}
 }
+
+func ActivateNAC(sim *Simulation) Aura {
+	debug(" -NAC active- ")
+	return Aura{
+		ID:      "nac",
+		Expires: sim.currentTick + 300*TicksPerSecond,
+		OnCast: func(sim *Simulation, c *Cast) {
+			c.Spellpower += 250
+			c.ManaCost *= 1.2
+		},
+	}
+}

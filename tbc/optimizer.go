@@ -83,7 +83,7 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 		}
 
 		// Optimal Found
-		fmt.Printf("Optimal Found: %0.0f DPS (%d LB : 1 CL)\n", simdmg/float64(numSims), numLB)
+		fmt.Printf("Optimal Found: %0.0f DPS (%d LB : 1 CL)\n", simdmg/float64(seconds)/float64(numSims), numLB)
 		return simmet, rotation
 	}
 

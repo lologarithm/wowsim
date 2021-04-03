@@ -53,6 +53,7 @@ func main() {
 	defer pprof.StopCPUProfile()
 
 	var isDebug = flag.Bool("debug", false, "Include --debug to spew the entire simulation log.")
+	var noopt = flag.Bool("noopt", false, "If included it will disable optimization.")
 	var rotation = flag.String("rotation", "", "Custom comma separated rotation to simulate.\n\tFor Example: --rotation=CL6,LB12")
 	var runWebUI = flag.Bool("web", false, "Use to run sim in web interface instead of in terminal")
 	flag.Parse()
@@ -77,11 +78,11 @@ func main() {
 		"Magma Plume Boots",
 		"Cobalt Band of Tyrigosa",
 		"Scintillating Coral Band",
-		"Totem of the Void",
 		"Khadgar's Knapsack",
 		"Bleeding Hollow Warhammer",
 		"Quagmirran's Eye",
 		"Icon of the Silver Crescent",
+		"Totem of the Void",
 	)
 
 	gearStats := gear.Stats()
@@ -96,14 +97,14 @@ func main() {
 			BlessingOfKings:          true,
 			ImprovedBlessingOfWisdom: true,
 			JudgementOfWisdom:        true,
-			Moonkin:                  true,
+			Moonkin:                  false,
 			SpriestDPS:               0,
 			WaterShield:              true,
 		},
 		Consumes: tbc.Consumes{
 			BrilliantWizardOil: true,
 			MajorMageblood:     true,
-			BlackendBasilisk:   true,
+			BlackendBasilisk:   false,
 			SuperManaPotion:    true,
 			DarkRune:           true,
 		},
@@ -132,20 +133,16 @@ func main() {
 		rotArray = strings.Split(*rotation, ",")
 	}
 
-	results := runTBCSim(gear, opt, 250, sims, rotArray)
+	results := runTBCSim(gear, opt, 60, sims, rotArray, *noopt)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
 }
 
-func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, customRotation []string) []string {
+func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, customRotation []string, noopt bool) []string {
 	fmt.Printf("\nSim Duration: %d sec\nNum Simulations: %d\n", seconds, numSims)
 
 	stats := opt.StatTotal(equip)
-
-	tbc.OptimalRotation(stats, opt, equip, seconds, numSims)
-
-	return nil
 
 	spellOrders := [][]string{
 		// {"CL6", "LB12", "LB12", "LB12"},
@@ -260,5 +257,10 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 		results = append(results, <-statchan)
 	}
 
+	if !noopt {
+		fmt.Printf("\n------- OPTIMIZING -------\n")
+		tbc.OptimalRotation(stats, opt, equip, seconds, numSims)
+		fmt.Printf("\n-------   DONE   -------\n")
+	}
 	return results
 }

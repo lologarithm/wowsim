@@ -71,8 +71,14 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 			if sim.CDs[item.CoolID] > 0 {
 				continue
 			}
+			if item.Slot == EquipTrinket && sim.CDs["trinket"] > 0 {
+				continue
+			}
 			sim.addAura(item.Activate(sim))
 			sim.CDs[item.CoolID] = item.ActivateCD * TicksPerSecond
+			if item.Slot == EquipTrinket {
+				sim.CDs["trinket"] = 30 * TicksPerSecond
+			}
 		}
 
 		// Choose next spell
