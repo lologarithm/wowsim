@@ -266,10 +266,18 @@ function popgear() {
         }
     });
 
-    // TODO: make this store in like local storage or something so people cache gear choices.
     var finger1done = false;
     var trink1done = false;
-    defaultGear.forEach(inm => {
+    var glist = [];
+    // TODO: make this store in like local storage or something so people cache gear choices.
+    var gearCache = localStorage.getItem('cachedGear');
+    if (gearCache) {
+        glist = JSON.parse(gearCache);
+    } else {
+        glist = defaultGear;
+    }
+
+    glist.forEach(inm => {
         var item = allgear[inm];
         var slotid = slotToID[item.slot];
 
@@ -332,6 +340,7 @@ function updateGear(newGear) {
     });
 
     currentGear = newGear;
+    localStorage.setItem("cachedGear", JSON.stringify(gearlist));
     
     var gearjson = gearstats(gearlist);
     var gearParse = JSON.parse(gearjson);
