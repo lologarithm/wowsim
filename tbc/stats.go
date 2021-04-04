@@ -57,20 +57,30 @@ func (st Stats) Clone() Stats {
 	return ns
 }
 
-func (st Stats) Print() string {
+func (st Stats) Print(pretty bool) string {
 	output := "{ "
+	printed := false
 	for k, v := range st {
 		name := Stat(k).StatName()
 		if name == "none" {
 			continue
 		}
-		if v < 50 {
-			output += "\t\"" + name + "\": " + strconv.FormatFloat(v, 'f', 3, 64)
-		} else {
-			output += "\t\"" + name + "\": " + strconv.FormatFloat(v, 'f', 0, 64)
+		if printed {
+			printed = false
+			output += ","
+			if pretty {
+				output += "\n"
+			}
 		}
-		if k != len(st)-1 {
-			output += ",\n"
+		if pretty {
+			output += "\t"
+		}
+		if v < 50 {
+			printed = true
+			output += "\"" + name + "\": " + strconv.FormatFloat(v, 'f', 3, 64)
+		} else {
+			printed = true
+			output += "\"" + name + "\": " + strconv.FormatFloat(v, 'f', 0, 64)
 		}
 	}
 	output += " }"

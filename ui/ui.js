@@ -321,15 +321,24 @@ function removeGear(ele) {
 
 // updateGear will update the gear UI elements (to redraw when new gear is selected)
 function updateGear(newGear) {
+    var gearlist = [];
     slotToID.forEach(k => {
         var item = newGear[k];
         if (item != null && item.name != "") {
             var button = document.getElementById(k).firstElementChild;
             button.innerText = item.name;
+            gearlist.push(item.name);
         }
     });
 
     currentGear = newGear;
+    
+    var gearjson = gearstats(gearlist);
+    var gearParse = JSON.parse(gearjson);
+    for (const [key, value] of Object.entries(gearParse)) {
+        var lab = document.getElementById(key.toLowerCase());
+        lab.innerText = value;
+    }
 }
 
 // turns a search string into a list of lowercase terms and if there is punctuation or not.
@@ -456,7 +465,7 @@ function searchHandler(ele, event) {
             } else {
                 le.classList.remove("lisearch");
             }
-            le.style.color = "#F0F0F0";
+            le.style.removeProperty("color")
         } else {
             le.style.color = "#888888";
             le.classList.remove("lisearch");
@@ -469,8 +478,7 @@ function clearSearch(e) {
     var numChild = e.parentElement.children[2].childElementCount;
     for (var i = 0; i < numChild; i++) {
         var le = e.parentElement.children[2].children[i];
-        // le.style.display = "block";
-        le.style.color = "#F0F0F0";
+        le.style.removeProperty("color")
         le.classList.remove("lisearch");
     }
 }

@@ -190,6 +190,22 @@
                                 </div>
                             </div>
                         </div>
+                        <div>
+                            <div id="gearstats">
+                                <table>
+                                    <tr><th>Stat</th><th>Gear</th></tr>
+                                    <tr><td><label>Int</label></td> <td><label id="statint">0</label><td></td></tr>
+                                    <tr><td><label>Stm</label></td> <td><label id="statstm">0</label><td></td></tr>
+                                    <tr><td><label title="Includes crit from int on gear.">SpellCrit*</label></td> <td><label id="statspellcrit" title="Includes crit from INT">0</label><td></td></tr>
+                                    <tr><td><label>SpellHit</label></td> <td><label id="statspellhit">0</label><td></td></tr>
+                                    <tr><td><label>SpellDmg</label></td> <td><label id="statspelldmg">0</label><td></td></tr>
+                                    <tr><td><label>Haste</label></td> <td><label id="stathaste">0</label><td></td></tr>
+                                    <tr><td><label>MP5</label></td> <td><label id="statmp5">0</label><td></td></tr>
+                                    <tr><td><label title="This is just bonus mana from gear int, does not include base.">Mana*</label></td> <td><label id="statmana" title="This is just bonus mana from gear (int), does not include base.">0</label><td></td></tr>
+                                    <tr><td><label>SpellPen</label></td> <td><label id="statspellpen">0</label><td></td></tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </li>
                 <li id="talents" style="height: 35%;overflow: auto;">
@@ -211,7 +227,7 @@
                                 <label><input id="buffmoon" class="uk-checkbox" type="checkbox">Moonkin Aura</label>
                                 <label>Bloodlust: <select id="buffbl" class="buffdrop" style="width: 50px" value="1">
                                     <option class="buffdrop">0</option>
-                                    <option class="buffdrop">1</option>
+                                    <option class="buffdrop" selected>1</option>
                                     <option class="buffdrop">2</option>
                                     <option class="buffdrop">3</option>
                                     <option class="buffdrop">4</option>
@@ -245,7 +261,7 @@
                             <label><input id="totwoa" class="uk-checkbox" type="checkbox" checked>Wrath of Air</label>
                             <label>Totem of Wrath: <select id="totwr" class="buffdrop" list="ttwv" style="width: 50px" value="1">
                                 <option class="buffdrop">0</option>
-                                <option class="buffdrop">1</option>
+                                <option class="buffdrop" selected>1</option>
                                 <option class="buffdrop">2</option>
                                 <option class="buffdrop">3</option>
                                 <option class="buffdrop">4</option>
@@ -274,8 +290,8 @@
                     <li>
                         <div style="text-align: right">
                             <button onclick="runsim();">Run Simulation</button>
-                            Iterations: <input id="iters" type="text" value="500" style="width: 100px"></input>
-                            Duration: <input id="dur" type="text" value="300" style="width: 100px"></input>
+                            Iterations: <input id="iters" type="text" value="500" style="width: 60px"></input>
+                            Duration: <input id="dur" type="text" value="300" style="width: 60px"></input>
                         </div>
                         <div id="output" style="overflow: auto; top: 0px; bottom: 0px;"></div>
                     </li>
@@ -295,6 +311,7 @@
                             <li>Uses all other options, but replaces the haste stat.</li>
                             <li>Do not recommend using Quags Eye</li>
                             <li>Not mana optimized, this is showing max dps for a 60s fight</li>
+                            <li>Even a very small amount of haste like 20 makes CL / 4LB > CL / 3LB</li>
                         </ul>
                         <div id="hasterots"></div>
                     </li>

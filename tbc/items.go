@@ -433,8 +433,8 @@ func NewEquipmentSet(names ...string) Equipment {
 	for _, v := range names {
 		item, ok := ItemLookup[v]
 		if !ok {
-			fmt.Printf("Unable to find item: '%s'", v)
-			return e
+			fmt.Printf("Unable to find item: '%s'\n", v)
+			continue
 		}
 		if item.Slot == EquipFinger {
 			if e[EquipFinger1].Name == "" {

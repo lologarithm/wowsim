@@ -48,7 +48,10 @@ func GearList(this js.Value, args []js.Value) interface{} {
 // GearStats takes a gear list and returns their total stats.
 // This could power a simple 'current stats of all gear' UI.
 func GearStats(this js.Value, args []js.Value) interface{} {
-	return getGear(args[0]).Stats().Print()
+	stats := getGear(args[0]).Stats()
+	stats[tbc.StatSpellCrit] += (stats[tbc.StatInt] / 80) / 100
+	stats[tbc.StatMana] += stats[tbc.StatInt] * 15
+	return stats.Print(false)
 }
 
 // getGear converts js string array to a list of equipment items.
@@ -136,13 +139,13 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 		customHaste = args[5].Float()
 	}
 	gear := getGear(args[2])
-	fmt.Printf("Gear Stats: %s", gear.Stats().Print())
+	fmt.Printf("Gear Stats: %s", gear.Stats().Print(true))
 	opt := parseOptions(args[3])
 	stats := opt.StatTotal(gear)
 	if customHaste != 0 {
 		stats[tbc.StatHaste] = customHaste
 	}
-	fmt.Printf("Total Stats: %s", stats.Print())
+	fmt.Printf("Total Stats: %s", stats.Print(true))
 
 	simi := args[0].Int()
 	if simi == 1 {
