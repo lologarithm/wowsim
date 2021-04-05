@@ -181,7 +181,7 @@ type SimResult struct {
 	OOMAt        []float64 // oom time totals
 	Rotation     []string
 	SimSeconds   int
-	RealDuration time.Duration
+	RealDuration float64
 }
 
 type CastMetric struct {
@@ -256,7 +256,7 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 			pm(metrics, rotIdx)
 		}
 		simMetrics.SimSeconds = simsec
-		simMetrics.RealDuration = time.Now().Sub(st)
+		simMetrics.RealDuration = time.Now().Sub(st).Seconds()
 		results = append(results, simMetrics)
 
 	}

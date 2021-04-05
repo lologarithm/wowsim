@@ -77,7 +77,7 @@ type Talents struct {
 	UnrelentingStorm   int
 	CallOfThunder      int
 	Convection         int
-	Concussion         int
+	Concussion         float64 // temp hack to speed up not converting this to a int on every spell cast
 }
 
 func (t Talents) AddStats(s Stats) Stats {

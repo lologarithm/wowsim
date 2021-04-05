@@ -91,6 +91,11 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 	if IsDebug {
 		sim.debug = debugFunc(sim)
 	}
+	for _, eq := range equip {
+		if eq.Activate != nil {
+			sim.activeEquip = append(sim.activeEquip, eq)
+		}
+	}
 	return sim
 }
 
@@ -117,7 +122,7 @@ func (sim *Simulation) reset() {
 	}
 
 	// Activate all permanent item effects.
-	for _, item := range sim.Equip {
+	for _, item := range sim.activeEquip {
 		if item.Activate != nil && item.ActivateCD == -1 {
 			sim.addAura(item.Activate(sim))
 		}
@@ -147,11 +152,12 @@ func (sim *Simulation) cleanAura(i int) {
 	}
 	// clean up mem
 	sim.Auras[i].OnCast = nil
+	sim.Auras[i].OnCastComplete = nil
 	sim.Auras[i].OnStruck = nil
 	sim.Auras[i].OnSpellHit = nil
 	sim.Auras[i].OnExpire = nil
 
-	sim.debug(" -removed: %s- \n", sim.Auras[i].ID)
+	sim.debug("removed: %s- \n", sim.Auras[i].ID)
 	sim.Auras = sim.Auras[:i+copy(sim.Auras[i:], sim.Auras[i+1:])]
 }
 
@@ -229,7 +235,8 @@ func (sim *Simulation) Cast(cast *Cast) {
 	sim.debug("Completed Cast (%s)\n", cast.Spell.ID)
 	dbgCast := cast.Spell.Name
 	if sim.rando.Float64() < cast.Hit {
-		dmg := (float64(sim.rando.Intn(int(cast.Spell.MaxDmg-cast.Spell.MinDmg))) + cast.Spell.MinDmg) + (sim.Stats[StatSpellDmg] * cast.Spell.Coeff)
+		dmg := (sim.rando.Float64() * (cast.Spell.MaxDmg - cast.Spell.MinDmg)) + cast.Spell.MinDmg + (sim.Stats[StatSpellDmg] * cast.Spell.Coeff)
+		// dmg := (float64(sim.rando.Intn(int(cast.Spell.MaxDmg-cast.Spell.MinDmg))) + cast.Spell.MinDmg) + (sim.Stats[StatSpellDmg] * cast.Spell.Coeff)
 		if cast.DidDmg != 0 { // use the pre-set dmg
 			dmg = cast.DidDmg
 		}
@@ -238,14 +245,16 @@ func (sim *Simulation) Cast(cast *Cast) {
 			cast.DidCrit = true
 			dmg *= 2
 			sim.addAura(AuraElementalFocus(sim.currentTick))
-			dbgCast += " crit"
-		} else {
+			if IsDebug {
+				dbgCast += " crit"
+			}
+		} else if IsDebug {
 			dbgCast += " hit"
 		}
 
 		if sim.Options.Talents.Concussion > 0 && cast.Spell.ID == MagicIDLB12 || cast.Spell.ID == MagicIDCL6 {
 			// Talent Concussion
-			dmg *= 1 + (0.01 * float64(sim.Options.Talents.Concussion))
+			dmg *= 1 + (0.01 * sim.Options.Talents.Concussion)
 		}
 
 		// Average Resistance = (Target's Resistance / (Caster's Level * 5)) * 0.75 "AR"
@@ -253,7 +262,9 @@ func (sim *Simulation) Cast(cast *Cast) {
 		// For now hardcode the 25% chance resist at 2.5% (this assumes bosses have 0 nature resist)
 		if sim.rando.Float64() < 0.025 { // chance of 25% resist
 			dmg *= .75
-			dbgCast += " (partial resist)"
+			if IsDebug {
+				dbgCast += " (partial resist)"
+			}
 		}
 		cast.DidDmg = dmg
 		// Apply any effects specific to this cast.

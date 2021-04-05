@@ -50,19 +50,19 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 		// Pop potion before next cast if we have less than the mana provided by the potion minues 1mp5 tick.
 		if sim.Stats[StatMana]-sim.CurrentMana+sim.Stats[StatMP5] >= 1500 && sim.CDs[MagicIDRune] < 1 {
 			// Restores 900 to 1500 mana. (2 Min Cooldown)
-			sim.CurrentMana += float64(900 + sim.rando.Intn(1500-900))
+			sim.CurrentMana += 900 + (sim.rando.Float64() * 600)
 			sim.CDs[MagicIDRune] = 120 * TicksPerSecond
 			sim.debug("Used Mana Potion\n")
 		}
 		if sim.Stats[StatMana]-sim.CurrentMana+sim.Stats[StatMP5] >= 3000 && sim.CDs[MagicIDPotion] < 1 {
 			// Restores 1800 to 3000 mana. (2 Min Cooldown)
-			sim.CurrentMana += float64(1800 + sim.rando.Intn(3000-1800))
+			sim.CurrentMana += 1800 + (sim.rando.Float64() * 1200)
 			sim.CDs[MagicIDPotion] = 120 * TicksPerSecond
 			sim.debug("Used Mana Potion\n")
 		}
 
 		// Pop any on-use trinkets
-		for _, item := range sim.Equip {
+		for _, item := range sim.activeEquip {
 			if item.Activate == nil || item.ActivateCD == -1 { // ignore non-activatable, and always active items.
 				continue
 			}
