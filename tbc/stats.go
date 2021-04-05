@@ -4,11 +4,11 @@ import (
 	"strconv"
 )
 
-var TicksPerSecond = 30
+const TicksPerSecond = 30
 
 type Stats []float64
 
-type Stat int
+type Stat byte
 
 const (
 	StatInt Stat = iota

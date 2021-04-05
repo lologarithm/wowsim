@@ -41,7 +41,7 @@ func main() {
 			// Another header row...
 			continue
 		}
-		if v[0] != "" && v[1] == "" && v[2] == "" {
+		if v[0] != "" && v[2] == "" {
 			// Change slot
 			switch v[0] {
 			case "Helm", "Head":
@@ -87,6 +87,10 @@ func main() {
 			haste, _ := strconv.ParseFloat(v[8], 64)
 			// spp, _ := strconv.ParseFloat(v[], 64)
 
+			numRed. _ := strconv.Atoi(v[12])
+			numRed. _ := strconv.Atoi(v[13])
+			numRed. _ := strconv.Atoi(v[14])
+			numRed. _ := strconv.Atoi(v[15])
 			i := tbc.Item{
 				Name:       v[1],
 				SourceZone: v[2],
@@ -100,6 +104,7 @@ func main() {
 					tbc.StatHaste:     haste,
 					tbc.StatMP5:       mp5,
 				},
+				GemSlots: ,
 			}
 			fmt.Fprintf(os.Stdout, "%#v,\n", i)
 

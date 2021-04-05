@@ -86,7 +86,7 @@ func main() {
 	)
 
 	gearStats := gear.Stats()
-	fmt.Printf("Gear Stats:\n%s", gearStats.Print())
+	fmt.Printf("Gear Stats:\n%s", gearStats.Print(true))
 
 	opt := tbc.Options{
 		NumBloodlust: 1,
@@ -155,14 +155,14 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 		spellOrders = [][]string{customRotation}
 	}
 
-	fmt.Printf("\nFinal Stats: %s\n", stats.Print())
+	fmt.Printf("\nFinal Stats: %s\n", stats.Print(true))
 	statchan := make(chan string, 3)
 	for spi, spells := range spellOrders {
 		go func(spo []string) {
 			simDmgs := []float64{}
 			simOOMs := []int{}
 			histogram := map[int]int{}
-			casts := map[string]int{}
+			casts := map[int32]int{}
 			manaSpent := 0.0
 			manaLeft := 0.0
 			oomdps := 0.0

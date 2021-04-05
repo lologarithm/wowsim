@@ -26,20 +26,20 @@ func main() {
 
 // GearList reports all items of gear to the UI to display.
 func GearList(this js.Value, args []js.Value) interface{} {
-	slot := -1
+	slot := byte(128)
 
 	if len(args) == 1 {
-		slot = args[0].Int()
+		slot = byte(args[0].Int())
 	}
 	gears := "["
 	for _, v := range tbc.ItemLookup {
-		if slot != -1 && v.Slot != slot {
+		if slot != 128 && v.Slot != slot {
 			continue
 		}
 		if len(gears) != 1 {
 			gears += ","
 		}
-		gears += `{"name":"` + v.Name + `", "slot": ` + strconv.Itoa(v.Slot) + `}`
+		gears += `{"name":"` + v.Name + `", "slot": ` + strconv.Itoa(int(v.Slot)) + `}`
 	}
 	gears += "]"
 	return gears
@@ -185,7 +185,7 @@ type SimResult struct {
 }
 
 type CastMetric struct {
-	Spell string
+	Spell int32
 	Hit   bool
 	Crit  bool
 	Dmg   float64

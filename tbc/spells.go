@@ -3,6 +3,7 @@ package tbc
 type Cast struct {
 	Spell *Spell
 	// Caster ... // Needed for onstruck effects?
+	isLO bool // stupid hack
 
 	// Pre-hit Mutatable State
 	TicksUntilCast int
@@ -28,8 +29,8 @@ func NewCast(sim *Simulation, sp *Spell, spellDmg, spHit, spCrit float64) *Cast 
 	}
 
 	castTime := sp.CastTime
-	isLB := sp.ID[0] == 'L' && sp.ID[1] == 'B'
-	isCL := sp.ID[0] == 'C' && sp.ID[1] == 'L'
+	isLB := sp.ID == MagicIDLB12
+	isCL := sp.ID == MagicIDCL6
 
 	if isLB || isCL {
 		// Talent to reduce cast time.
@@ -56,7 +57,8 @@ func NewCast(sim *Simulation, sp *Spell, spellDmg, spHit, spCrit float64) *Cast 
 }
 
 type Spell struct {
-	ID         string
+	ID         int32
+	Name       string
 	CastTime   float64
 	Cooldown   int
 	Mana       float64
@@ -69,7 +71,7 @@ type Spell struct {
 	DotDur float64
 }
 
-type DamageType int
+type DamageType byte
 
 const (
 	DamageTypeUnknown DamageType = iota
@@ -86,17 +88,17 @@ const (
 // spells
 // TODO: DRP == (spellrankavailbetobetrained+11)/70
 var spells = []Spell{
-	{ID: "LB4", Coeff: 0.795, CastTime: 2.0, MinDmg: 88, MaxDmg: 100, Mana: 50, DamageType: DamageTypeNature},
-	{ID: "LB10", Coeff: 0.795, CastTime: 2.5, MinDmg: 428, MaxDmg: 477, Mana: 265, DamageType: DamageTypeNature},
-	{ID: "LB12", Coeff: 0.795, CastTime: 2.5, MinDmg: 563, MaxDmg: 643, Mana: 300, DamageType: DamageTypeNature},
-	{ID: "CL4", Coeff: 0.643, CastTime: 2, Cooldown: 6, MinDmg: 505, MaxDmg: 564, Mana: 605, DamageType: DamageTypeNature},
-	{ID: "CL6", Coeff: 0.643, CastTime: 2, Cooldown: 6, MinDmg: 734, MaxDmg: 838, Mana: 760, DamageType: DamageTypeNature},
-	{ID: "ES8", Coeff: 0.3858, CastTime: 1.5, Cooldown: 6, MinDmg: 658, MaxDmg: 692, Mana: 535, DamageType: DamageTypeNature},
-	{ID: "FrS5", Coeff: 0.3858, CastTime: 1.5, Cooldown: 6, MinDmg: 640, MaxDmg: 676, Mana: 525, DamageType: DamageTypeFrost},
-	{ID: "FlS7", Coeff: 0.15, CastTime: 1.5, Cooldown: 6, MinDmg: 377, MaxDmg: 420, Mana: 500, DotDmg: 100, DotDur: 6, DamageType: DamageTypeFire},
+	// {ID: MagicIDLB4, Name: "LB4", Coeff: 0.795, CastTime: 2.0, MinDmg: 88, MaxDmg: 100, Mana: 50, DamageType: DamageTypeNature},
+	// {ID: MagicIDLB10, Name: "LB10", Coeff: 0.795, CastTime: 2.5, MinDmg: 428, MaxDmg: 477, Mana: 265, DamageType: DamageTypeNature},
+	{ID: MagicIDLB12, Name: "LB12", Coeff: 0.795, CastTime: 2.5, MinDmg: 563, MaxDmg: 643, Mana: 300, DamageType: DamageTypeNature},
+	// {ID: MagicIDCL4, Name: "CL4", Coeff: 0.643, CastTime: 2, Cooldown: 6, MinDmg: 505, MaxDmg: 564, Mana: 605, DamageType: DamageTypeNature},
+	{ID: MagicIDCL6, Name: "CL6", Coeff: 0.643, CastTime: 2, Cooldown: 6, MinDmg: 734, MaxDmg: 838, Mana: 760, DamageType: DamageTypeNature},
+	// {ID: MagicIDES8, Name: "ES8", Coeff: 0.3858, CastTime: 1.5, Cooldown: 6, MinDmg: 658, MaxDmg: 692, Mana: 535, DamageType: DamageTypeNature},
+	// {ID: MagicIDFrS5, Name: "FrS5", Coeff: 0.3858, CastTime: 1.5, Cooldown: 6, MinDmg: 640, MaxDmg: 676, Mana: 525, DamageType: DamageTypeFrost},
+	// {ID: MagicIDFlS7, Name: "FlS7", Coeff: 0.15, CastTime: 1.5, Cooldown: 6, MinDmg: 377, MaxDmg: 420, Mana: 500, DotDmg: 100, DotDur: 6, DamageType: DamageTypeFire},
 }
 
-var spellmap = map[string]*Spell{}
+var spellmap = map[int32]*Spell{}
 
 func init() {
 	for _, sp := range spells {

@@ -298,15 +298,36 @@ var items = struct {
 		{Slot: EquipTrinket, Name: "Quagmirran's Eye", SourceZone: "The Slave Pens", SourceDrop: "Quagmirran", Stats: Stats{StatSpellDmg: 37},
 			Activate: ActivateQuagsEye, ActivateCD: -1}, // -1 will trigger an activation only once
 		{Slot: EquipTrinket, Name: "Icon of the Silver Crescent", SourceZone: "Shattrath", SourceDrop: "G'eras - 41 Badges", Stats: Stats{StatSpellDmg: 44},
-			Activate: ActivateSilverCrescent, ActivateCD: 120 * TicksPerSecond, CoolID: "icsctrink"},
+			Activate: ActivateSilverCrescent, ActivateCD: 120 * TicksPerSecond, CoolID: MagicIDISCTrink},
 		{Slot: EquipTrinket, Name: "Natural Alignment Crystal", SourceZone: "BWL", SourceDrop: "", Stats: Stats{},
-			Activate: ActivateNAC, ActivateCD: 300 * TicksPerSecond, CoolID: "nactrink"},
+			Activate: ActivateNAC, ActivateCD: 300 * TicksPerSecond, CoolID: MagicIDNACTrink},
 		{Slot: EquipTrinket, Name: "Neltharion's Tear", SourceZone: "BWL", SourceDrop: "Nefarian", Stats: Stats{StatSpellDmg: 44, StatSpellHit: 16}},
 	},
 	Totem: []Item{
 		{Slot: EquipTotem, Name: "Skycall Totem", SourceZone: "Geras", SourceDrop: "20 Badges", Stats: Stats{},
 			Activate: ActivateSkycall, ActivateCD: -1}, // -1 will trigger an activation only once
 	},
+}
+
+var Gems = []Gem{
+	// {Name: "Destructive Skyfire Diamond", Color: GemColorMeta, Stats: Stats{}},
+	// {Name: "Enigmatic Skyfire Diamond", Color: GemColorMeta, Stats: Stats{}},
+	{Name: "Chaotic Skyfire Diamond", Color: GemColorMeta, Stats: Stats{StatSpellCrit: 12}, Activate: ActivateCSD},
+	// {Name: "Swift Skyfire Diamond", Color: GemColorMeta, Stats: Stats{}},
+	// {Name: "Potent Unstable Diamond", Color: GemColorMeta, Stats: Stats{}},
+	// {Name: "Swift Windfire Diamond", Color: GemColorMeta, Stats: Stats{}},
+	// {Name: "Powerful Earthstorm Diamond", Color: GemColorMeta, Stats: Stats{}},
+	{Name: "Bracing Earthstorm Diamond", Color: GemColorMeta, Stats: Stats{StatSpellDmg: 14}},
+	{Name: "Imbued Unstable Diamond", Color: GemColorMeta, Stats: Stats{StatSpellDmg: 14}},
+	{Name: "Ember Skyfire Diamond", Color: GemColorMeta, Stats: Stats{StatSpellDmg: 14}, Activate: ActivateESD},
+	{Name: "Swift Starfire Diamond", Color: GemColorMeta, Stats: Stats{StatSpellDmg: 12}},
+	{Name: "Mystical Skyfire Diamond", Color: GemColorMeta, Stats: Stats{}, Activate: ActivateMSD},
+	// {Name: "Thundering Skyfire Diamond", Color: GemColorMeta, Stats: Stats{}},
+	// {Name: "Relentless Earthstorm Diamond", Color: GemColorMeta, Stats: Stats{}},
+	// {Name: "Tenacious Earthstorm Diamond", Color: GemColorMeta, Stats: Stats{}},
+	// {Name: "Eternal Earthstorm Diamond", Color: GemColorMeta, Stats: Stats{}},
+	// {Name: "Brutal Earthstorm Diamond", Color: GemColorMeta, Stats: Stats{}},
+	{Name: "Insightful Earthstorm Diamond", Color: GemColorMeta, Stats: Stats{StatInt: 12}, Activate: ActivateIED},
 }
 
 var ItemLookup = map[string]*Item{}
@@ -410,19 +431,44 @@ func init() {
 // Figurine - Living Ruby Serpent	Jewelcarfting BoP		33	23
 
 type Item struct {
-	Slot       int
+	Slot       byte
 	Name       string
 	SourceZone string
 	SourceDrop string
 	Stats      Stats // Stats applied to wearer
+
+	GemSlots    []GemColor
+	Gems        []Gem
+	SocketBonus Stats
 
 	// For simplicity all items that produce an aura are 'activatable'.
 	// Since we activate all items on CD, this works fine for stuff like Quags Eye.
 	// TODO: is this the best design for this?
 	Activate   ItemActivation // Activatable Ability, produces an aura
 	ActivateCD int            // cooldown on activation, -1 means perm effect.
-	CoolID     string         // ID used for cooldown
+	CoolID     int32          // ID used for cooldown
 }
+
+type Gem struct {
+	Name     string
+	Stats    Stats          // flat stats gem adds
+	Activate ItemActivation // Meta gems activate an aura on player when socketed.
+	Color    GemColor
+	// Requirements  // Validate the gem can be used... later
+}
+
+type GemColor byte
+
+const (
+	GemColorUnknown GemColor = iota
+	GemColorMeta
+	GemColorRed
+	GemColorBlue
+	GemColorYellow
+	GemColorGreen
+	GemColorOrange
+	GemColorPurple
+)
 
 type ItemActivation func(*Simulation) Aura
 
@@ -456,7 +502,7 @@ func NewEquipmentSet(names ...string) Equipment {
 }
 
 const (
-	EquipUnknown int = iota
+	EquipUnknown byte = iota
 	EquipHead
 	EquipNeck
 	EquipShoulder
@@ -634,16 +680,6 @@ var moreItems = []Item{
 	{Slot: 11, Name: "Cobalt Band of Tyrigosa", SourceZone: "H MT - Nexus-Prince Shaffar", SourceDrop: "", Stats: Stats{17, 19, 0, 0, 35, 0, 0}},
 	{Slot: 11, Name: "Seal of the Exorcist", SourceZone: "50 Spirit Shards ", SourceDrop: "", Stats: Stats{0, 24, 0, 12, 28, 0, 0}},
 	{Slot: 11, Name: "Lola's Eve", SourceZone: "BoE World Drop", SourceDrop: "", Stats: Stats{14, 15, 0, 0, 29, 0, 0}},
-	{Slot: 11, Name: "Yor's Collapsing Band", SourceZone: "H MT - Yor (Summoned Boss)", SourceDrop: "", Stats: Stats{20, 0, 0, 0, 23, 0, 0}},
-	// {Slot: 11, Name: "Darkmoon Card: Crusade", SourceZone: "Blessings Deck", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
-	// {Slot: 11, Name: "Scryer's Bloodgem", SourceZone: "The Scryers - Revered", SourceDrop: "", Stats: Stats{0, 0, 0, 32, 0, 0, 0}},
-	// {Slot: 11, Name: "Quagmirran's Eye", SourceZone: "H SP - Quagmirran", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 37, 0, 0}},
-	// {Slot: 11, Name: "Arcanist's Stone", SourceZone: "H OHF - Epoch Hunter", SourceDrop: "", Stats: Stats{0, 0, 0, 25, 0, 0, 0}},
-	// {Slot: 11, Name: "Icon of the Silver Crescent", SourceZone: "41 Badge of Justice - G'eras", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 43, 0, 0}},
-	// {Slot: 11, Name: "Shiffar's Nexus-Horn", SourceZone: "Arc - Harbinger Skyriss", SourceDrop: "", Stats: Stats{0, 0, 30, 0, 0, 0, 0}},
-	// {Slot: 11, Name: "Xi'ri's Gift", SourceZone: "The Sha'tar - Revered", SourceDrop: "", Stats: Stats{0, 0, 32, 0, 0, 0, 0}},
-	// {Slot: 11, Name: "Vengeance of the Illidari", SourceZone: "Cruel's Intentions/Overlord - HFP Quest", SourceDrop: "", Stats: Stats{0, 0, 26, 0, 0, 0, 0}},
-	// {Slot: 11, Name: "Figurine - Living Ruby Serpent", SourceZone: "Jewelcarfting BoP", SourceDrop: "", Stats: Stats{23, 33, 0, 0, 0, 0, 0}},
 	{Slot: 19, Name: "Totem of the Void", SourceZone: "Mech - Cache of the Legion", SourceDrop: "", Stats: Stats{StatSpellDmg: 55}}, // TODO: Make an aura that effects only LB/CL
 	{Slot: 19, Name: "Totem of the Pulsing Earth", SourceZone: "15 Badge of Justice - G'eras", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
 	{Slot: 19, Name: "Totem of Impact", SourceZone: "15 Mark of Thrallmar/ Honor Hold", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},

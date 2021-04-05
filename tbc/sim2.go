@@ -30,8 +30,6 @@ func (sim *Simulation) Run2(seconds int) SimMetrics {
 //  Activates trinkets before spellcasting of off CD.
 //  It will pop mana potions if needed.
 func (sim *Simulation) Spellcasting(tickID int) int {
-	secondID := tickID / TicksPerSecond
-
 	// technically we dont really need this check with the new advancer.
 	if sim.CastingSpell != nil && sim.CastingSpell.TicksUntilCast == 0 {
 		sim.Cast(sim.CastingSpell)
@@ -39,28 +37,28 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 
 	if sim.CastingSpell == nil {
 		// Activate any specials
-		if sim.Options.NumBloodlust > 0 && sim.CDs["bl"] < 1 {
+		if sim.Options.NumBloodlust > 0 && sim.CDs[MagicIDBloodlust] < 1 {
 			sim.addAura(ActivateBloodlust(sim))
 			sim.Options.NumBloodlust-- // TODO: will this break anything?
 		}
 
-		if sim.Options.Talents.ElementalMastery && sim.CDs["elemastery"] < 1 {
+		if sim.Options.Talents.ElementalMastery && sim.CDs[MagicIDEleMastery] < 1 {
 			// Apply auras
 			sim.addAura(AuraEleMastery())
 		}
 
 		// Pop potion before next cast if we have less than the mana provided by the potion minues 1mp5 tick.
-		if sim.Stats[StatMana]-sim.CurrentMana+sim.Stats[StatMP5] >= 1500 && sim.CDs["darkrune"] < 1 {
+		if sim.Stats[StatMana]-sim.CurrentMana+sim.Stats[StatMP5] >= 1500 && sim.CDs[MagicIDRune] < 1 {
 			// Restores 900 to 1500 mana. (2 Min Cooldown)
 			sim.CurrentMana += float64(900 + sim.rando.Intn(1500-900))
-			sim.CDs["darkrune"] = 120 * TicksPerSecond
-			debug("[%d] Used Mana Potion\n", secondID)
+			sim.CDs[MagicIDRune] = 120 * TicksPerSecond
+			sim.debug("Used Mana Potion\n")
 		}
-		if sim.Stats[StatMana]-sim.CurrentMana+sim.Stats[StatMP5] >= 3000 && sim.CDs["potion"] < 1 {
+		if sim.Stats[StatMana]-sim.CurrentMana+sim.Stats[StatMP5] >= 3000 && sim.CDs[MagicIDPotion] < 1 {
 			// Restores 1800 to 3000 mana. (2 Min Cooldown)
 			sim.CurrentMana += float64(1800 + sim.rando.Intn(3000-1800))
-			sim.CDs["potion"] = 120 * TicksPerSecond
-			debug("[%d] Used Mana Potion\n", secondID)
+			sim.CDs[MagicIDPotion] = 120 * TicksPerSecond
+			sim.debug("Used Mana Potion\n")
 		}
 
 		// Pop any on-use trinkets
@@ -71,20 +69,20 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 			if sim.CDs[item.CoolID] > 0 {
 				continue
 			}
-			if item.Slot == EquipTrinket && sim.CDs["trinket"] > 0 {
+			if item.Slot == EquipTrinket && sim.CDs[MagicIDAllTrinket] > 0 {
 				continue
 			}
 			sim.addAura(item.Activate(sim))
 			sim.CDs[item.CoolID] = item.ActivateCD * TicksPerSecond
 			if item.Slot == EquipTrinket {
-				sim.CDs["trinket"] = 30 * TicksPerSecond
+				sim.CDs[MagicIDAllTrinket] = 30 * TicksPerSecond
 			}
 		}
 
 		// Choose next spell
 		ticks := sim.ChooseSpell()
 		if sim.CastingSpell != nil {
-			debug("[%d] Casting %s (%0.1f) ...", secondID, sim.CastingSpell.Spell.ID, float64(sim.CastingSpell.TicksUntilCast)/float64(TicksPerSecond))
+			sim.debug("Start Casting %s Cast Time: %0.1fs\n", sim.CastingSpell.Spell.ID, float64(sim.CastingSpell.TicksUntilCast)/float64(TicksPerSecond))
 		}
 		return ticks
 	}
