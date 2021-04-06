@@ -377,7 +377,13 @@ function popgear(geararray) {
     }
 
     glist.forEach(inm => {
+        if (inm == "" || inm == "None") {
+            return;
+        }
         var item = allgear[inm];
+        if (item == null) {
+            return;
+        }
         var slotid = slotToID[item.slot];
 
         if (slotid == "equipfinger") {
