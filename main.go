@@ -133,7 +133,7 @@ func main() {
 		rotArray = strings.Split(*rotation, ",")
 	}
 
-	results := runTBCSim(gear, opt, 180, sims, rotArray, *noopt)
+	results := runTBCSim(gear, opt, 200, sims, rotArray, *noopt)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
@@ -158,95 +158,7 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 	fmt.Printf("\nFinal Stats: %s\n", stats.Print(true))
 	statchan := make(chan string, 3)
 	for spi, spells := range spellOrders {
-		go func(spo []string) {
-			simDmgs := []float64{}
-			simOOMs := []int{}
-			histogram := map[int]int{}
-			casts := map[int32]int{}
-			manaSpent := 0.0
-			manaLeft := 0.0
-			oomdps := 0.0
-			ooms := 0
-			numOoms := 0
-
-			rseed := time.Now().Unix()
-			opt.SpellOrder = spo
-			opt.RSeed = rseed
-			sim := tbc.NewSim(stats, equip, opt)
-			for ns := 0; ns < numSims; ns++ {
-				metrics := sim.Run(seconds)
-				simDmgs = append(simDmgs, metrics.TotalDamage)
-				simOOMs = append(simOOMs, metrics.OOMAt)
-				manaLeft += float64(metrics.ManaAtEnd)
-				oomdps += metrics.DamageAtOOM
-
-				ooms += metrics.OOMAt
-				if metrics.OOMAt > 0 {
-					numOoms++
-				}
-
-				for _, cast := range metrics.Casts {
-					casts[cast.Spell.ID] += 1
-					manaSpent += cast.ManaCost
-				}
-				rv := int(math.Round(math.Round(metrics.TotalDamage/float64(seconds))/10) * 10)
-				histogram[rv] += 1
-			}
-
-			oomdps /= float64(numOoms)
-
-			// TODO: do this better... for now just dumping histograph data to disk lol.
-			out := ""
-			for k, v := range histogram {
-				out += strconv.Itoa(k) + "," + strconv.Itoa(v) + "\n"
-			}
-			ioutil.WriteFile(strings.Join(spo, ""), []byte(out), 0666)
-
-			totalDmg := 0.0
-			tdSq := totalDmg
-			max := 0.0
-			for _, dmg := range simDmgs {
-				totalDmg += dmg
-				tdSq += dmg * dmg
-
-				if dmg > max {
-					max = dmg
-				}
-			}
-
-			meanSq := tdSq / float64(numSims)
-			mean := totalDmg / float64(numSims)
-			stdev := math.Sqrt(meanSq - mean*mean)
-
-			output := ""
-			output += fmt.Sprintf("Spell Order: %v\n", spo)
-			output += fmt.Sprintf("DPS:")
-			output += fmt.Sprintf("\tMean: %0.1f\n", (mean / float64(seconds)))
-			output += fmt.Sprintf("\tMax: %0.1f\n", (max / float64(seconds)))
-			output += fmt.Sprintf("\tStd.Dev: %0.1f\n", stdev/float64(seconds))
-			output += fmt.Sprintf("Total Casts:\n")
-
-			for k, v := range casts {
-				output += fmt.Sprintf("\t%s: %d\n", k, v/numSims)
-			}
-			// output += fmt.Sprintf("Avg Mana Spent: %d\n", int(manaSpent)/numSims)
-			// output += fmt.Sprintf("Avg Mana Left: %d\n", int(manaLeft)/numSims)
-
-			// avgleft := (manaLeft) / float64(numSims)
-			// extraCL := int(avgleft / 414) // 414 is cost of difference casting CL instead of LB
-			// output += fmt.Sprintf("Add CL: %d\n", extraCL)
-
-			avgoomSec := 0
-			if numOoms > 0 {
-				avgoomSec = ooms / numOoms
-			}
-			output += fmt.Sprintf("Went OOM: %d/%d sims\n", numOoms, numSims)
-			if numOoms > 0 {
-				output += fmt.Sprintf("Avg OOM Time: %d seconds\n", avgoomSec)
-				output += fmt.Sprintf("Avg DPS At OOM: %0.0f\n", oomdps/float64(avgoomSec))
-			}
-			statchan <- output
-		}(spells)
+		go doSimMetrics(spells, stats, equip, opt, seconds, numSims, statchan)
 		if tbc.IsDebug && spi != len(spellOrders)-1 {
 			time.Sleep(time.Second * 2)
 		}
@@ -259,8 +171,104 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 
 	if !noopt {
 		fmt.Printf("\n------- OPTIMIZING -------\n")
-		tbc.OptimalRotation(stats, opt, equip, seconds, numSims)
+		_, optimalRotation := tbc.OptimalRotation(stats, opt, equip, seconds, numSims)
 		fmt.Printf("\n-------   DONE   -------\n")
+
+		opt.UseAI = true
+		go doSimMetrics(optimalRotation, stats, equip, opt, seconds, numSims, statchan)
 	}
+
+	results = append(results, <-statchan)
+
 	return results
+}
+
+func doSimMetrics(spo []string, stats tbc.Stats, equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, statchan chan string) {
+	simDmgs := []float64{}
+	simOOMs := []int{}
+	histogram := map[int]int{}
+	casts := map[int32]int{}
+	manaSpent := 0.0
+	manaLeft := 0.0
+	oomdps := 0.0
+	ooms := 0
+	numOoms := 0
+
+	rseed := time.Now().Unix()
+	opt.SpellOrder = spo
+	opt.RSeed = rseed
+	sim := tbc.NewSim(stats, equip, opt)
+	for ns := 0; ns < numSims; ns++ {
+		metrics := sim.Run(seconds)
+		simDmgs = append(simDmgs, metrics.TotalDamage)
+		simOOMs = append(simOOMs, metrics.OOMAt)
+		manaLeft += float64(metrics.ManaAtEnd)
+		oomdps += metrics.DamageAtOOM
+
+		ooms += metrics.OOMAt
+		if metrics.OOMAt > 0 {
+			numOoms++
+		}
+
+		for _, cast := range metrics.Casts {
+			casts[cast.Spell.ID] += 1
+			manaSpent += cast.ManaCost
+		}
+		rv := int(math.Round(math.Round(metrics.TotalDamage/float64(seconds))/10) * 10)
+		histogram[rv] += 1
+	}
+
+	oomdps /= float64(numOoms)
+
+	// TODO: do this better... for now just dumping histograph data to disk lol.
+	out := ""
+	for k, v := range histogram {
+		out += strconv.Itoa(k) + "," + strconv.Itoa(v) + "\n"
+	}
+	ioutil.WriteFile(strings.Join(spo, ""), []byte(out), 0666)
+
+	totalDmg := 0.0
+	tdSq := totalDmg
+	max := 0.0
+	for _, dmg := range simDmgs {
+		totalDmg += dmg
+		tdSq += dmg * dmg
+
+		if dmg > max {
+			max = dmg
+		}
+	}
+
+	meanSq := tdSq / float64(numSims)
+	mean := totalDmg / float64(numSims)
+	stdev := math.Sqrt(meanSq - mean*mean)
+
+	output := ""
+	output += fmt.Sprintf("Spell Order: %v\n", spo)
+	output += fmt.Sprintf("DPS:")
+	output += fmt.Sprintf("\tMean: %0.1f\n", (mean / float64(seconds)))
+	output += fmt.Sprintf("\tMax: %0.1f\n", (max / float64(seconds)))
+	output += fmt.Sprintf("\tStd.Dev: %0.1f\n", stdev/float64(seconds))
+	output += fmt.Sprintf("Total Casts:\n")
+
+	for k, v := range casts {
+		output += fmt.Sprintf("\t%s: %d\n", tbc.AuraName(k), v/numSims)
+	}
+	// output += fmt.Sprintf("Avg Mana Spent: %d\n", int(manaSpent)/numSims)
+	// output += fmt.Sprintf("Avg Mana Left: %d\n", int(manaLeft)/numSims)
+
+	// avgleft := (manaLeft) / float64(numSims)
+	// extraCL := int(avgleft / 414) // 414 is cost of difference casting CL instead of LB
+	// output += fmt.Sprintf("Add CL: %d\n", extraCL)
+
+	avgoomSec := 0
+	if numOoms > 0 {
+		avgoomSec = ooms / numOoms
+	}
+	output += fmt.Sprintf("Went OOM: %d/%d sims\n", numOoms, numSims)
+	if numOoms > 0 {
+		output += fmt.Sprintf("Avg OOM Time: %d seconds\n", avgoomSec)
+		output += fmt.Sprintf("Avg DPS At OOM: %0.0f\n", oomdps/float64(avgoomSec))
+	}
+	statchan <- output
 }

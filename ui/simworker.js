@@ -621,21 +621,23 @@ addEventListener('message', async (e) => {
             payload: JSON.parse(computestats(payload.gear, payload.opts)),
         });		
 	} else if (msg == "simulate") {
-		var result; 
+		var resultJSON; 
 		// temp workaround to keep it like how it was.
 		if (payload.rots == null) {
-			result = simulate(
+			resultJSON = simulate(
 				payload.iters, payload.dur, payload.gearlist, payload.opts
 			)
 		} else {
-			result = simulate(
+			resultJSON = simulate(
 				payload.iters, payload.dur, payload.gearlist, payload.opts, payload.rots, payload.haste
 			)
 		}
+		var result = JSON.parse(resultJSON);
+		console.log("SIM RESULT: ", result);
         postMessage({
             msg: "simulate",
 			id: e.data.id,
-            payload: JSON.parse(result),
+            payload: result,
         });
 	}
 }, false);

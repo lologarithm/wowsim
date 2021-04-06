@@ -78,6 +78,7 @@ func parseOptions(val js.Value) tbc.Options {
 		ExitOnOOM:    val.Get("exitoom").Truthy(),
 		NumBloodlust: val.Get("buffbl").Int(),
 		NumDrums:     val.Get("buffdrum").Int(),
+		UseAI:        val.Get("useai").Truthy(),
 		Buffs: tbc.Buffs{
 			ArcaneInt:                val.Get("buffai").Truthy(),
 			GiftOftheWild:            val.Get("buffgotw").Truthy(),
@@ -224,13 +225,7 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 	results := []SimResult{}
 	var simMetrics SimResult
 
-	lboom := 0
-	lboomCount := 0
-
-	prioom := 0
-	prioomCount := 0
-
-	pm := func(metrics tbc.SimMetrics, rotation int) {
+	pm := func(metrics tbc.SimMetrics) {
 		casts := make([]CastMetric, 0, len(metrics.Casts))
 		for _, v := range metrics.Casts {
 			casts = append(casts, CastMetric{
@@ -244,22 +239,17 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		if metrics.OOMAt > 0 {
 			// DmgAtOOMs
 			simMetrics.DmgAtOOMs = append(simMetrics.DmgAtOOMs, metrics.DamageAtOOM)
-			// Min/Max tracking
-			if rotation == 0 {
-				lboom += metrics.OOMAt
-				lboomCount++
-			} else if rotation == 1 {
-				prioom += metrics.OOMAt
-				prioomCount++
-			}
 		}
 		simMetrics.OOMAt = append(simMetrics.OOMAt, float64(metrics.OOMAt))
 		simMetrics.Casts = append(simMetrics.Casts, casts)
 		simMetrics.TotalDmgs = append(simMetrics.TotalDmgs, metrics.TotalDamage)
 	}
 
-	dosim := func(spells []string, rotIdx int, simsec int) {
+	dosim := func(spells []string, simsec int) {
 		simMetrics = SimResult{Rotation: spells}
+		if opts.UseAI {
+			simMetrics.Rotation = []string{"AI Optimized"}
+		}
 		st := time.Now()
 		rseed := time.Now().Unix()
 		optNow := opts
@@ -268,25 +258,30 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		sim := tbc.NewSim(stats, equip, optNow)
 		for ns := 0; ns < numSims; ns++ {
 			metrics := sim.Run(simsec)
-			pm(metrics, rotIdx)
+			pm(metrics)
 		}
 		simMetrics.SimSeconds = simsec
 		simMetrics.RealDuration = time.Now().Sub(st).Seconds()
 		results = append(results, simMetrics)
-
 	}
 
 	if !doingCustom && doOptimize {
-		bestRotMetrics, rotation := tbc.OptimalRotation(stats, opts, equip, seconds, numSims)
+		rotationOpts := opts
+		rotationOpts.UseAI = false
+		bestRotMetrics, rotation := tbc.OptimalRotation(stats, rotationOpts, equip, seconds, numSims)
 		simMetrics = SimResult{Rotation: rotation}
 		for _, rotmet := range bestRotMetrics {
-			pm(rotmet, 2)
+			pm(rotmet)
 		}
 		simMetrics.SimSeconds = seconds
 		results = append(results, simMetrics)
+
+		opts.UseAI = true
+		dosim(rotation, seconds) // now do one AI
+		results[len(results)-1].Rotation = []string{"AI Optimized"}
 	} else {
-		for i, spells := range spellOrders {
-			dosim(spells, i+3, seconds)
+		for _, spells := range spellOrders {
+			dosim(spells, seconds)
 		}
 	}
 	return results

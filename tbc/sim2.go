@@ -3,10 +3,8 @@ package tbc
 func (sim *Simulation) Run2(seconds int) SimMetrics {
 	sim.reset()
 
-	ticks := seconds * TicksPerSecond
-
 	// Pop BL at start.
-	for i := 0; i < ticks; {
+	for i := 0; i < sim.endTick; {
 		if sim.CurrentMana < 0 {
 			panic("you should never have negative mana.")
 		}
@@ -47,17 +45,20 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 			sim.addAura(AuraEleMastery())
 		}
 
+		didPot := false
 		// Pop potion before next cast if we have less than the mana provided by the potion minues 1mp5 tick.
 		if sim.Stats[StatMana]-sim.CurrentMana+sim.Stats[StatMP5] >= 1500 && sim.CDs[MagicIDRune] < 1 {
 			// Restores 900 to 1500 mana. (2 Min Cooldown)
 			sim.CurrentMana += 900 + (sim.rando.Float64() * 600)
 			sim.CDs[MagicIDRune] = 120 * TicksPerSecond
+			didPot = true
 			sim.debug("Used Mana Potion\n")
 		}
 		if sim.Stats[StatMana]-sim.CurrentMana+sim.Stats[StatMP5] >= 3000 && sim.CDs[MagicIDPotion] < 1 {
 			// Restores 1800 to 3000 mana. (2 Min Cooldown)
 			sim.CurrentMana += 1800 + (sim.rando.Float64() * 1200)
 			sim.CDs[MagicIDPotion] = 120 * TicksPerSecond
+			didPot = true
 			sim.debug("Used Mana Potion\n")
 		}
 
@@ -80,7 +81,7 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 		}
 
 		// Choose next spell
-		ticks := sim.ChooseSpell()
+		ticks := sim.SpellChooser(sim, didPot)
 		if sim.CastingSpell != nil {
 			sim.debug("Start Casting %s Cast Time: %0.1fs\n", sim.CastingSpell.Spell.Name, float64(sim.CastingSpell.TicksUntilCast)/float64(TicksPerSecond))
 		}

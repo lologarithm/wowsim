@@ -4,6 +4,7 @@ import "fmt"
 
 type Options struct {
 	SpellOrder []string
+	UseAI      bool // when set true, the AI will modulate the rotations to maximize DPS and mana.
 	RSeed      int64
 	ExitOnOOM  bool
 

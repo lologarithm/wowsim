@@ -17,6 +17,8 @@ func debugFunc(sim *Simulation) func(string, ...interface{}) {
 type Simulation struct {
 	CurrentMana float64
 
+	SpellChooser func(*Simulation, bool) int // TODO: make more funtional. Return a cast instead of having function mutate sim itself.
+
 	Stats       Stats
 	Buffs       Stats     // temp increases
 	Equip       Equipment // Current Gear
@@ -39,6 +41,7 @@ type Simulation struct {
 	rando       *rand.Rand
 	rseed       int64
 	currentTick int
+	endTick     int
 
 	debug func(string, ...interface{})
 }
@@ -87,7 +90,14 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		rseed:         options.RSeed,
 		rando:         rand.New(rand.NewSource(options.RSeed)),
 		debug:         func(a string, v ...interface{}) {},
+		SpellChooser:  ChooseSpell,
 	}
+
+	if options.UseAI {
+		ai := NewAI(sim)
+		sim.SpellChooser = ai.ChooseSpell
+	}
+
 	if IsDebug {
 		sim.debug = debugFunc(sim)
 	}
@@ -102,6 +112,13 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 func (sim *Simulation) reset() {
 	sim.rseed++
 	sim.rando.Seed(sim.rseed)
+
+	if sim.Options.UseAI {
+		// Reset a new AI
+		// TODO: Can we take learnings from the last AI to modulate this AIs behavior?
+		ai := NewAI(sim)
+		sim.SpellChooser = ai.ChooseSpell
+	}
 
 	sim.currentTick = 0
 	sim.CurrentMana = sim.Stats[StatMana]
@@ -134,6 +151,7 @@ func (sim *Simulation) reset() {
 }
 
 func (sim *Simulation) Run(seconds int) SimMetrics {
+	sim.endTick = seconds * TicksPerSecond
 	// For now use the new 'event' driven state advancement.
 	return sim.Run2(seconds)
 }
@@ -172,7 +190,7 @@ func (sim *Simulation) addAura(a Aura) {
 	sim.Auras = append(sim.Auras, a)
 }
 
-func (sim *Simulation) ChooseSpell() int {
+func ChooseSpell(sim *Simulation, didPot bool) int {
 	if sim.RotationIdx == -1 {
 		lowestWait := math.MaxInt32
 		wasMana := false

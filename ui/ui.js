@@ -153,10 +153,11 @@ function runsim() {
     var includeFullDPS = true;
 
     var processSimResult = function(output) {
+        console.log("Processing Results:", output)
         var optimal = {};
         var maxdps = 0.0;
-        var fulloutput = "";
         output.forEach(out => {
+            var fulloutput = "";
             var total = out.TotalDmgs.reduce(function(sum, value){
                 return sum + value;
             }, 0);
@@ -214,6 +215,7 @@ function runsim() {
                 out.averageoom = 100000; // a big number
             }
             fulloutput += "<br />";
+            console.log("Appending Full Output: ", fulloutput)
             outele2.innerHTML += fulloutput;
         });
 
@@ -230,8 +232,9 @@ function runsim() {
             outele1.innerHTML = "<hr />";
             return;
         }
-        outele2.innerHTML += "<hr /><p>Optimized Rotation:<br />";
+        outele2.innerHTML += "<hr /><p>Optimization Result:<br />";
         includeFullDPS = true;
+        realOpts.useai = true;
         if (lbmetrics.averageoom < dur) {
             // set LB wins
             outele2.innerHTML += "-- You probably will need to downrank. -- <br />"
