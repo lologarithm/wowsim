@@ -257,9 +257,10 @@ func (sim *Simulation) Cast(cast *Cast) {
 			dmg *= 1 + (0.01 * sim.Options.Talents.Concussion)
 		}
 
-		// Average Resistance = (Target's Resistance / (Caster's Level * 5)) * 0.75 "AR"
-		// P(x) = 50% - 250%*|x - AR| <- where X is chance of resist
+		// Average Resistance (AR) = (Target's Resistance / (Caster's Level * 5)) * 0.75
+		// P(x) = 50% - 250%*|x - AR| <- where X is %resisted
 		// For now hardcode the 25% chance resist at 2.5% (this assumes bosses have 0 nature resist)
+		// .... Using level 70 shows a 0.35% chance of resist instead of 2.5%... not sure what is correct.
 		if sim.rando.Float64() < 0.025 { // chance of 25% resist
 			dmg *= .75
 			if IsDebug {

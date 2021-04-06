@@ -16,6 +16,8 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 
 	topDmg := 0.0
 	topNLB := 0
+	topRot := []string{}
+	topMets := []SimMetrics{}
 
 	numLB := 10
 
@@ -52,15 +54,24 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 		if simdmg > topDmg {
 			topNLB = numLB
 			topDmg = simdmg
+			topMets = simmet
+			topRot = rotation
 		}
 
 		avgOOM := float64(numoom) / float64(numSims)
 		fmt.Printf("(%d LB: 1 CL) %0.0f DPS  OOM: %0.0f percent\n", numLB, simdmg/float64(seconds)/float64(numSims), avgOOM*100)
 
+		if numLB == minLB || numLB == maxLB {
+			fmt.Printf("Hit bounds of sim... Found: %0.0f DPS (%d LB : 1 CL)\n", simdmg/float64(seconds)/float64(numSims), numLB)
+			if simdmg >= topDmg {
+				return simmet, rotation
+			}
+			return topMets, topRot
+		}
 		// avgOOMAt := int(float64(oomat) / float64(numoom))
 		if avgOOM < 0.1 {
 			newLB := (numLB + minLB) / 2
-			if numLB-minLB == 1 { // im lazy and this is easy to write...
+			if numLB-minLB <= 1 { // im lazy and this is easy to write...
 				newLB = minLB
 			}
 			if newLB == numLB {
@@ -76,7 +87,7 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 			newLB := (numLB + maxLB) / 2
 			if maxLB-numLB <= 1 { // im lazy and this is easy to write...
 				newLB = maxLB
-			} else if avgOOM > 0.85 {
+			} else if avgOOM > 0.9 {
 				newLB = (newLB + maxLB) / 2 // skip ahead
 			}
 
