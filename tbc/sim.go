@@ -157,7 +157,7 @@ func (sim *Simulation) cleanAura(i int) {
 	sim.Auras[i].OnSpellHit = nil
 	sim.Auras[i].OnExpire = nil
 
-	sim.debug("removed: %s- \n", sim.Auras[i].ID)
+	sim.debug("removed: %s- \n", AuraName(sim.Auras[i].ID))
 	sim.Auras = sim.Auras[:i+copy(sim.Auras[i:], sim.Auras[i+1:])]
 }
 
@@ -232,7 +232,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 			aur.OnCastComplete(sim, cast)
 		}
 	}
-	sim.debug("Completed Cast (%s)\n", cast.Spell.ID)
+	sim.debug("Completed Cast (%s)\n", cast.Spell.Name)
 	dbgCast := cast.Spell.Name
 	if sim.rando.Float64() < cast.Hit {
 		dmg := (sim.rando.Float64() * (cast.Spell.MaxDmg - cast.Spell.MinDmg)) + cast.Spell.MinDmg + (sim.Stats[StatSpellDmg] * cast.Spell.Coeff)

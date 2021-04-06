@@ -15,6 +15,63 @@ type Aura struct {
 	OnExpire       AuraEffect
 }
 
+func AuraName(a int32) string {
+	switch a {
+	case MagicIDUnknown:
+		return "Unknown"
+	case MagicIDLOTalent:
+		return "LOTalent"
+	case MagicIDJoW:
+		return "JoW"
+	case MagicIDEleFocus:
+		return "EleFocus"
+	case MagicIDEleMastery:
+		return "EleMastery"
+	case MagicIDStormcaller:
+		return "Stormcaller"
+	case MagicIDSilverCrescent:
+		return "SilverCrescent"
+	case MagicIDQuagsEye:
+		return "QuagsEye"
+	case MagicIDFungalFrenzy:
+		return "FungalFrenzy"
+	case MagicIDBloodlust:
+		return "Bloodlust"
+	case MagicIDSkycall:
+		return "Skycall"
+	case MagicIDEnergized:
+		return "Energized"
+	case MagicIDNAC:
+		return "NAC"
+	case MagicIDChaoticSkyfire:
+		return "ChaoticSkyfire"
+	case MagicIDInsightfulEarthstorm:
+		return "InsightfulEarthstorm"
+	case MagicIDMysticSkyfire:
+		return "MysticSkyfire"
+	case MagicIDMysticFocus:
+		return "MysticFocus"
+	case MagicIDEmberSkyfire:
+		return "EmberSkyfire"
+	case MagicIDLB12:
+		return "LB12"
+	case MagicIDCL6:
+		return "CL6"
+	case MagicIDISCTrink:
+		return "ISCTrink"
+	case MagicIDNACTrink:
+		return "NACTrink"
+	case MagicIDPotion:
+		return "Potion"
+	case MagicIDRune:
+		return "Rune"
+	case MagicIDAllTrinket:
+		return "AllTrinket"
+	}
+
+	return "unknown"
+}
+
 // AuraEffects will mutate a cast or simulation state.
 type AuraEffect func(sim *Simulation, c *Cast)
 
@@ -68,7 +125,7 @@ func AuraLightningOverload(lvl int) Aura {
 		ID:      MagicIDLOTalent,
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
-			if c.Spell.ID == MagicIDLB12 || c.Spell.ID == MagicIDCL6 {
+			if c.Spell.ID != MagicIDLB12 && c.Spell.ID != MagicIDCL6 {
 				return
 			}
 			if c.isLO {
@@ -165,7 +222,7 @@ func ActivateQuagsEye(sim *Simulation) Aura {
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			if lastActivation+(45*TicksPerSecond) < sim.currentTick && sim.rando.Float64() < 0.1 {
-				sim.debug(" -quags eye- \n")
+				sim.debug(" -quags eye proc- \n")
 				sim.Buffs[StatHaste] += hasteBonus
 				sim.addAura(AuraHasteRemoval(sim.currentTick, 6.0, hasteBonus, MagicIDFungalFrenzy))
 				lastActivation = sim.currentTick
@@ -179,7 +236,7 @@ func AuraHasteRemoval(tick int, seconds int, amount float64, id int32) Aura {
 		ID:      id,
 		Expires: tick + (seconds * TicksPerSecond),
 		OnExpire: func(sim *Simulation, c *Cast) {
-			sim.debug("- haste removal %0.0f from %d", amount, id)
+			sim.debug("haste removal %0.0f from %d\n", amount, AuraName(id))
 			sim.Buffs[StatHaste] -= amount
 		},
 	}
