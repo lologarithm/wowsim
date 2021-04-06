@@ -87,11 +87,22 @@ func main() {
 			haste, _ := strconv.ParseFloat(v[8], 64)
 			// spp, _ := strconv.ParseFloat(v[], 64)
 
-			numRed. _ := strconv.Atoi(v[12])
-			numRed. _ := strconv.Atoi(v[13])
-			numRed. _ := strconv.Atoi(v[14])
-			numRed. _ := strconv.Atoi(v[15])
-			i := tbc.Item{
+			numMeta, _ := strconv.Atoi(v[12])
+			numRed, _ := strconv.Atoi(v[13])
+			numYellow, _ := strconv.Atoi(v[14])
+			numBlue, _ := strconv.Atoi(v[15])
+
+			if len(v[15]) > 0 {
+				// parse out socket bonus
+				tokens := strings.Split(v[15], " ")
+				val := strconv.Atoi()
+				if len(tokens) == 2 {
+
+				} else if len(tokens) == 3 {
+
+				}
+			}
+			it := tbc.Item{
 				Name:       v[1],
 				SourceZone: v[2],
 				Slot:       slot,
@@ -104,9 +115,22 @@ func main() {
 					tbc.StatHaste:     haste,
 					tbc.StatMP5:       mp5,
 				},
-				GemSlots: ,
+				GemSlots: make([]tbc.GemColor, numMeta+numRed+numYellow+numBlue),
 			}
-			fmt.Fprintf(os.Stdout, "%#v,\n", i)
+			if numMeta > 0 { // its always 1 or 0
+				it.GemSlots = append(it.GemSlots, tbc.GemColorMeta)
+			}
+			for i := 0; i < numRed; i++ {
+				it.GemSlots = append(it.GemSlots, tbc.GemColorRed)
+			}
+			for i := 0; i < numYellow; i++ {
+				it.GemSlots = append(it.GemSlots, tbc.GemColorYellow)
+			}
+			for i := 0; i < numBlue; i++ {
+				it.GemSlots = append(it.GemSlots, tbc.GemColorBlue)
+			}
+
+			fmt.Fprintf(os.Stdout, "%#v,\n", it)
 
 		}
 	}

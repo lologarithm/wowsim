@@ -44,7 +44,10 @@ func NewCast(sim *Simulation, sp *Spell, spellDmg, spHit, spCrit float64) *Cast 
 	}
 
 	cast.Hit = 0.83 + (spHit / 1260.0) // 12.6 hit == 1% hit
-	cast.Crit = (spCrit / 2208.0)      // 22.08 crit == 1% crit
+	if cast.Hit > 1.0 {
+		cast.Hit = 0.99 // can't get away from the 1% miss
+	}
+	cast.Crit = (spCrit / 2208.0) // 22.08 crit == 1% crit
 
 	// Apply any on cast effects.
 	for _, aur := range sim.Auras {

@@ -10,25 +10,6 @@
         <script src="uikit-icons.min.js"></script>
         <script src="ui.js"></script>
         <link rel="stylesheet" href="ui.css" />
-        <script>
-            if (!WebAssembly.instantiateStreaming) { // polyfill
-                WebAssembly.instantiateStreaming = async (resp, importObject) => {
-                    const source = await (await resp).arrayBuffer();
-                    return await WebAssembly.instantiate(source, importObject);
-                };
-            }
-    
-            const go = new Go();
-            let mod, inst;
-            WebAssembly.instantiateStreaming(fetch("lib.wasm"), go.importObject).then(
-                async result => {
-                    mod = result.module;
-                    inst = result.instance;
-                    console.log("loading wasm...")
-                    await go.run(inst);
-                }
-            );
-        </script>
     </head>
     <body>
         <div id="root">
@@ -193,16 +174,16 @@
                         <div>
                             <div id="gearstats">
                                 <table>
-                                    <tr><th>Stat</th><th>Gear</th></tr>
-                                    <tr><td><label>Int</label></td> <td><label id="statint">0</label><td></td></tr>
-                                    <tr><td><label>Stm</label></td> <td><label id="statstm">0</label><td></td></tr>
-                                    <tr><td><label title="Includes crit from int on gear.">SpellCrit*</label></td> <td><label id="statspellcrit" title="Includes crit from INT">0</label><td></td></tr>
-                                    <tr><td><label>SpellHit</label></td> <td><label id="statspellhit">0</label><td></td></tr>
-                                    <tr><td><label>SpellDmg</label></td> <td><label id="statspelldmg">0</label><td></td></tr>
-                                    <tr><td><label>Haste</label></td> <td><label id="stathaste">0</label><td></td></tr>
-                                    <tr><td><label>MP5</label></td> <td><label id="statmp5">0</label><td></td></tr>
-                                    <tr><td><label title="This is just bonus mana from gear int, does not include base.">Mana*</label></td> <td><label id="statmana" title="This is just bonus mana from gear (int), does not include base.">0</label><td></td></tr>
-                                    <tr><td><label>SpellPen</label></td> <td><label id="statspellpen">0</label><td></td></tr>
+                                    <tr><th>Stat</th><th>Gear</th><th><label title="Base + Talents + Gear + Buffs">Final</label></th></tr>
+                                    <tr><td><label>Int</label></td> <td><label id="statint">0</label></td><td><label id="fstatint">0</label></td></tr>
+                                    <tr><td><label>Stm</label></td> <td><label id="statstm">0</label></td><td><label id="fstatstm">0</label></td></tr>
+                                    <tr><td><label title="Includes crit from int on gear.">SpellCrit*</label></td> <td><label id="statspellcrit" title="Includes crit from INT">0</label></td><td><label id="fstatspellcrit" >0</label></td></tr>
+                                    <tr><td><label>SpellHit</label></td> <td><label id="statspellhit">0</label></td><td><label id="fstatspellhit">0</label></td></tr>
+                                    <tr><td><label>SpellDmg</label></td> <td><label id="statspelldmg">0</label></td><td><label id="fstatspelldmg">0</label></td></tr>
+                                    <tr><td><label>Haste</label></td> <td><label id="stathaste">0</label></td><td><label id="fstathaste">0</label></td></tr>
+                                    <tr><td><label>MP5</label></td> <td><label id="statmp5">0</label></td><td><label id="fstatmp5">0</label></td></tr>
+                                    <tr><td><label>Mana</label></td> <td><label id="statmana" title="This is just bonus mana from gear (int), does not include base.">0</label></td><td><label id="fstatmana">0</label></td></tr>
+                                    <tr><td><label>SpellPen</label></td> <td><label id="statspellpen">0</label></td><td><label id="fstatspellpen">0</label></td></tr>
                                 </table>
                             </div>
                         </div>
@@ -283,7 +264,6 @@
                 <ul id="calctabs" uk-tab="connect: #calcs">
                     <li class="uk-active"><a href="#">Sim</a></li>
                     <li><a href="#">Histogram</a></li>
-                    <li><a href="#">Stats</a></li>
                     <li><a href="#">Hasted Rotations</a></li>
                 </ul>
                 <ul id="calcs" class="uk-switcher uk-margin">
@@ -292,15 +272,13 @@
                             <button onclick="runsim();">Run Simulation</button>
                             Iterations: <input id="iters" type="text" value="1000" style="width: 60px"></input>
                             Duration: <input id="dur" type="text" value="300" style="width: 60px"></input>
+                            Optimize: <input id="doopt" type="checkbox" class="uk-checkbox" checked></input>
                         </div>
-                        <div id="output" style="overflow: auto; top: 0px; bottom: 0px;"></div>
+                        <div id="output1" style="overflow: auto; top: 0px; bottom: 0px;"></div>
+                        <div id="output2" style="overflow: auto; top: 0px; bottom: 0px;"></div>
                     </li>
                     <li style="height: 35%">
                         DPS Histogram
-                    </li>
-                    <li style="height: 35%">
-                        Final Stats:
-                        <div id="fstats"></div>
                     </li>
                     <li style="height: 35%">
                         <div style="text-align: right;">
@@ -313,7 +291,19 @@
                             <li>Not mana optimized, this is showing max dps for a 60s fight</li>
                             <li>Even a very small amount of haste like 20 makes CL / 4LB > CL / 3LB</li>
                         </ul>
-                        <div id="hasterots"></div>
+                        <div id="hasterots">
+                            <table class="hastetable">
+                                <tr><th>Haste</th><th>Rotation</th><th>DPS</th></tr>
+                                <tr><td></td><td></td><td></td></tr>
+                                <tr><td></td><td></td><td></td></tr>
+                                <tr><td></td><td></td><td></td></tr>
+                                <tr><td></td><td></td><td></td></tr>
+                                <tr><td></td><td></td><td></td></tr>
+                                <tr><td></td><td></td><td></td></tr>
+                                <tr><td></td><td></td><td></td></tr>
+                                <tr><td></td><td></td><td></td></tr>
+                            </table>
+                        </div>
                     </li>
                 </ul>    
             </div>

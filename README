@@ -21,3 +21,8 @@ Engine
     Gem Auras
     Socket Bonuses
     Set Bonuses
+    Upgrader - find upgrade for a single piece.
+
+Other
+    Implement Gear Phases
+    seventyupgrades importer

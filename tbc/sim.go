@@ -278,11 +278,10 @@ func (sim *Simulation) Cast(cast *Cast) {
 			}
 		}
 		sim.metrics.TotalDamage += cast.DidDmg
-		sim.metrics.Casts = append(sim.metrics.Casts, cast)
 	} else {
 		dbgCast += " miss"
 	}
-
+	sim.metrics.Casts = append(sim.metrics.Casts, cast)
 	sim.debug("%s: %0.0f\n", dbgCast, cast.DidDmg)
 	sim.CurrentMana -= cast.ManaCost
 	sim.CastingSpell = nil

@@ -28,6 +28,68 @@ var slotToID = [
     "equiptotem"
 ]
 
+var simlib = new window.Worker(`simworker.js`);
+var simlib2 = new window.Worker(`simworker.js`);
+
+var simlibBusy = false;
+var simlib2Busy = false;
+
+simlib.onmessage = (event) => {
+    var m = event.data.msg;
+    if (m == "ready") {
+        simlib.postMessage({msg: "getGearList"});
+    } else if (m == "getGearList") {
+        // do something
+        popgear(event.data.payload);
+    } else {
+        var onComp = simrequests[event.data.id];
+        if (onComp != null) {
+            onComp(event.data.payload);
+        }
+        simlibBusy = false;
+    }
+}
+
+simlib2.onmessage = (event) => {
+    var m = event.data.msg;
+    var onComp = simrequests[event.data.id];
+    if (onComp != null) {
+        onComp(event.data.payload);
+    }
+}
+
+var simrequests = {};
+function simulate(iters, dur, gearlist, opts, rots, haste, onComplete) {
+    var id = makeid();
+    simrequests[id] = onComplete
+    var worker = simlib;
+    if (simlibBusy) {
+        worker = simlib2;
+    } else {
+        simlibBusy = true;
+    }
+    worker.postMessage({msg: "simulate", id: id, payload: {
+        iters: iters, dur: dur, gearlist: gearlist, opts: opts, rots: rots, haste: haste,
+    }});
+}
+
+function makeid() {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < 16; i++ ) {
+       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+// TODO: unique ID each request...
+
+function computestats(gear, opts, onComplete) {
+    var id = makeid();
+    simrequests[id] = onComplete
+    simlib.postMessage({msg: "computeStats", id: id, payload: {gear: gear, opts: opts}});
+}
+
 function getOptions() {
     var options = {};
 
@@ -54,13 +116,22 @@ function getOptions() {
     options.totwr =  parseInt(document.getElementById("totwr").value) || 0;
     options.buffdrum = 0; // todo, drums
 
+    options.doopt = document.getElementById("doopt").checked;
     return options;
 }
 
 // Actually runs the sim. Uses the 'currentGear' global to populate the call.
 function runsim() {
-    var iters = document.getElementById("iters").value;
-    var dur = document.getElementById("dur").value;
+    var outele1 = document.getElementById("output1");
+    var outele2 = document.getElementById("output2");
+
+    var iters = parseInt(document.getElementById("iters").value);
+    var dur = parseInt(document.getElementById("dur").value);
+
+    var metricHTML = "<br /><div id=\"runningsim\" uk-spinner=\"ratio: 1.5\"></div><hr />";
+    outele1.innerHTML = metricHTML;
+    outele2.innerText = "";
+
     var gearlist = [];
     slotToID.forEach(k => {
         var item = currentGear[k];
@@ -69,76 +140,115 @@ function runsim() {
         }
     });
     console.log("Options: ", getOptions());
-    var resStr = simulate(parseInt(iters), parseInt(dur), gearlist, getOptions());
-    var output = JSON.parse(resStr);
-    console.log("Result:", output);
     
-    var optimal = {};
-    var maxdps = 0.0;
-    var fulloutput = "";
-    output.forEach(out => {
-        var total = out.TotalDmgs.reduce(function(sum, value){
-            return sum + value;
-        }, 0);
-        var dps = total / out.SimSeconds;
-        if (total/out.SimSeconds > maxdps) {
-            maxdps = total/out.SimSeconds;
-            optimal = out;
-        }
+    // #1 simulate LB
+    // #2 simulate CL->LB priority cast
+    // #3 if dur > LB.OOM run pure LB sim
+    //    if du < CL->LB.OOM run priority sim.
+    //    else, optimize sim
 
-        var values = out.TotalDmgs;
-        var avg = average(values);
-        var dev = standardDeviation(values, avg);
-        var simdur = out.SimSeconds;
-        if (out.Rotation[0] == "pri") {
-            fulloutput += "Priority: " + out.Rotation.slice(1).join(", ") + "<br />";
-        } else {
-            fulloutput += "Rotation: " + out.Rotation.join(", ") + "<br />";
-        }
-        fulloutput += "Duration: " + out.SimSeconds + " seconds.<br />"
-        fulloutput += "DPS: " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";
+    var lbmetrics = null;
+    var primetrics = null;
+    var doExit = false;
+    var includeFullDPS = true;
 
-        var oomat = 0;
-        var numOOM = out.OOMAt.reduce(function(sum, value){
-            if (value > 0) {
-                oomat += value;
-                return sum + 1;
+    var processSimResult = function(output) {
+        var optimal = {};
+        var maxdps = 0.0;
+        var fulloutput = "";
+        output.forEach(out => {
+            var total = out.TotalDmgs.reduce(function(sum, value){
+                return sum + value;
+            }, 0);
+            var dps = total / out.SimSeconds;
+            if (total/out.SimSeconds > maxdps) {
+                maxdps = total/out.SimSeconds;
+                optimal = out;
             }
-            return sum;
-        }, 0);
-        if (numOOM > 0) {
-            var values = out.DmgAtOOMs;
+    
+            var values = out.TotalDmgs;
             var avg = average(values);
             var dev = standardDeviation(values, avg);
-            var simdur = Math.round(oomat/numOOM);
-    
-            fulloutput += "Went OOM: " + numOOM + " / " + iters + " simulations. Average time when OOM: " + Math.round(oomat/numOOM) + " seconds.<br />";
-            fulloutput += "DPS at time of OOM: " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";    
+            var simdur = out.SimSeconds;
+            if (out.Rotation[0] == "pri") {
+                fulloutput += "Priority: " + out.Rotation.slice(1).join(", ") + "<br />";
+                primetrics = out;
+            } else {
+                fulloutput += "Rotation: " + out.Rotation.join(", ") + "<br />";
+                if (out.Rotation.length == 1 && out.Rotation[0] == "LB12") {
+                    lbmetrics = out;
+                }
+            }
+            var oomat = 0;
+            var numOOM = out.OOMAt.reduce(function(sum, value){
+                if (value > 0) {
+                    oomat += value;
+                    return sum + 1;
+                }
+                return sum;
+            }, 0);
+
+            if (includeFullDPS) {
+                fulloutput += "Duration: " + out.SimSeconds + " seconds.<br />"
+                fulloutput += "DPS: " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";
+            }
+            if (numOOM > 0) {
+                var values = out.DmgAtOOMs;
+                var avg = average(values);
+                var dev = standardDeviation(values, avg);
+                var simdur = Math.round(oomat/numOOM);
+                out.averageoom = Math.round(oomat/numOOM);
+
+                if (includeFullDPS) {
+                    fulloutput += "Went OOM: " + numOOM + " / " + iters + " simulations. " 
+                }
+                fulloutput += "Average time when OOM: " + Math.round(oomat/numOOM) + " seconds.<br />";
+                fulloutput += "DPS at time of OOM: " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";    
+            } else {
+                out.averageoom = 100000; // a big number
+            }
+            fulloutput += "<br />";
+            outele2.innerHTML += fulloutput;
+        });
+
+        if (lbmetrics == null || primetrics == null) {
+            return;
         }
-        fulloutput += "<br />";
-    });
+        if (doExit) {
+            outele1.innerHTML = "<hr />";
+            return;
+        }
+        doExit = true;
+        var realOpts = getOptions();
+        if (!realOpts.doopt) {
+            outele1.innerHTML = "<hr />";
+            return;
+        }
+        outele2.innerHTML += "<hr /><p>Optimized Rotation:<br />";
+        includeFullDPS = true;
+        if (lbmetrics.averageoom < dur) {
+            // set LB wins
+            outele2.innerHTML += "-- You probably will need to downrank. -- <br />"
+            simulate(iters, dur, gearlist, realOpts, [["LB12"]], 0, processSimResult);
+        } else if (primetrics.averageoom > dur) {
+            // set pri wins
+            simulate(iters, dur, gearlist, realOpts, [["pri", "CL6","LB12"]], 0, processSimResult);
+        } else {
+            simulate(iters, dur, gearlist, realOpts, null, 0, processSimResult);
+        }
+    };
 
-    var outele = document.getElementById("output");
-    var statele = document.getElementById("fstats");
-    
-    var simdur = optimal.SimSeconds;
-    var metricHTML = "<br /><hr />Optimal Casting Rotation for a " + simdur + " second fight -> ";
-    if (optimal.Rotation.length == 1) {
-        metricHTML += "<b>LB12 Spam</b>";
-    } else if (optimal.Rotation[0] == "pri") {
-        metricHTML += "<b>CL on CD</b>";
+    var firstOpts = getOptions();
+    if (firstOpts.doopt) {
+        includeFullDPS = false;
+        firstOpts.exitoom = true;
+        firstOpts.doopt = false;
+        simulate(iters, 600, gearlist, firstOpts, [["LB12"]], 0, processSimResult);
+        simulate(iters, 600, gearlist, firstOpts, [["pri", "CL6","LB12"]], 0, processSimResult);    
     } else {
-        var numLB = optimal.Rotation.length - 1
-        metricHTML += " <b>" + numLB + "LB : 1CL</b>";
+        simulate(iters, dur, gearlist, firstOpts, [["LB12"]], 0, processSimResult);
+        simulate(iters, dur, gearlist, firstOpts, [["pri", "CL6","LB12"]], 0, processSimResult);    
     }
-    var values = optimal.TotalDmgs;
-    var avg = average(values);
-    var dev = standardDeviation(values, avg);
-    metricHTML += " @ " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + " DPS<hr /><br /><br />";
-
-    metricHTML += fulloutput;
-    outele.innerHTML = metricHTML;
-    // statele.innerHTML = JSON.stringify(output.stats).replaceAll(",", "\n", );
 }
 
 function hastedRotations() {
@@ -152,8 +262,7 @@ function hastedRotations() {
     });
     var opts = getOptions();
     opts.buffbl = 0;
-
-    var fulloutput = "<table class=\"hastetable\"><tr><th>Haste</th><th>Rotation</th><th>DPS</th></tr>";
+    opts.buffdrum = 0;
 
     var hastes = [100, 200, 300, 400, 500, 600, 700, 788];
     var rots = [
@@ -162,46 +271,37 @@ function hastedRotations() {
         ["CL6", "LB12", "LB12", "LB12", "LB12", "LB12", "LB12"]
     ];
 
+
+    var hasteCounter = 0;
     hastes.forEach( haste => {
-        console.log("Running haste: ", haste);
-        var opts = getOptions();
-        opts.buffbl = 0;
-        opts.buffdrum = 0;
-
-        var resStr = simulate(200, 60, gearlist, opts, rots, haste);
-        var output = JSON.parse(resStr);
-        
-        var maxdmg = 0.0;
-        var maxrot = {};
-
-        output.forEach(out => {
-            var total = out.TotalDmgs.reduce(function(sum, value){
-                return sum + value;
-            }, 0);
-            if (total > maxdmg) {
-                maxrot = out;
-                maxdmg = total;
-            }
+        hasteCounter++;
+        var myCounter = hasteCounter;
+        simulate(300, 60, gearlist, opts, rots, haste, (output) => {
+            var maxdmg = 0.0;
+            var maxrot = {};
+    
+            output.forEach(out => {
+                var total = out.TotalDmgs.reduce(function(sum, value){
+                    return sum + value;
+                }, 0);
+                if (total > maxdmg) {
+                    maxrot = out;
+                    maxdmg = total;
+                }
+            });
+            
+            var values = maxrot.TotalDmgs;
+            var avg = average(values);
+            var dev = standardDeviation(values, avg);
+            var simdur = maxrot.SimSeconds;
+            var rotTitle = "CL / " + (maxrot.Rotation.length-1).toString() + "xLB";
+            var rows = document.getElementById("hasterots").firstElementChild.firstElementChild.children;
+            var row = rows[myCounter];
+            row.children[0].innerText = haste;
+            row.children[1].innerText = rotTitle;
+            row.children[2].innerText = "" + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur);
         });
-        
-        var values = maxrot.TotalDmgs;
-        var avg = average(values);
-        var dev = standardDeviation(values, avg);
-        var simdur = maxrot.SimSeconds;
-        var rotTitle = "CL / " + (maxrot.Rotation.length-1).toString() + "xLB";
-        fulloutput += "<tr><td>" + haste + "</td>"
-        fulloutput += "<td>"
-        fulloutput += rotTitle
-        fulloutput += "</td>"
-        fulloutput += "<td>"
-        fulloutput += "" + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";
-        fulloutput += "</td>"
     });
-
-    fulloutput += "</table>"
-    var outele = document.getElementById("hasterots");
-    outele.innerHTML = fulloutput;
-    // statele.innerHTML = JSON.stringify(output.stats).replaceAll(",", "\n", );
 }
 
 function standardDeviation(values, avg){
@@ -226,8 +326,7 @@ function average(data){
 }
 
 // popgear will populate the allgear map from sim.
-function popgear() {
-    var geararray = JSON.parse(gearlist());
+function popgear(geararray) {
     geararray.forEach(g => {
         allgear[g.name] = g;
 
@@ -342,12 +441,20 @@ function updateGear(newGear) {
     currentGear = newGear;
     localStorage.setItem("cachedGear", JSON.stringify(gearlist));
     
-    var gearjson = gearstats(gearlist);
-    var gearParse = JSON.parse(gearjson);
-    for (const [key, value] of Object.entries(gearParse)) {
-        var lab = document.getElementById(key.toLowerCase());
-        lab.innerText = value;
-    }
+    computestats(gearlist, null, (result) => {
+        for (const [key, value] of Object.entries(result)) {
+            var lab = document.getElementById(key.toLowerCase());
+            lab.innerText = value;
+        }
+    });
+
+    var opts = getOptions();
+    computestats(gearlist, opts, (result) => {
+        for (const [key, value] of Object.entries(result)) {
+            var lab = document.getElementById("f"+key.toLowerCase());
+            lab.innerText = value;
+        }    
+    });
 }
 
 // turns a search string into a list of lowercase terms and if there is punctuation or not.

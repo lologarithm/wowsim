@@ -82,7 +82,7 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 		// Choose next spell
 		ticks := sim.ChooseSpell()
 		if sim.CastingSpell != nil {
-			sim.debug("Start Casting %s Cast Time: %0.1fs\n", sim.CastingSpell.Spell.ID, float64(sim.CastingSpell.TicksUntilCast)/float64(TicksPerSecond))
+			sim.debug("Start Casting %s Cast Time: %0.1fs\n", sim.CastingSpell.Spell.Name, float64(sim.CastingSpell.TicksUntilCast)/float64(TicksPerSecond))
 		}
 		return ticks
 	}
