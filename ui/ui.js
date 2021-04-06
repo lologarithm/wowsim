@@ -173,6 +173,12 @@ function runsim() {
             if (out.Rotation[0] == "pri") {
                 fulloutput += "Priority: " + out.Rotation.slice(1).join(", ") + "<br />";
                 primetrics = out;
+            } else if (out.Rotation.length > 6 && out.Rotation[0] == "CL6" && out.Rotation[1] == "LB12") {
+                fulloutput += "Rotation: 1CL : " + (out.Rotation.length-1).toString() + "LB<br />";
+                // fulloutput += "Rotation: " + out.Rotation.join(", ") + "<br />";
+                if (out.Rotation.length == 1 && out.Rotation[0] == "LB12") {
+                    lbmetrics = out;
+                }
             } else {
                 fulloutput += "Rotation: " + out.Rotation.join(", ") + "<br />";
                 if (out.Rotation.length == 1 && out.Rotation[0] == "LB12") {
