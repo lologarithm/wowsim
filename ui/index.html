@@ -21,157 +21,21 @@
                 <li><a href="#">Notes</a></li>
             </ul>
             <ul id="inputdata" class="uk-switcher uk-margin">
-                <li id="gear" style="height: 35%;overflow: auto;min-height: 400px;">
+                <li id="gear" style="height: 50%;overflow: auto; overflow-x:hidden;min-height: 400px;">
                     <div class="uk-grid-small uk-child-width-expand@s uk-text-center" uk-grid>
-                        <div>
+                        <div style="min-width: 330px">
                             <div class="uk-grid-small uk-child-width-expand@s uk-text-center" uk-grid>
-                                <div>
-                                    <div id="equiphead">
-                                        <button id="equipheaditem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equipheadsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equipneck">
-                                        <button id="equipneckitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equipnecksearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equipshoulder">
-                                        <button id="equipshoulderitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equipshouldersearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equipback">
-                                        <button id="equipbackitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equipbacksearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equipchest">
-                                        <button id="equipchestitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equipchestsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equipwrist">
-                                        <button id="equipwristitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equipwristsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equipweapon">
-                                        <button id="equipweaponitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equipweaponsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equipoffhand">
-                                        <button id="equipoffhanditem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equipoffhandsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
+                                <div id="gearleft">
                                 </div>
                             </div>
                         </div>
-                        <div>
+                        <div style="min-width: 330px">
                             <div class="uk-grid-small uk-child-width-expand@s uk-text-center" uk-grid>
-                                <div>
-                                    <div id="equiphands">
-                                        <button id="equiphandsitem"class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equiphandssearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equipwaist">
-                                        <button id="equipwaistitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equipwaistsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equiplegs">
-                                        <button id="equiplegsitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equiplegssearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equipfeet">
-                                        <button id="equipfeetitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equipfeetsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equipfinger1">
-                                        <button id="equipfinger1item" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equipfinger1search" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equipfinger2">
-                                        <button id="equipfinger2item" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equipfinger2search" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equiptrinket1">
-                                        <button id="equiptrinket1item" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equiptrinket1search" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equiptrinket2">
-                                        <button id="equiptrinket2item" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equiptrinket2search" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div id="equiptotem">
-                                        <button id="equiptotemitem" class="uk-button uk-button-default" onclick="focusSearch(this, event)" type="button">?</button>
-                                        <div uk-dropdown="mode: click">
-                                            <input id="equiptotemsearch" onkeyup="searchHandler(this, event)" onblur="clearSearch(this)" type="text"><button onclick="removeGear(this)">Remove</button></button></input>
-                                            <ul class="uk-nav uk-dropdown-nav">
-                                            </ul>
-                                        </div>
-                                    </div>
+                                <div id="gearright">
                                 </div>
                             </div>
                         </div>
-                        <div>
+                        <div style="min-width: 250px">
                             <div id="gearstats">
                                 <table>
                                     <tr><th>Stat</th><th>Gear</th><th><label title="Base + Talents + Gear + Buffs">Final</label></th></tr>
@@ -189,13 +53,13 @@
                         </div>
                     </div>
                 </li>
-                <li id="talents" style="height: 35%;overflow: auto;">
+                <li id="talents" style="height: 50%;overflow: auto;">
                     <h4>Standard Elemental Build</h4>
                     <b>Elemental:</b> Convection, Concussion, Call of Thunder, Elemental Focus, Elemental Fury, Lightning Mastery, UnrelentingStorm(3/5), Elemental Mastery, Lightning Overload, Totem of Wrath<br />
                     <b>Resto:</b> Natures Guidance, Tidal Mastery<br />
                 </li>
-                <li id="buffs" style="height: 35%;overflow: auto;">
-                    <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid" style="height: 35%"> 
+                <li id="buffs" style="height: 50%;overflow: auto;">
+                    <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid" style="height: 50%"> 
                         <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid buffs" style=>
                             <b style="width: 100%;text-align: right;font-size: 0.7em;color: #1e87f0;">Raid Buffs</b>
                             <label><input id="buffai" class="uk-checkbox" type="checkbox" checked>Arcane Int</label>
@@ -251,7 +115,7 @@
                         </div>
                     </div>
                 </li>
-                <li id="notes" style="height: 35%;overflow: auto;">
+                <li id="notes" style="height: 50%;overflow: auto;">
                     <ul>
                         <li>All activatable abilities and items are activated on CD (usually at the start of fight).</li>
                         <li>Gems and gemming bonuses are not implemented.</li>

@@ -47,7 +47,7 @@
 				outputBuf += decoder.decode(buf);
 				const nl = outputBuf.lastIndexOf("\n");
 				if (nl != -1) {
-					console.log(outputBuf.substr(0, nl));
+					// console.log(outputBuf.substr(0, nl));
 					outputBuf = outputBuf.substr(nl + 1);
 				}
 				return buf.length;
@@ -462,7 +462,7 @@
 					},
 
 					"debug": (value) => {
-						console.log(value);
+						// console.log(value);
 					},
 				}
 			};
@@ -600,15 +600,17 @@ WebAssembly.instantiateStreaming(fetch("lib.wasm"), go.importObject).then(
     async result => {
         mod = result.module;
         inst = result.instance;
-        console.log("loading wasm...")
+        // console.log("loading wasm...")
         await go.run(inst);
     }
 );
 
+var workerID = "";
+
 addEventListener('message', async (e) => {
-	console.log("simworker request: ", e.data);
 	var msg = e.data.msg;
 	var payload = e.data.payload;
+
     if ( msg == "getGearList") {
         postMessage({
             msg: "getGearList",
@@ -621,6 +623,7 @@ addEventListener('message', async (e) => {
             payload: JSON.parse(computestats(payload.gear, payload.opts)),
         });		
 	} else if (msg == "simulate") {
+		// console.log("Worker(" + workerID + "): simulating...");
 		var resultJSON; 
 		// temp workaround to keep it like how it was.
 		if (payload.rots == null) {
@@ -633,11 +636,13 @@ addEventListener('message', async (e) => {
 			)
 		}
 		var result = JSON.parse(resultJSON);
-		console.log("SIM RESULT: ", result);
         postMessage({
             msg: "simulate",
 			id: e.data.id,
             payload: result,
         });
+	} else if (msg == "setID") {
+		workerID = payload;
+		postMessage({msg: "idconfirm"})
 	}
 }, false);

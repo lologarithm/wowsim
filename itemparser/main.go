@@ -92,14 +92,27 @@ func main() {
 			numYellow, _ := strconv.Atoi(v[14])
 			numBlue, _ := strconv.Atoi(v[15])
 
+			gemBonus := tbc.Stats{}
 			if len(v[15]) > 0 {
 				// parse out socket bonus
 				tokens := strings.Split(v[15], " ")
-				val := strconv.Atoi()
+				val, _ := strconv.Atoi(tokens[0])
 				if len(tokens) == 2 {
-
+					if tokens[1] == "int" {
+						gemBonus[tbc.StatInt] = float64(val)
+					} else if tokens[1] == "mp5" {
+						gemBonus[tbc.StatMP5] = float64(val)
+					}
 				} else if len(tokens) == 3 {
-
+					if tokens[1] == "spell" {
+						if tokens[2] == "crit" {
+							gemBonus[tbc.StatSpellCrit] = float64(val)
+						} else if tokens[2] == "hit" {
+							gemBonus[tbc.StatSpellHit] = float64(val)
+						} else if tokens[2] == "dmg" {
+							gemBonus[tbc.StatSpellDmg] = float64(val)
+						}
+					}
 				}
 			}
 			it := tbc.Item{
@@ -115,7 +128,7 @@ func main() {
 					tbc.StatHaste:     haste,
 					tbc.StatMP5:       mp5,
 				},
-				GemSlots: make([]tbc.GemColor, numMeta+numRed+numYellow+numBlue),
+				GemSlots: make([]tbc.GemColor, 0, numMeta+numRed+numYellow+numBlue),
 			}
 			if numMeta > 0 { // its always 1 or 0
 				it.GemSlots = append(it.GemSlots, tbc.GemColorMeta)

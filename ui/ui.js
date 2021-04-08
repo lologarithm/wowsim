@@ -37,6 +37,7 @@ var simlib2Busy = false;
 simlib.onmessage = (event) => {
     var m = event.data.msg;
     if (m == "ready") {
+        simlib.postMessage({msg: "setID", payload: "1"});
         simlib.postMessage({msg: "getGearList"});
     } else if (m == "getGearList") {
         // do something
@@ -52,6 +53,10 @@ simlib.onmessage = (event) => {
 
 simlib2.onmessage = (event) => {
     var m = event.data.msg;
+    if (m == "ready") {
+        simlib2.postMessage({msg: "setID", payload: "2"});
+        return;
+    }
     var onComp = simrequests[event.data.id];
     if (onComp != null) {
         onComp(event.data.payload);
@@ -60,6 +65,7 @@ simlib2.onmessage = (event) => {
 
 var simrequests = {};
 function simulate(iters, dur, gearlist, opts, rots, haste, onComplete) {
+    console.log("Called Simulate... rots:", rots);
     var id = makeid();
     simrequests[id] = onComplete
     var worker = simlib;
@@ -82,7 +88,6 @@ function makeid() {
     }
     return result;
 }
-// TODO: unique ID each request...
 
 function computestats(gear, opts, onComplete) {
     var id = makeid();
@@ -135,8 +140,8 @@ function runsim() {
     var gearlist = [];
     slotToID.forEach(k => {
         var item = currentGear[k];
-        if (item != null && item.name != "") {
-            gearlist.push(item.name);
+        if (item != null && item.Name != "") {
+            gearlist.push(item.Name);
         }
     });
     console.log("Options: ", getOptions());
@@ -207,12 +212,27 @@ function runsim() {
                 out.averageoom = Math.round(oomat/numOOM);
 
                 if (includeFullDPS) {
-                    fulloutput += "Went OOM: " + numOOM + " / " + iters + " simulations. " 
+                    fulloutput += "Went OOM: " + numOOM + " / " + iters + " simulations.<br />" 
+                } else {
+                    fulloutput += "Average time to OOM: " + Math.round(oomat/numOOM) + " seconds.<br />";
+                    fulloutput += "DPS at time of OOM: " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";        
                 }
-                fulloutput += "Average time when OOM: " + Math.round(oomat/numOOM) + " seconds.<br />";
-                fulloutput += "DPS at time of OOM: " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";    
             } else {
                 out.averageoom = 100000; // a big number
+            }
+            if (out.Rotation[0].startsWith("AI")) {
+                var castStats = {
+                    19: 0,
+                    18: 0
+                };
+                out.Casts.forEach((casts)=>{
+                    casts.forEach((cast)=>{
+                        castStats[cast.ID] += 1
+                    });
+                });
+                fulloutput += "Average Casts:<br />"
+                fulloutput += " LB12: " + Math.round(castStats[18] / iters) + "<br />";
+                fulloutput += " CL6: " + Math.round(castStats[19] / iters) + "<br />";
             }
             fulloutput += "<br />";
             console.log("Appending Full Output: ", fulloutput)
@@ -265,8 +285,8 @@ function hastedRotations() {
     var gearlist = [];
     slotToID.forEach(k => {
         var item = currentGear[k];
-        if (item != null && item.name != "") {
-            gearlist.push(item.name);
+        if (item != null && item.Name != "") {
+            gearlist.push(item.Name);
         }
     });
     var opts = getOptions();
@@ -334,40 +354,127 @@ function average(data){
     return avg;
 }
 
+
+window.addEventListener('click', function(e){   
+    var allSelectors = document.getElementsByClassName("equipselector");
+    for (var i = 0; i < allSelectors.length; i++) {
+        var sel = allSelectors[i];
+        if (sel.contains(e.target)){
+            // Clicked in box
+        } else{
+            clearSearchEle(sel);
+        }    
+    }
+
+});
+
+window.addEventListener("keyup", (event) => {
+    if (event.code == "Escape") {
+        var allSelectors = document.getElementsByClassName("equipselector");
+        for (var i = 0; i < allSelectors.length; i++) {
+            clearSearchEle(allSelectors[i]);
+        }
+    }
+});
+
 // popgear will populate the allgear map from sim.
-function popgear(geararray) {
-    geararray.forEach(g => {
-        allgear[g.name] = g;
+// Additionally it creates all the DOM elements for selecting gear.
+function popgear(gearList) {
+    var holderl = document.getElementById("gearleft");
+    var holderr = document.getElementById("gearright");
+    
+    var holder = holderl;
+    slotToID.forEach((slot) => {
+        // ya ya ya, this is terrible code. I dont have time right now.
+        if (slot == "equipnone" || slot == "equipfinger" || slot == "equiptrinket") {
+            return;
+        }
+        if (slot == "equiphands") {
+            holder = holderr;
+        }
+        if (slot == "equipweapon") {
+            holder = holderl;
+        }
+        if (slot == "equiptotem") {
+            holder = holderr;
+        }
+        var search = document.createElement("input");
+        search.id = slot+"search";
+        search.addEventListener("keyup", searchHandler);
+        
+        var clearbutton = document.createElement("button");
+        clearbutton.innerText = "Clear";
+        clearbutton.addEventListener("click", removeGear);
+    
+        var selectordiv = document.createElement("div");
+        selectordiv.id = slot+"selector";
+        selectordiv.classList.add("equipselector");
+        selectordiv.style.display = "none";
+        selectordiv.appendChild(search);
+        selectordiv.appendChild(clearbutton);
+        var selectorlist = document.createElement("div");
+        selectorlist.id = slot+"selectorlist";
+        selectordiv.appendChild(selectorlist);
+    
+        var name = document.createElement("p");
+        name.addEventListener("click", focusSearch);
+        name.id = slot+"label";
+        name.innerText = "None";
+        var gemdiv = document.createElement("div");
+        gemdiv.id = slot+"enchants";
+    
+        var innerdiv = document.createElement("div");
+        innerdiv.classList.add("equiplabel");
+        innerdiv.appendChild(name);
+        innerdiv.appendChild(gemdiv);
+    
+        var img = document.createElement("img");
+        img.id = slot+"icon";
+        img.addEventListener("click", focusSearch);
+        img.src = "/icons/Items/Temp.png"
+        var maindiv = document.createElement("div");
+        maindiv.id = slot;
+        maindiv.classList.add("equipslot");
+        maindiv.appendChild(img);
+        maindiv.appendChild(innerdiv);
+        maindiv.appendChild(selectordiv);
+        maindiv.addEventListener("blur", ()=>{maindiv.style.display = "none";});
+        holder.appendChild(maindiv);
+    });
+
+    console.log("Items: ", gearList);
+    gearList.Items.forEach(g => {
+        if (g.GemSlots != null) {
+            var gemslots = [];
+            var gbytes = atob(g.GemSlots);
+            for (var i = 0; i < gbytes.length; i++) {
+                gemslots.push(gbytes.codePointAt(i));
+            }
+            g.GemSlots = gemslots;
+        }
+        allgear[g.Name] = g;
+
 
         try {
-            var listItem = document.createElement("li");
-            listItem.innerText = g.name;
-            
-            slotid = slotToID[g.slot];
-            if (slotid == "equipfinger") {
-                var nav = UIkit.nav("#equipfinger1 div.uk-dropdown ul.uk-nav.uk-dropdown-nav");
-                nav.$el.addEventListener("click", gearClickHandler);
-                nav.$el.appendChild(listItem);
+            var listItem = document.createElement("div");
+            listItem.classList.add("equipselitem");
+            listItem.innerText = g.Name;
+            listItem.addEventListener("click", gearClickHandler);
+
+            slotid = slotToID[g.Slot];
+            if (slotid == "equipfinger" || slotid == "equiptrinket") {
+                var itemlist = document.getElementById(slotid+"1selectorlist");
+                itemlist.appendChild(listItem);
 
                 var listItem2 = document.createElement("li");
-                listItem2.innerText = g.name;
-                var nav = UIkit.nav("#equipfinger2 div.uk-dropdown ul.uk-nav.uk-dropdown-nav");
-                nav.$el.addEventListener("click", gearClickHandler);
-                nav.$el.appendChild(listItem2);
-            } else if (slotid == "equiptrinket") {
-                var nav = UIkit.nav("#equiptrinket1 div.uk-dropdown ul.uk-nav.uk-dropdown-nav");
-                nav.$el.addEventListener("click", gearClickHandler);
-                nav.$el.appendChild(listItem);
-                
-                var listItem2 = document.createElement("li");
-                listItem2.innerText = g.name;
-                var nav = UIkit.nav("#equiptrinket2 div.uk-dropdown ul.uk-nav.uk-dropdown-nav");
-                nav.$el.addEventListener("click", gearClickHandler);
-                nav.$el.appendChild(listItem2);
+                listItem2.classList.add("equipselitem");
+                listItem2.innerText = g.Name;
+                listItem2.addEventListener("click", gearClickHandler);
+                var itemlist2 = document.getElementById(slotid+"2selectorlist");
+                itemlist2.appendChild(listItem2);
             } else {
-                var nav = UIkit.nav("#" + slotid + " div.uk-dropdown ul.uk-nav.uk-dropdown-nav");
-                nav.$el.addEventListener("click", gearClickHandler);
-                nav.$el.appendChild(listItem);
+                var itemlist = document.getElementById(slotid+"selectorlist");
+                itemlist.appendChild(listItem);
             }
         } catch (e) {
             console.log("Failed to intialize lootz: ", e);
@@ -376,13 +483,14 @@ function popgear(geararray) {
 
     var finger1done = false;
     var trink1done = false;
-    var glist = [];
+    var glist = defaultGear;
     // TODO: make this store in like local storage or something so people cache gear choices.
     var gearCache = localStorage.getItem('cachedGear');
-    if (gearCache) {
-        glist = JSON.parse(gearCache);
-    } else {
-        glist = defaultGear;
+    if (gearCache && gearCache.length > 0) {
+        var parsedGear = JSON.parse(gearCache);
+        if (parsedGear.length > 0) {
+            glist = parsedGear;
+        }
     }
 
     glist.forEach(inm => {
@@ -393,7 +501,7 @@ function popgear(geararray) {
         if (item == null) {
             return;
         }
-        var slotid = slotToID[item.slot];
+        var slotid = slotToID[item.Slot];
 
         if (slotid == "equipfinger") {
             if (!finger1done) {
@@ -414,8 +522,6 @@ function popgear(geararray) {
     })
 
     updateGear(currentGear);
-
-    UIkit.update(element = document.body, type = 'update');
 }
 
 // Click handler for each item in slot list dropdown.
@@ -426,8 +532,7 @@ function gearClickHandler(event) {
     currentGear[slotid] = allgear[event.target.innerText];
     updateGear(currentGear);
 
-    var $dropdown = UIkit.dropdown(event.target.parentElement.parentElement);
-    $dropdown.hide(0);
+    clearSearchEle(event.target.parentElement.parentElement);
 }
 
 // Click handler for 'remove' button on each slot.
@@ -441,15 +546,55 @@ function removeGear(ele) {
     $dropdown.hide(0);
 }
 
+// For now hardcode an icon.
+var slotToIcon = {
+    "equiphead": "/icons/Armor/INV_Helmet_06.png",
+    "equipneck": "/icons/Armor/INV_Jewelry_Necklace_07.png",
+    "equipshoulder": "/icons/Armor/INV_Shoulder_14.png",
+    "equipback": "/icons/Armor/INV_Misc_Cape_16.png",
+    "equipchest": "/icons/Armor/INV_Chest_Chain_04.png",
+    "equipwrist": "/icons/Armor/INV_Bracer_09.png",
+    "equiphands": "/icons/Armor/INV_Gauntlets_26.png",
+    "equipwaist": "/icons/Armor/INV_Belt_19.png",
+    "equiplegs": "/icons/Armor/INV_Pants_03.png",
+    "equipfeet": "/icons/Armor/INV_Boots_Wolf.png",
+    "equipfinger1": "/icons/Armor/INV_Jewelry_Ring_04.png",
+    "equipfinger2": "/icons/Armor/INV_Jewelry_Ring_05.png",
+    "equiptrinket1": "/icons/Armor/INV_Jewelry_Talisman_09.png",
+    "equiptrinket2": "/icons/Armor/INV_Jewelry_Talisman_10.png",
+    "equipweapon": "/icons/Weapons/INV_Sword_39.png",
+    "equipoffhand": "/icons/Armor/INV_Shield_20.png",
+    "equiptotem": "/icons/Spells/Spell_Nature_InvisibilityTotem.png"
+}
 // updateGear will update the gear UI elements (to redraw when new gear is selected)
 function updateGear(newGear) {
     var gearlist = [];
     slotToID.forEach(k => {
         var item = newGear[k];
-        if (item != null && item.name != "") {
-            var button = document.getElementById(k).firstElementChild;
-            button.innerText = item.name;
-            gearlist.push(item.name);
+        if (item != null && item.Name != "") {
+            var nameele = document.getElementById(k+"label");
+            nameele.innerText = item.Name;
+            gearlist.push(item.Name);
+
+            var iconImg = document.getElementById(k+"icon");
+            iconImg.src = slotToIcon[k];
+
+            var gemdiv = document.getElementById(k+"enchants");
+            gemdiv.innerHTML = "";
+            if (item.GemSlots != null) {
+                item.GemSlots.forEach((gem) => {
+                    var color = "rgba(30, 30, 30";
+                    if (gem == 2) {
+                        color = "rgba(250, 30, 30";
+                    } else if (gem == 3) {
+                        color = "rgba(30, 30, 250";
+                    } else if (gem == 4) {
+                        color = "rgba(250, 250, 30";
+                    }
+                    gemdiv.innerHTML += '<div class="gemslot" style="background-color: ' + color + ', 0.3);border:1px solid ' + color + ', 0.8)"></div>';
+                });    
+            }
+            gemdiv.innerHTML += '<div class="enchslot" style="float: right;"></div>';
         }
     });
 
@@ -521,8 +666,8 @@ function completeSearch(ele) {
             break;
         }
     }
-    var $dropdown = UIkit.dropdown(ele.parentElement);
-    $dropdown.hide(0);
+
+    clearSearchEle(ele.parentElement);
 }
 
 function arrow(ele, search, numChild) {
@@ -567,8 +712,9 @@ function handleSearchUp(ele, search, numChild) {
 // Uses text from element to find item slot list.
 // Ignores case and punctuation unless punctuation is included in the search.
 // Spaces in search are implicit 'and'
-function searchHandler(ele, event) {
-    if (event.keyCode == 13 && ele.value != "") { // Enter
+function searchHandler(event) {
+    var ele = event.target;
+    if (event.code == "Enter" && ele.value != "") { // Enter
         completeSearch(ele)
         return;
     }
@@ -577,10 +723,10 @@ function searchHandler(ele, event) {
     // Number of things to search
     var numChild = ele.parentElement.children[2].childElementCount;
 
-    if (event.keyCode == 38) {
+    if (event.code == "ArrowUp") {
         handleSearchUp(ele, search, numChild);
         return
-    } else if (event.keyCode == 40) {
+    } else if (event.code == "ArrowDown") {
         handleSearchDown(ele, search, numChild);
         return
     }
@@ -604,22 +750,44 @@ function searchHandler(ele, event) {
     }
 }
 
-function clearSearch(e) {
-    e.value = "";
-    var numChild = e.parentElement.children[2].childElementCount;
+function clearSearch(event) {
+    clearSearchEle(event.target.parentElement);
+}
+
+function clearSearchEle(ele) {
+    ele.children[0].value = "";
+    var numChild = ele.children[2].childNodes.length;
     for (var i = 0; i < numChild; i++) {
-        var le = e.parentElement.children[2].children[i];
+        var le = ele.children[2].children[i];
         le.style.removeProperty("color")
         le.classList.remove("lisearch");
     }
+    ele.style.display = "none";
 }
 
 // focuses the search box (useful for making UI better)
-function focusSearch(ele, event) {
-    var tb = ele.parentElement.children[1].children[0];
-    setTimeout( () => {
-        tb.focus();
-    }, 10);
+function focusSearch(event) {
+    var ele = event.target;
+
+    // Get the 
+    var tb;
+    if (ele.id.includes("label")) {
+        tb = document.getElementById(ele.id.replace("label", "selector"));
+    } else {
+        tb = document.getElementById(ele.parentElement.id+"selector");;
+    }
+    tb.style.display = "block";
+    tb.firstElementChild.focus();
+
+    var allSelectors = document.getElementsByClassName("equipselector");
+    for (var i = 0; i < allSelectors.length; i++) {
+        if (allSelectors[i].id != tb.id) {
+            clearSearchEle(allSelectors[i]);
+        }
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
 }
 
 // function 

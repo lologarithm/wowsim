@@ -3,7 +3,7 @@ package tbc
 type Cast struct {
 	Spell *Spell
 	// Caster ... // Needed for onstruck effects?
-	isLO bool // stupid hack
+	IsLO bool // stupid hack
 
 	// Pre-hit Mutatable State
 	TicksUntilCast int

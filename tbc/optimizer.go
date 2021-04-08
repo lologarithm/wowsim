@@ -1,7 +1,6 @@
 package tbc
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -15,7 +14,7 @@ var rotations = [][]string{
 // Finds the optimal rotation for given parameters.
 func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, numSims int) ([]SimMetrics, []string) {
 
-	fmt.Printf("Starting optimize...\n")
+	// fmt.Printf("Starting optimize...\n")
 
 	topDmg := 0.0
 	topRot := []string{}
@@ -35,7 +34,7 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 		oomat := 0
 		numoom := 0
 		simdmg := 0.0
-		fmt.Printf("Starting opt sim: %v\n", rotation)
+		// fmt.Printf("Starting opt sim: %v\n", rotation)
 		sopts := opts
 		sopts.SpellOrder = rotation
 		sim := NewSim(stats, equip, sopts)
@@ -60,7 +59,7 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 		}
 
 		avgOOM := float64(numoom) / float64(numSims)
-		fmt.Printf("(%d LB: 1 CL) %0.0f DPS  OOM: %0.0f percent\n", numLB, simdmg/float64(seconds)/float64(numSims), avgOOM*100)
+		// fmt.Printf("(%d LB: 1 CL) %0.0f DPS  OOM: %0.0f percent\n", numLB, simdmg/float64(seconds)/float64(numSims), avgOOM*100)
 
 		if numLB == minLB || numLB == maxLB {
 			if simdmg >= topDmg {
@@ -101,7 +100,7 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 		}
 
 		// Optimal Found
-		fmt.Printf("Optimal Found: %0.0f DPS (%d LB : 1 CL)\n", simdmg/float64(seconds)/float64(numSims), numLB)
+		// fmt.Printf("Optimal Found: %0.0f DPS (%d LB : 1 CL)\n", simdmg/float64(seconds)/float64(numSims), numLB)
 		printResult(simmet, seconds)
 		return simmet, rotation
 	}
@@ -109,36 +108,36 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 }
 
 func printResult(metrics []SimMetrics, seconds int) {
-	numSims := len(metrics)
-	simDmgs := make([]float64, 0, numSims)
-	for _, metric := range metrics {
-		simDmgs = append(simDmgs, metric.TotalDamage)
-	}
+	// numSims := len(metrics)
+	// simDmgs := make([]float64, 0, numSims)
+	// for _, metric := range metrics {
+	// 	simDmgs = append(simDmgs, metric.TotalDamage)
+	// }
 
-	totalDmg := 0.0
-	tdSq := totalDmg
-	max := 0.0
-	for _, dmg := range simDmgs {
-		totalDmg += dmg
-		tdSq += dmg * dmg
+	// totalDmg := 0.0
+	// tdSq := totalDmg
+	// max := 0.0
+	// for _, dmg := range simDmgs {
+	// 	totalDmg += dmg
+	// 	tdSq += dmg * dmg
 
-		if dmg > max {
-			max = dmg
-		}
-	}
+	// 	if dmg > max {
+	// 		max = dmg
+	// 	}
+	// }
 
-	meanSq := tdSq / float64(numSims)
-	mean := totalDmg / float64(numSims)
-	stdev := math.Sqrt(meanSq - mean*mean)
+	// meanSq := tdSq / float64(numSims)
+	// mean := totalDmg / float64(numSims)
+	// stdev := math.Sqrt(meanSq - mean*mean)
 
-	fmt.Printf("DPS:\n")
-	fmt.Printf("\tMean: %0.1f\n", (mean / float64(seconds)))
-	fmt.Printf("\tMax: %0.1f\n", (max / float64(seconds)))
-	fmt.Printf("\tStd.Dev: %0.1f\n", stdev/float64(seconds))
-	fmt.Printf("Total Casts:\n")
+	// fmt.Printf("DPS:\n")
+	// fmt.Printf("\tMean: %0.1f\n", (mean / float64(seconds)))
+	// fmt.Printf("\tMax: %0.1f\n", (max / float64(seconds)))
+	// fmt.Printf("\tStd.Dev: %0.1f\n", stdev/float64(seconds))
+	// fmt.Printf("Total Casts:\n")
 
 	// for k, v := range casts {
-	// 	fmt.Printf("\t%s: %d\n", tbc.AuraName(k), v/numSims)
+	// fmt.Printf("\t%s: %d\n", tbc.AuraName(k), v/numSims)
 	// }
 
 }
@@ -253,7 +252,7 @@ func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
 // 		//  Get mana remaining
 // 		avgMana /= numSims
 // 		dps /= float64(numSims * (seconds - opts.NumBloodlust*40))
-// 		fmt.Printf("Rot: %s, Mana Left: %v\n", p1Res.R, avgMana)
+// fmt.Printf("Rot: %s, Mana Left: %v\n", p1Res.R, avgMana)
 // 		// if avgMana < 1000 {
 // 		// 	// If you dont have 1000 mana to spare on average, there is little value in BL.
 // 		// 	//   This is disregarding 'critical' phases of boss fights where you might conserve mana until that spot, and then BL.
@@ -288,7 +287,7 @@ func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
 // 		bldps := bltotal / float64(opts.NumBloodlust*40)
 
 // 		totaltotal := int((nr.oDPS*float64(seconds-opts.NumBloodlust*40))+bltotal) / seconds
-// 		fmt.Printf("BASE(%s): %0.0f, BL(%s): %0.0f, TOTAL: %d\n", nr.OR, nr.oDPS, nr.R, bldps, totaltotal)
+// fmt.Printf("BASE(%s): %0.0f, BL(%s): %0.0f, TOTAL: %d\n", nr.OR, nr.oDPS, nr.R, bldps, totaltotal)
 // 	}
 // }
 

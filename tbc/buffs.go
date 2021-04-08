@@ -1,7 +1,5 @@
 package tbc
 
-import "fmt"
-
 type Options struct {
 	SpellOrder []string
 	UseAI      bool // when set true, the AI will modulate the rotations to maximize DPS and mana.
@@ -37,7 +35,7 @@ func (o Options) StatTotal(e Equipment) Stats {
 	// Final calculations
 	stats[StatSpellCrit] += (stats[StatInt] / 80) / 100
 	stats[StatMana] += stats[StatInt] * 15
-	fmt.Printf("\fFinal MP5: %f", (stats[StatMP5] + (stats[StatInt] * 0.06)))
+	// fmt.Printf("\fFinal MP5: %f", (stats[StatMP5] + (stats[StatInt] * 0.06)))
 
 	return stats
 }

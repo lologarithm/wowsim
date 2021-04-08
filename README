@@ -5,24 +5,23 @@ TODO:
 UI
     Could use a real design
     Icons
-    Gear Colors
+    Gear Quality Colors
     Gear Change data on hover of item change dropdown.
     Gear Stats on hover
     Gem Display
 
 Items
-    Gems
-    Gem Slots in existing items.
+    Gear Quality
     Trinkets
-    Validate gear stats
-
+    Validate gear stats - unsure if item data source is accurate.
+    Enchants
 
 Engine
-    Gem Auras
     Socket Bonuses
     Set Bonuses
-    Upgrader - find upgrade for a single piece.
+    Upgrader - find upgrade for a single piece? If we can get stat weights we can do it all.
 
 Other
     Implement Gear Phases
     seventyupgrades importer
+    Add armor type to allow for a 'mail-only' optimization

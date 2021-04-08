@@ -35,9 +35,9 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 
 	if sim.CastingSpell == nil {
 		// Activate any specials
-		if sim.Options.NumBloodlust > 0 && sim.CDs[MagicIDBloodlust] < 1 {
+		if sim.Options.NumBloodlust > sim.bloodlustCasts && sim.CDs[MagicIDBloodlust] < 1 {
 			sim.addAura(ActivateBloodlust(sim))
-			sim.Options.NumBloodlust-- // TODO: will this break anything?
+			sim.bloodlustCasts++ // TODO: will this break anything?
 		}
 
 		if sim.Options.Talents.ElementalMastery && sim.CDs[MagicIDEleMastery] < 1 {

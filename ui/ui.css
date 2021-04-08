@@ -1,3 +1,56 @@
+.equipselector {
+    background-color: #505050;
+    position: absolute;
+    z-index: 100;
+}
+.equipslot {
+    width: 100%;
+    height: 3em;
+    margin-bottom: 5px;
+    border: 1px solid black;
+}
+.equipslot p {
+    margin-left: 0.5em;
+    margin-bottom: 2px;
+    font-size: 1em;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.equipslot img {
+    float: left;
+    height: 100%;
+    width: 3em;
+    cursor: pointer;
+}
+.equiplabel {
+    width: calc(100% - 3em);
+    height: 100%;
+    margin-left: 3em;
+    text-align: left;
+}
+.equiplabel div {
+    margin-left: 1em;
+    margin-bottom: 0.5em;
+}
+.gemslot {
+    margin-left: 0 !important;
+    margin-bottom: 0 !important;
+    margin-right: 1em;
+    background-color: #4d4d4d;
+    height: 1.1em;
+    width: 1.1em;
+    float: left;
+    cursor: pointer;
+}
+.enchslot {
+    margin-right: 1em;
+    background-image: url("/icons/Trade/Trade_Engraving.png");
+    background-size: contain;
+    height: 1.1em;
+    width: 1.1em;
+    float: left;
+    cursor: pointer;
+}
 #gearstats {
     background-color: #404040;
     height: 90%;
@@ -12,9 +65,11 @@
 #calcdiv {
     flex: 1;
 }
-li:hover {
-    /* color: orange; */
+.equipselitem {
     cursor: pointer;
+}
+.equipselitem:hover {
+    color: orange;
 }
 .lisearch {
     border: 1px solid orange;

@@ -2,8 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"strconv"
 	"syscall/js"
 	"time"
 
@@ -31,18 +29,26 @@ func GearList(this js.Value, args []js.Value) interface{} {
 	if len(args) == 1 {
 		slot = byte(args[0].Int())
 	}
-	gears := "["
+	gear := struct {
+		Items []tbc.Item
+		Gems  []tbc.Gem
+	}{
+		Items: make([]tbc.Item, 0, len(tbc.ItemLookup)),
+	}
 	for _, v := range tbc.ItemLookup {
 		if slot != 128 && v.Slot != slot {
 			continue
 		}
-		if len(gears) != 1 {
-			gears += ","
-		}
-		gears += `{"name":"` + v.Name + `", "slot": ` + strconv.Itoa(int(v.Slot)) + `}`
+		gear.Items = append(gear.Items, *v)
 	}
-	gears += "]"
-	return gears
+	gear.Gems = tbc.Gems
+	output, err := json.Marshal(gear)
+	if err != nil {
+		// fmt.Printf("Failed to marshal gear list: %s", err)
+		output = []byte(`{"error": ` + err.Error() + `}`)
+	}
+	// fmt.Printf("Item Output: %s", string(output))
+	return string(output)
 }
 
 // GearStats takes a gear list and returns their total stats.
@@ -154,14 +160,14 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 		}
 	}
 	gear := getGear(args[2])
-	fmt.Printf("Gear Stats: %s", gear.Stats().Print(true))
+	// fmt.Printf("Gear Stats: %s", gear.Stats().Print(true))
 	opt := parseOptions(args[3])
 	doOptimize := args[3].Get("doopt").Truthy()
 	stats := opt.StatTotal(gear)
 	if customHaste != 0 {
 		stats[tbc.StatHaste] = customHaste
 	}
-	fmt.Printf("Total Stats: %s", stats.Print(true))
+	// fmt.Printf("Total Stats: %s", stats.Print(true))
 
 	simi := args[0].Int()
 	if simi == 1 {
@@ -170,12 +176,12 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 	dur := args[1].Int()
 
 	results := runTBCSim(opt, stats, gear, dur, simi, customRotation, doOptimize)
-	st := time.Now()
+	// st := time.Now()
 	output, err := json.Marshal(results)
 	if err != nil {
 		print("Failed to json marshal results: ", err.Error())
 	}
-	fmt.Printf("Took %s to json marshal response.\n", time.Now().Sub(st))
+	// fmt.Printf("Took %s to json marshal response.\n", time.Now().Sub(st))
 	// output := "["
 
 	// for i, res := range results {
@@ -201,11 +207,11 @@ type SimResult struct {
 }
 
 type CastMetric struct {
-	Spell int32
-	Hit   bool
-	Crit  bool
-	Dmg   float64
-	Time  float64 // seconds it took to cast this spell
+	ID   int32
+	Hit  bool
+	Crit bool
+	Dmg  float64
+	Time float64 // seconds it took to cast this spell
 }
 
 func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int, customRotation [][]string, doOptimize bool) []SimResult {
@@ -229,11 +235,11 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		casts := make([]CastMetric, 0, len(metrics.Casts))
 		for _, v := range metrics.Casts {
 			casts = append(casts, CastMetric{
-				Spell: v.Spell.ID,
-				Hit:   v.DidHit,
-				Crit:  v.DidCrit,
-				Dmg:   v.DidDmg,
-				Time:  float64(v.TicksUntilCast) / float64(tbc.TicksPerSecond),
+				ID:   v.Spell.ID,
+				Hit:  v.DidHit,
+				Crit: v.DidCrit,
+				Dmg:  v.DidDmg,
+				Time: float64(v.TicksUntilCast) / float64(tbc.TicksPerSecond),
 			})
 		}
 		if metrics.OOMAt > 0 {

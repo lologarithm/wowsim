@@ -24,9 +24,10 @@ type Simulation struct {
 	Equip       Equipment // Current Gear
 	activeEquip Equipment // cache of gear that can activate.
 
-	Options       Options
-	SpellRotation []int32
-	RotationIdx   int
+	bloodlustCasts int
+	Options        Options
+	SpellRotation  []int32
+	RotationIdx    int
 
 	// ticks until cast is complete
 	CastingSpell *Cast
@@ -60,7 +61,7 @@ type SimMetrics struct {
 //   mostly for stat weight purposes.
 func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 	if len(options.SpellOrder) == 0 {
-		fmt.Printf("[ERROR] No rotation given to sim.\n")
+		// fmt.Printf("[ERROR] No rotation given to sim.\n")
 		return nil
 	}
 	rotIdx := 0
@@ -120,6 +121,7 @@ func (sim *Simulation) reset() {
 		sim.SpellChooser = ai.ChooseSpell
 	}
 
+	sim.bloodlustCasts = 0
 	sim.currentTick = 0
 	sim.CurrentMana = sim.Stats[StatMana]
 	sim.CastingSpell = nil

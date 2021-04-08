@@ -128,7 +128,7 @@ func AuraLightningOverload(lvl int) Aura {
 			if c.Spell.ID != MagicIDLB12 && c.Spell.ID != MagicIDCL6 {
 				return
 			}
-			if c.isLO {
+			if c.IsLO {
 				return // can't proc LO on LO
 			}
 			if sim.rando.Float64() < 0.04*float64(lvl) {
@@ -138,17 +138,12 @@ func AuraLightningOverload(lvl int) Aura {
 					dmg /= 2
 				}
 				clone := &Cast{
-					isLO:       true,
+					IsLO:       true,
 					Spell:      c.Spell,
 					Hit:        c.Hit,
 					Crit:       c.Crit,
 					Spellpower: c.Spellpower,
-					DidDmg:     dmg,
-					Effects: []AuraEffect{
-						func(sim *Simulation, c *Cast) {
-							c.DidDmg /= 2
-						},
-					},
+					Effects:    []AuraEffect{func(sim *Simulation, c *Cast) { c.DidDmg /= 2 }},
 				}
 				sim.Cast(clone)
 			}
