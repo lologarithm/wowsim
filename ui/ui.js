@@ -431,7 +431,7 @@ function popgear(gearList) {
         var img = document.createElement("img");
         img.id = slot+"icon";
         img.addEventListener("click", focusSearch);
-        img.src = "/icons/Items/Temp.png"
+        img.src = "../icons/Items/Temp.png"
         var maindiv = document.createElement("div");
         maindiv.id = slot;
         maindiv.classList.add("equipslot");
@@ -548,23 +548,23 @@ function removeGear(ele) {
 
 // For now hardcode an icon.
 var slotToIcon = {
-    "equiphead": "/icons/Armor/INV_Helmet_06.png",
-    "equipneck": "/icons/Armor/INV_Jewelry_Necklace_07.png",
-    "equipshoulder": "/icons/Armor/INV_Shoulder_14.png",
-    "equipback": "/icons/Armor/INV_Misc_Cape_16.png",
-    "equipchest": "/icons/Armor/INV_Chest_Chain_04.png",
-    "equipwrist": "/icons/Armor/INV_Bracer_09.png",
-    "equiphands": "/icons/Armor/INV_Gauntlets_26.png",
-    "equipwaist": "/icons/Armor/INV_Belt_19.png",
-    "equiplegs": "/icons/Armor/INV_Pants_03.png",
-    "equipfeet": "/icons/Armor/INV_Boots_Wolf.png",
-    "equipfinger1": "/icons/Armor/INV_Jewelry_Ring_04.png",
-    "equipfinger2": "/icons/Armor/INV_Jewelry_Ring_05.png",
-    "equiptrinket1": "/icons/Armor/INV_Jewelry_Talisman_09.png",
-    "equiptrinket2": "/icons/Armor/INV_Jewelry_Talisman_10.png",
-    "equipweapon": "/icons/Weapons/INV_Sword_39.png",
-    "equipoffhand": "/icons/Armor/INV_Shield_20.png",
-    "equiptotem": "/icons/Spells/Spell_Nature_InvisibilityTotem.png"
+    "equiphead": "../icons/Armor/INV_Helmet_06.png",
+    "equipneck": "../icons/Armor/INV_Jewelry_Necklace_07.png",
+    "equipshoulder": "../icons/Armor/INV_Shoulder_14.png",
+    "equipback": "../icons/Armor/INV_Misc_Cape_16.png",
+    "equipchest": "../icons/Armor/INV_Chest_Chain_04.png",
+    "equipwrist": "../icons/Armor/INV_Bracer_09.png",
+    "equiphands": "../icons/Armor/INV_Gauntlets_26.png",
+    "equipwaist": "../icons/Armor/INV_Belt_19.png",
+    "equiplegs": "../icons/Armor/INV_Pants_03.png",
+    "equipfeet": "../icons/Armor/INV_Boots_Wolf.png",
+    "equipfinger1": "../icons/Armor/INV_Jewelry_Ring_04.png",
+    "equipfinger2": "../icons/Armor/INV_Jewelry_Ring_05.png",
+    "equiptrinket1": "../icons/Armor/INV_Jewelry_Talisman_09.png",
+    "equiptrinket2": "../icons/Armor/INV_Jewelry_Talisman_10.png",
+    "equipweapon": "../icons/Weapons/INV_Sword_39.png",
+    "equipoffhand": "../icons/Armor/INV_Shield_20.png",
+    "equiptotem": "../icons/Spells/Spell_Nature_InvisibilityTotem.png"
 }
 // updateGear will update the gear UI elements (to redraw when new gear is selected)
 function updateGear(newGear) {
