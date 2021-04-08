@@ -44,7 +44,7 @@
 }
 .enchslot {
     margin-right: 1em;
-    background-image: url("/icons/Trade/Trade_Engraving.png");
+    background-image: url("../icons/Trade/Trade_Engraving.png");
     background-size: contain;
     height: 1.1em;
     width: 1.1em;
