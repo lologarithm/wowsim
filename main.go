@@ -7,50 +7,26 @@ import (
 	"log"
 	"math"
 	"net/http"
-	"os"
-	"runtime/pprof"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/lologarithm/wowsim/tbc"
-
-	// /script print(GetSpellBonusDamage(4))
-
-	// Buffs
-	//  - Additive
-	//  - Multiplicative
-	//
-	// 'Aura' Effects
-	//  - On Hitting
-	//  - On Cast
-	//	- On Being Hit
-	//  - Always
-	//
-	// Applies to
-	//  - Specific Spell
-	//  - All Spells
-	//
-	// Modifiers
-	//  - Dmg
-	//  - Cast Time
-	//  - Hit Chance
-	//  - Mana Cost
-
-	_ "net/http/pprof"
 )
+
+// /script print(GetSpellBonusDamage(4))
 
 func main() {
 
-	f, err := os.Create("profile2.cpu")
-	if err != nil {
-		log.Fatal("could not create CPU profile: ", err)
-	}
-	defer f.Close() // error handling omitted for example
-	if err := pprof.StartCPUProfile(f); err != nil {
-		log.Fatal("could not start CPU profile: ", err)
-	}
-	defer pprof.StopCPUProfile()
+	// f, err := os.Create("profile2.cpu")
+	// if err != nil {
+	// 	log.Fatal("could not create CPU profile: ", err)
+	// }
+	// defer f.Close() // error handling omitted for example
+	// if err := pprof.StartCPUProfile(f); err != nil {
+	// 	log.Fatal("could not start CPU profile: ", err)
+	// }
+	// defer pprof.StopCPUProfile()
 
 	var isDebug = flag.Bool("debug", false, "Include --debug to spew the entire simulation log.")
 	var noopt = flag.Bool("noopt", false, "If included it will disable optimization.")
