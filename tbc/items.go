@@ -1,51 +1,6 @@
 package tbc
 
-// TODO: Implement gems and socket bonuses.
-
-// TODO: is the item separated structure better?
-//   or should it just be a giant list?
-var items = struct {
-	Head     []Item
-	Neck     []Item
-	Shoulder []Item
-	Back     []Item
-	Chest    []Item
-	Wrist    []Item
-	Hands    []Item
-	Waist    []Item
-	Legs     []Item
-	Feet     []Item
-	Finger   []Item
-	Trinket  []Item
-	MainHand []Item
-	OffHand  []Item
-	Totem    []Item
-}{
-	Head:     []Item{},
-	Neck:     []Item{},
-	Shoulder: []Item{},
-	Back:     []Item{},
-	Chest:    []Item{},
-	Wrist:    []Item{},
-	Hands:    []Item{},
-	Waist:    []Item{},
-	Legs:     []Item{},
-	Feet:     []Item{},
-	Finger:   []Item{},
-	MainHand: []Item{},
-	OffHand:  []Item{},
-	Trinket:  []Item{
-		// {Slot:0xe, Name:"Darkmoon Card: Crusade", SourceZone:"Blessings Deck", SourceDrop:"", Stats:Stats{0, 0, 0, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
-		// {Slot:0xe, Name:"Scryer's Bloodgem", SourceZone:"The Scryers - Revered", SourceDrop:"", Stats:Stats{0, 0, 0, 32, 0, 0, 0}, GemSlots:[]GemColor{} }
-		// {Slot:0xe, Name:"Arcanist's Stone", SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0}, GemSlots:[]GemColor{} }
-		// {Slot:0xe, Name:"Shiffar's Nexus-Horn", SourceZone:"Arc - Harbinger Skyriss", SourceDrop:"", Stats:Stats{0, 0, 30, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
-		// {Slot:0xe, Name:"Xi'ri's Gift", SourceZone:"The Sha'tar - Revered", SourceDrop:"", Stats:Stats{0, 0, 32, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
-		// {Slot:0xe, Name:"Vengeance of the Illidari", SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
-		// {Slot:0xe, Name:"Figurine - Living Ruby Serpent", SourceZone:"Jewelcarfting BoP", SourceDrop:"", Stats:Stats{23, 33, 0, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
-
-	},
-	Totem: []Item{},
-}
+import "fmt"
 
 var Gems = []Gem{
 	// {Name: "Destructive Skyfire Diamond", Color: GemColorMeta, Stats: Stats{}},
@@ -85,75 +40,14 @@ var Gems = []Gem{
 	{Name: "Rune Covered Chrysoprase", Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatSpellCrit: 5}},
 }
 
-var ItemLookup = map[string]*Item{}
-
-func IL(name string) *Item {
-	return ItemLookup[name]
-}
+var ItemLookup = map[string]Item{}
+var GemLookup = map[string]Gem{}
 
 func init() {
-	for _, v := range items.Head {
-		cv := v
-		ItemLookup[cv.Name] = &cv
+	for _, v := range Gems {
+		GemLookup[v.Name] = v
 	}
-	for _, v := range items.Neck {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.Shoulder {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.Back {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.Chest {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.Wrist {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.Hands {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.Waist {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.Legs {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.Feet {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.Finger {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.Trinket {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.MainHand {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.OffHand {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-	for _, v := range items.Totem {
-		cv := v
-		ItemLookup[cv.Name] = &cv
-	}
-
-	for _, v := range moreItems {
+	for _, v := range items {
 		if it, ok := ItemLookup[v.Name]; ok {
 			// log.Printf("Found dup item: %s", v.Name)
 			statsMatch := it.Slot == v.Slot
@@ -170,7 +64,7 @@ func init() {
 			}
 		} else {
 			cv := v
-			ItemLookup[cv.Name] = &cv
+			ItemLookup[cv.Name] = cv
 		}
 	}
 }
@@ -197,7 +91,7 @@ type Item struct {
 type Gem struct {
 	Name     string
 	Stats    Stats          // flat stats gem adds
-	Activate ItemActivation `json:"-"` // Meta gems activate an aura on player when socketed.
+	Activate ItemActivation `json:"-"` // Meta gems activate an aura on player when socketed. Assumes all gems are 'always active'
 	Color    GemColor
 	// Requirements  // Validate the gem can be used... later
 }
@@ -215,6 +109,25 @@ const (
 	GemColorPurple
 )
 
+func (gm GemColor) Intersects(o GemColor) bool {
+	if gm == o {
+		return true
+	}
+	if gm == GemColorMeta {
+		return false // meta gems o nothing.
+	}
+	if gm == GemColorRed { // red
+		return o == GemColorOrange || o == GemColorPurple
+	}
+	if gm == GemColorBlue { // blue
+		return o == GemColorGreen || o == GemColorPurple
+	}
+	if gm == GemColorYellow { // yellow
+		return o == GemColorGreen || o == GemColorOrange
+	}
+	return false // dunno wtf this is.
+}
+
 type ItemActivation func(*Simulation) Aura
 
 type Equipment []Item
@@ -224,23 +137,24 @@ func NewEquipmentSet(names ...string) Equipment {
 	for _, v := range names {
 		item, ok := ItemLookup[v]
 		if !ok {
-			// fmt.Printf("Unable to find item: '%s'\n", v)
+			fmt.Printf("Unable to find item: '%s'\n", v)
 			continue
 		}
+		item.Gems = make([]Gem, len(item.GemSlots))
 		if item.Slot == EquipFinger {
 			if e[EquipFinger1].Name == "" {
-				e[EquipFinger1] = *item
+				e[EquipFinger1] = item
 			} else {
-				e[EquipFinger2] = *item
+				e[EquipFinger2] = item
 			}
 		} else if item.Slot == EquipTrinket {
 			if e[EquipTrinket1].Name == "" {
-				e[EquipTrinket1] = *item
+				e[EquipTrinket1] = item
 			} else {
-				e[EquipTrinket2] = *item
+				e[EquipTrinket2] = item
 			}
 		} else {
-			e[item.Slot] = *item
+			e[item.Slot] = item
 		}
 	}
 	return e
@@ -275,11 +189,31 @@ func (e Equipment) Stats() Stats {
 		for k, v := range item.Stats {
 			s[k] += v
 		}
+		isMatched := len(item.Gems) == len(item.GemSlots)
+		for gi, g := range item.Gems {
+			for k, v := range g.Stats {
+				s[k] += v
+			}
+			isMatched = isMatched && g.Color.Intersects(item.GemSlots[gi])
+		}
+		if isMatched {
+			for k, v := range item.SocketBonus {
+				s[k] += v
+			}
+		}
 	}
 	return s
 }
 
-var moreItems = []Item{
+var items = []Item{
+	// {Slot:0xe, Name:"Darkmoon Card: Crusade", SourceZone:"Blessings Deck", SourceDrop:"", Stats:Stats{0, 0, 0, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
+	// {Slot:0xe, Name:"Scryer's Bloodgem", SourceZone:"The Scryers - Revered", SourceDrop:"", Stats:Stats{0, 0, 0, 32, 0, 0, 0}, GemSlots:[]GemColor{} }
+	// {Slot:0xe, Name:"Arcanist's Stone", SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0}, GemSlots:[]GemColor{} }
+	// {Slot:0xe, Name:"Shiffar's Nexus-Horn", SourceZone:"Arc - Harbinger Skyriss", SourceDrop:"", Stats:Stats{0, 0, 30, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
+	// {Slot:0xe, Name:"Xi'ri's Gift", SourceZone:"The Sha'tar - Revered", SourceDrop:"", Stats:Stats{0, 0, 32, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
+	// {Slot:0xe, Name:"Vengeance of the Illidari", SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
+	// {Slot:0xe, Name:"Figurine - Living Ruby Serpent", SourceZone:"Jewelcarfting BoP", SourceDrop:"", Stats:Stats{23, 33, 0, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
+
 	// source: https://docs.google.com/spreadsheets/d/1X-XO9N1_MPIq-UIpTN13LrhXRoho9fe26YEEM48QmPk/edit#gid=2035379487
 	{Slot: EquipHead, Name: "Gadgetstorm Goggles", SourceZone: "Engineering BoP", SourceDrop: "", Stats: Stats{0, 28, 40, 12, 55, 0, 0}, GemSlots: []GemColor{0x1, 0x3}},
 	{Slot: EquipHead, Name: "Gladiator's Mail Helm", SourceZone: "Arena Season 1 Reward", SourceDrop: "", Stats: Stats{15, 54, 18, 0, 37, 0, 0}, GemSlots: []GemColor{0x1, 0x2}},

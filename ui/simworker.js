@@ -617,13 +617,13 @@ addEventListener('message', async (e) => {
             payload: JSON.parse(gearlist()),
         });
     } else if (msg == "computeStats") {
+		var output = computestats(payload.gear, payload.opts)
         postMessage({
             msg: "computeStats",
 			id: e.data.id,
-            payload: JSON.parse(computestats(payload.gear, payload.opts)),
+            payload: JSON.parse(output),
         });		
 	} else if (msg == "simulate") {
-		// console.log("Worker(" + workerID + "): simulating...");
 		var resultJSON; 
 		// temp workaround to keep it like how it was.
 		if (payload.rots == null) {

@@ -102,9 +102,15 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 	if IsDebug {
 		sim.debug = debugFunc(sim)
 	}
+
 	for _, eq := range equip {
 		if eq.Activate != nil {
 			sim.activeEquip = append(sim.activeEquip, eq)
+		}
+		for _, g := range eq.Gems {
+			if g.Activate != nil {
+				sim.activeEquip = append(sim.activeEquip, eq)
+			}
 		}
 	}
 	return sim
@@ -130,6 +136,10 @@ func (sim *Simulation) reset() {
 	sim.Auras = []Aura{}
 	sim.metrics = SimMetrics{}
 
+	sim.debug("\nSIM RESET\nRotation: %v\n", sim.SpellRotation)
+	sim.debug("Effective MP5: %0.1f\n", sim.Stats[StatMP5]+sim.Buffs[StatMP5])
+	sim.debug("----------------------\n")
+
 	// Activate all talents
 	if sim.Options.Talents.LightninOverload > 0 {
 		sim.addAura(AuraLightningOverload(sim.Options.Talents.LightninOverload))
@@ -145,11 +155,12 @@ func (sim *Simulation) reset() {
 		if item.Activate != nil && item.ActivateCD == -1 {
 			sim.addAura(item.Activate(sim))
 		}
+		for _, g := range item.Gems {
+			if g.Activate != nil {
+				sim.addAura(g.Activate(sim))
+			}
+		}
 	}
-
-	sim.debug("\nSIM RESET\nRotation: %v\n", sim.SpellRotation)
-	sim.debug("Effective MP5: %0.1f\n", sim.Stats[StatMP5]+sim.Buffs[StatMP5])
-	sim.debug("----------------------\n")
 }
 
 func (sim *Simulation) Run(seconds int) SimMetrics {
@@ -158,7 +169,7 @@ func (sim *Simulation) Run(seconds int) SimMetrics {
 	return sim.Run2(seconds)
 }
 
-func (sim *Simulation) cleanAuraName(id int32) {
+func (sim *Simulation) removeAuraByID(id int32) {
 	for i := range sim.Auras {
 		if sim.Auras[i].ID == id {
 			sim.cleanAura(i)
@@ -177,11 +188,12 @@ func (sim *Simulation) cleanAura(i int) {
 	sim.Auras[i].OnSpellHit = nil
 	sim.Auras[i].OnExpire = nil
 
-	sim.debug("removed: %s- \n", AuraName(sim.Auras[i].ID))
+	sim.debug(" -%s\n", AuraName(sim.Auras[i].ID))
 	sim.Auras = sim.Auras[:i+copy(sim.Auras[i:], sim.Auras[i+1:])]
 }
 
 func (sim *Simulation) addAura(a Aura) {
+	sim.debug(" +%s\n", AuraName(a.ID))
 	for i := range sim.Auras {
 		if sim.Auras[i].ID == a.ID {
 			// TODO: some auras can stack X values. Figure out plan
@@ -263,7 +275,8 @@ func (sim *Simulation) Cast(cast *Cast) {
 		cast.DidHit = true
 		if sim.rando.Float64() < cast.Crit {
 			cast.DidCrit = true
-			dmg *= 2
+			// TODO: Make Elemental Fury talent check here.
+			dmg *= (cast.CritBonus * 2) - 1 // if CSD equipped the cast crit bonus will be modified during 'onCastComplete.'
 			sim.addAura(AuraElementalFocus(sim.currentTick))
 			if IsDebug {
 				dbgCast += " crit"

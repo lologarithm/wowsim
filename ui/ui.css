@@ -2,6 +2,23 @@
     background-color: #505050;
     position: absolute;
     z-index: 100;
+    width: 400px;
+}
+.equipselector > button {
+    float: right;
+}
+.selectortabs {
+    border-bottom: 1px solid black;
+    height: 30px;
+    margin-bottom: 5px;
+}
+.selectortab {
+    float: left;
+    margin-left: 10px;
+}
+.selectortab:hover {
+    color: orange;
+    cursor: pointer;
 }
 .equipslot {
     width: 100%;
@@ -31,6 +48,13 @@
 .equiplabel div {
     margin-left: 1em;
     margin-bottom: 0.5em;
+}
+/* .gemselectorlist {
+    margin-top: 3em;
+} */
+.gemselectorlist > div:hover { 
+    cursor: pointer;
+    color: orange;
 }
 .gemslot {
     margin-left: 0 !important;
@@ -71,6 +95,9 @@
 .equipselitem:hover {
     color: orange;
 }
+.equipselitem:active {
+    color: orange;
+}
 .lisearch {
     border: 1px solid orange;
     margin: -1px;
@@ -96,9 +123,6 @@ h4 {
     font-size: 1em;
 }
 #gear li:hover {
-    color: orange;
-}
-#gear li:active {
     color: orange;
 }
 .uk-tab {

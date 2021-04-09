@@ -10,6 +10,7 @@ type Cast struct {
 	ManaCost       float64
 	Hit            float64
 	Crit           float64
+	CritBonus      float64
 	Spellpower     float64
 
 	// Calculated Values
@@ -26,6 +27,7 @@ func NewCast(sim *Simulation, sp *Spell, spellDmg, spHit, spCrit float64) *Cast 
 		Spell:      sp,
 		ManaCost:   float64(sp.Mana),
 		Spellpower: spellDmg, // TODO: type specific bonuses...
+		CritBonus:  1.5,
 	}
 
 	castTime := sp.CastTime

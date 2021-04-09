@@ -42,7 +42,7 @@ func main() {
 	}
 
 	gear := tbc.NewEquipmentSet(
-		"Shamanistic Helmet of Second Sight",
+		"Cyclone Faceguard (Tier 4)",
 		"Brooch of Heightened Potential",
 		"Pauldrons of Wild Magic",
 		"Ogre Slayer's Cover",
@@ -60,6 +60,7 @@ func main() {
 		"Icon of the Silver Crescent",
 		"Totem of the Void",
 	)
+	gear[tbc.EquipHead].Gems[0] = tbc.GemLookup["Chaotic Skyfire Diamond"]
 
 	gearStats := gear.Stats()
 	fmt.Printf("Gear Stats:\n%s", gearStats.Print(true))
@@ -152,9 +153,8 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 
 		opt.UseAI = true
 		go doSimMetrics(optimalRotation, stats, equip, opt, seconds, numSims, statchan)
+		results = append(results, <-statchan)
 	}
-
-	results = append(results, <-statchan)
 
 	return results
 }

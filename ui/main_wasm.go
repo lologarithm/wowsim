@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"syscall/js"
 	"time"
 
@@ -39,7 +40,7 @@ func GearList(this js.Value, args []js.Value) interface{} {
 		if slot != 128 && v.Slot != slot {
 			continue
 		}
-		gear.Items = append(gear.Items, *v)
+		gear.Items = append(gear.Items, v)
 	}
 	gear.Gems = tbc.Gems
 	output, err := json.Marshal(gear)
@@ -54,6 +55,7 @@ func GearList(this js.Value, args []js.Value) interface{} {
 // GearStats takes a gear list and returns their total stats.
 // This could power a simple 'current stats of all gear' UI.
 func ComputeStats(this js.Value, args []js.Value) interface{} {
+	fmt.Printf("Computing Stats....\n")
 	gear := getGear(args[0])
 	if len(args) != 2 {
 		return `{"error": "incorrect args. expected computestats(gear, options)}`
@@ -72,11 +74,29 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 // getGear converts js string array to a list of equipment items.
 func getGear(val js.Value) tbc.Equipment {
 	numGear := val.Length()
-	gearstr := make([]string, numGear)
-	for i := range gearstr {
-		gearstr[i] = val.Index(i).String()
+	fmt.Printf("Got Gear: %d\n", numGear)
+	gearSet := make([]tbc.Item, numGear)
+	for i := range gearSet {
+		v := val.Index(i)
+		ic := tbc.ItemLookup[v.Get("Name").String()]
+		gems := v.Get("Gems")
+		if !(gems.IsUndefined() || gems.IsNull()) && gems.Length() > 0 {
+			ic.Gems = make([]tbc.Gem, len(ic.GemSlots))
+			for i := range ic.Gems {
+				jsgem := gems.Index(i)
+				if jsgem.IsNull() {
+					continue
+				}
+				gv, ok := tbc.GemLookup[jsgem.String()]
+				if !ok {
+					continue // wasn't a valid gem
+				}
+				ic.Gems[i] = gv
+			}
+		}
+		gearSet[i] = ic
 	}
-	return tbc.NewEquipmentSet(gearstr...)
+	return tbc.Equipment(gearSet)
 }
 
 func parseOptions(val js.Value) tbc.Options {

@@ -9,6 +9,10 @@
         <script src="uikit.min.js"></script>
         <script src="uikit-icons.min.js"></script>
         <script src="ui.js"></script>
+        <script src="components/gear.js"></script>
+        <script src="components/item.js"></script>
+        <script src="components/selector.js"></script>
+        <script src="components/simmer.js"></script>
         <link rel="stylesheet" href="ui.css" />
     </head>
     <body>
@@ -121,8 +125,8 @@
                         <li>Gems and gemming bonuses are not implemented.</li>
                         <li>Set bonuses are not implemented.</li>
                         <li>Unsure of exact spell pen. Using classic 2.5% chance for a 25% partial resist (this is probably wrong).</li>
-                        <li>The 'optimize' checkbox in the simulation tab will figure out a rotation that maximizes DPS for the given duration.</li>
                         <li>The 'Hasted Rotations' tab will calculate the max DPS rotation for the given gear set and at fixed haste levels.</li>
+                        <li>The 'Optimize' checkbox in the simulation tab will figure out a rotation that maximizes DPS for the given duration. It will then have an AI use that rotation as a starting point and attempt to adapt rotations to the current mana drain like a real player would. This should give the closest thing to 'real world expected dps... if you stood still and shot the entire time'.</li>
                     </ul>
                 </li>
             </ul>
@@ -135,7 +139,7 @@
                 <ul id="calcs" class="uk-switcher uk-margin">
                     <li>
                         <div style="text-align: right">
-                            <button onclick="runsim();">Run Simulation</button>
+                            <button id="simrunbut">Run Simulation</button>
                             Iterations: <input id="iters" type="text" value="1000" style="width: 60px"></input>
                             Duration: <input id="dur" type="text" value="300" style="width: 60px"></input>
                             Optimize: <input id="doopt" type="checkbox" class="uk-checkbox" checked></input>
@@ -148,16 +152,16 @@
                     </li>
                     <li style="height: 35%">
                         <div style="text-align: right;">
-                            <button onclick="hastedRotations();">Optimize Haste Rotation</button>
+                            <button id="hastebut">Optimize Haste Rotation</button>
                         </div>
-                        <ul>
+                        <ul style="float:right">
                             <li>Does not use bloodlust (ignores BL settings above)</li>
                             <li>Uses all other options, but replaces the haste stat.</li>
                             <li>Do not recommend using Quags Eye</li>
                             <li>Not mana optimized, this is showing max dps for a 60s fight</li>
                             <li>Even a very small amount of haste like 20 makes CL / 4LB > CL / 3LB</li>
                         </ul>
-                        <div id="hasterots">
+                        <div id="hasterots" style="float:left">
                             <table class="hastetable">
                                 <tr><th>Haste</th><th>Rotation</th><th>DPS</th></tr>
                                 <tr><td></td><td></td><td></td></tr>
