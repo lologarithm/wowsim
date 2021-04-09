@@ -55,7 +55,6 @@ func GearList(this js.Value, args []js.Value) interface{} {
 // GearStats takes a gear list and returns their total stats.
 // This could power a simple 'current stats of all gear' UI.
 func ComputeStats(this js.Value, args []js.Value) interface{} {
-	fmt.Printf("Computing Stats....\n")
 	gear := getGear(args[0])
 	if len(args) != 2 {
 		return `{"error": "incorrect args. expected computestats(gear, options)}`
@@ -74,7 +73,6 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 // getGear converts js string array to a list of equipment items.
 func getGear(val js.Value) tbc.Equipment {
 	numGear := val.Length()
-	fmt.Printf("Got Gear: %d\n", numGear)
 	gearSet := make([]tbc.Item, numGear)
 	for i := range gearSet {
 		v := val.Index(i)
@@ -180,14 +178,12 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 		}
 	}
 	gear := getGear(args[2])
-	// fmt.Printf("Gear Stats: %s", gear.Stats().Print(true))
 	opt := parseOptions(args[3])
 	doOptimize := args[3].Get("doopt").Truthy()
 	stats := opt.StatTotal(gear)
 	if customHaste != 0 {
 		stats[tbc.StatHaste] = customHaste
 	}
-	// fmt.Printf("Total Stats: %s", stats.Print(true))
 
 	simi := args[0].Int()
 	if simi == 1 {
@@ -196,23 +192,12 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 	dur := args[1].Int()
 
 	results := runTBCSim(opt, stats, gear, dur, simi, customRotation, doOptimize)
-	// st := time.Now()
+	st := time.Now()
 	output, err := json.Marshal(results)
 	if err != nil {
 		print("Failed to json marshal results: ", err.Error())
 	}
-	// fmt.Printf("Took %s to json marshal response.\n", time.Now().Sub(st))
-	// output := "["
-
-	// for i, res := range results {
-	// 	output += fmt.Sprintf(`{"Duration": "%s"}`, res.Duration.String())
-
-	// 	if i != len(results)-1 {
-	// 		output += ","
-	// 	}
-	// }
-
-	// output += "]"
+	fmt.Printf("Took %s to json marshal response.\n", time.Now().Sub(st))
 	return string(output)
 }
 

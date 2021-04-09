@@ -70,7 +70,6 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		options.SpellOrder = options.SpellOrder[1:]
 	}
 	rot := make([]int32, len(options.SpellOrder))
-
 	for i, v := range options.SpellOrder {
 		for _, sp := range spells {
 			if sp.Name == v {

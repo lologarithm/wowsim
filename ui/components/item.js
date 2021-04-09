@@ -119,7 +119,7 @@ class SocketsComponent {
 
     constructor() {
         this.div = document.createElement("div");
-        this.div.style.height = "2em";
+        this.div.style.height = "2.2em"; // so the text doesnt go right of the socket icons...
         
         this.selectedSocket = 0;
         this.sockets = [];

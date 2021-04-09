@@ -129,10 +129,14 @@ class SelectorComponent {
     }
     focus(tab, subitem) {
         if (tab == "item") {
+            this.tab1.classList.add("selactive");
+            this.tab2.classList.remove("selactive");
             this.gemseldiv.style.display = "none";
             this.itemselector.style.display = "block";
             this.search.focus();
         } else if (tab == "gem") {
+            this.tab2.classList.add("selactive");
+            this.tab1.classList.remove("selactive");
             this.gemseldiv.style.display = "block";
             this.itemselector.style.display = "none";
             if (subitem != null) {

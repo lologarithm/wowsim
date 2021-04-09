@@ -160,12 +160,16 @@ class GearUI {
                     slotid = "equiptrinket2";
                 }
             }
-            // if (item.Gems != null && item.Gems.length > 0) {
-            //     realItem.Gems = [];
-            //     item.Gems.forEach((g, idx) => {
-            //         realItem.Gems.push(this.allgems[g]);
-            //     });
-            // }
+            if (item.Gems != null && item.Gems.length > 0) {
+                realItem.Gems = [];
+                item.Gems.forEach((g, idx) => {
+                    var gem = this.allgems[g];
+                    if (gem == null) {
+                        gem = {}; // empty object for gem sentinal?
+                    }
+                    realItem.Gems.push(gem);
+                });
+            }
             this.updateItemSlot(realItem, slotid)
         });
     

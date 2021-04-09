@@ -7,10 +7,19 @@
 .equipselector > button {
     float: right;
 }
+.equipselector .gemslot {
+    height: 2em;
+    width: 2em;
+}
 .selectortabs {
     border-bottom: 1px solid black;
     height: 30px;
     margin-bottom: 5px;
+    font-size: 1.15em;
+}
+.selectortab.selactive{
+    border-bottom: 2px solid #1e87f0;
+    padding-bottom: 2px;
 }
 .selectortab {
     float: left;

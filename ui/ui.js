@@ -129,13 +129,6 @@ function runsim(currentGear) {
     outele1.innerHTML = metricHTML;
     outele2.innerText = "";
 
-    var gearlist = [];
-    slotToID.forEach(k => {
-        var item = currentGear[k];
-        if (item != null && item.Name != "") {
-            gearlist.push(item.Name);
-        }
-    });
     console.log("Options: ", getOptions());
     
     // #1 simulate LB
@@ -250,12 +243,12 @@ function runsim(currentGear) {
         if (lbmetrics.averageoom < dur) {
             // set LB wins
             outele2.innerHTML += "-- You probably will need to downrank. -- <br />"
-            simulate(iters, dur, gearlist, realOpts, [["LB12"]], 0, processSimResult);
+            simulate(iters, dur, currentGear, realOpts, [["LB12"]], 0, processSimResult);
         } else if (primetrics.averageoom > dur) {
             // set pri wins
-            simulate(iters, dur, gearlist, realOpts, [["pri", "CL6","LB12"]], 0, processSimResult);
+            simulate(iters, dur, currentGear, realOpts, [["pri", "CL6","LB12"]], 0, processSimResult);
         } else {
-            simulate(iters, dur, gearlist, realOpts, null, 0, processSimResult);
+            simulate(iters, dur, currentGear, realOpts, null, 0, processSimResult);
         }
     };
 
@@ -264,11 +257,11 @@ function runsim(currentGear) {
         includeFullDPS = false;
         firstOpts.exitoom = true;
         firstOpts.doopt = false;
-        simulate(iters, 600, gearlist, firstOpts, [["LB12"]], 0, processSimResult);
-        simulate(iters, 600, gearlist, firstOpts, [["pri", "CL6","LB12"]], 0, processSimResult);    
+        simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0, processSimResult);
+        simulate(iters, 600, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, processSimResult);    
     } else {
-        simulate(iters, dur, gearlist, firstOpts, [["LB12"]], 0, processSimResult);
-        simulate(iters, dur, gearlist, firstOpts, [["pri", "CL6","LB12"]], 0, processSimResult);    
+        simulate(iters, dur, currentGear, firstOpts, [["LB12"]], 0, processSimResult);
+        simulate(iters, dur, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, processSimResult);    
     }
 }
 
@@ -369,7 +362,7 @@ function popgear(gearList) {
 
     var glist = defaultGear;
     
-    var gearCache = localStorage.getItem('cachedGear');
+    var gearCache = localStorage.getItem('cachedGear.v2');
     if (gearCache && gearCache.length > 0) {
         var parsedGear = JSON.parse(gearCache);
         if (parsedGear.length > 0) {
@@ -427,9 +420,8 @@ function updateGearStats(gearlist) {
     
     var cleanedGear = cleanGear(gearlist); // converts to array with minimal data for serialization.
 
-    console.log("currentgear:", JSON.stringify(cleanedGear));
     // TODO: Is this the best way?
-    localStorage.setItem("cachedGear", JSON.stringify(cleanedGear));
+    localStorage.setItem("cachedGear.v2", JSON.stringify(cleanedGear));
 
     computeStats(cleanedGear, null, (result) => {
         for (const [key, value] of Object.entries(result)) {
