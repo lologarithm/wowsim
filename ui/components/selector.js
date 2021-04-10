@@ -303,7 +303,6 @@ class SelectorComponent {
                 if (!firstFound) {
                     this.highText = this.items[i];
                     this.highlighted = i;
-                    console.log("HIGHTEXT: ", this.highText);
                     le.classList.add("lisearch");
                     firstFound = true;
                 } else {

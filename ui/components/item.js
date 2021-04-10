@@ -32,7 +32,7 @@ class ItemComponent {
     
         var img = document.createElement("img");
         img.id = slot+"icon";
-        img.src = "../icons/Items/Temp.png"
+        img.src = "";
         img.addEventListener("click", (e) => {this.showItemSelector(e)});
 
         var maindiv = document.createElement("div");
@@ -65,16 +65,15 @@ class ItemComponent {
     }
 
     updateEquipped(newItem) {
+        console.log("New Item Equipped: ", newItem);
         if (newItem != null && newItem.Name != "") {
             this.name.innerText = newItem.Name;
             // gearlist.push(newItem.Name);
 
             this.img.src = slotToIcon[this.slot];
-            if (newItem.GemSlots != null ) {
-                 // updates the selector UI with the current gems/enchants (later)
-                this.selector.updateEquipped(newItem);
-                this.socketComp.updateSockets(newItem.GemSlots, newItem.Gems);
-            }
+            // updates the selector UI with the current gems/enchants (later)
+            this.selector.updateEquipped(newItem);
+            this.socketComp.updateSockets(newItem.GemSlots, newItem.Gems);
             // gemdiv.innerHTML += '<div class="enchslot" style="float: right;"></div>';
         } else {
             this.name.innerText = "None";
@@ -130,6 +129,9 @@ class SocketsComponent {
         this.gems = gems;
         this.div.innerHTML = "";
         this.sockets = sockets;
+        if (sockets == null || sockets.length == 0) {
+            return;
+        }
         sockets.forEach((socket, idx) => {
             var color = "rgba(30, 30, 30";
             if (socket == 2) {

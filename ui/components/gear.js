@@ -66,7 +66,7 @@ class GearUI {
             var itemComp = new ItemComponent(slot, gearList);
             itemComp.selector.addSelectedListener((change)=>{
                 if (change.item != null) {
-                    var item = this.allitems[change.item];
+                    var item = Object.assign({Name: ""},this.allitems[change.item]);
                     this.currentGear[slot] = item;
                     itemComp.updateEquipped(item);
                 } else if (change.gem != null) {
