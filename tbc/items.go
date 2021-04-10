@@ -206,14 +206,6 @@ func (e Equipment) Stats() Stats {
 }
 
 var items = []Item{
-	// {Slot:0xe, Name:"Darkmoon Card: Crusade", SourceZone:"Blessings Deck", SourceDrop:"", Stats:Stats{0, 0, 0, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
-	// {Slot:0xe, Name:"Scryer's Bloodgem", SourceZone:"The Scryers - Revered", SourceDrop:"", Stats:Stats{0, 0, 0, 32, 0, 0, 0}, GemSlots:[]GemColor{} }
-	// {Slot:0xe, Name:"Arcanist's Stone", SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0}, GemSlots:[]GemColor{} }
-	// {Slot:0xe, Name:"Shiffar's Nexus-Horn", SourceZone:"Arc - Harbinger Skyriss", SourceDrop:"", Stats:Stats{0, 0, 30, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
-	// {Slot:0xe, Name:"Xi'ri's Gift", SourceZone:"The Sha'tar - Revered", SourceDrop:"", Stats:Stats{0, 0, 32, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
-	// {Slot:0xe, Name:"Vengeance of the Illidari", SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
-	// {Slot:0xe, Name:"Figurine - Living Ruby Serpent", SourceZone:"Jewelcarfting BoP", SourceDrop:"", Stats:Stats{23, 33, 0, 0, 0, 0, 0}, GemSlots:[]GemColor{} }
-
 	// source: https://docs.google.com/spreadsheets/d/1X-XO9N1_MPIq-UIpTN13LrhXRoho9fe26YEEM48QmPk/edit#gid=2035379487
 	{Slot: EquipHead, Name: "Gadgetstorm Goggles", SourceZone: "Engineering BoP", SourceDrop: "", Stats: Stats{0, 28, 40, 12, 55, 0, 0}, GemSlots: []GemColor{0x1, 0x3}},
 	{Slot: EquipHead, Name: "Gladiator's Mail Helm", SourceZone: "Arena Season 1 Reward", SourceDrop: "", Stats: Stats{15, 54, 18, 0, 37, 0, 0}, GemSlots: []GemColor{0x1, 0x2}},
@@ -499,10 +491,16 @@ var items = []Item{
 	{Slot: EquipOffhand, Name: "Chronicle of Dark Secrets", SourceZone: "Hyjal", SourceDrop: "Winterchill", Stats: Stats{StatStm: 16, StatInt: 12, StatSpellDmg: 42, StatHaste: 0, StatSpellCrit: 23, StatSpellHit: 17, StatMP5: 0}},
 
 	{Slot: EquipTrinket, Name: "Quagmirran's Eye", SourceZone: "The Slave Pens", SourceDrop: "Quagmirran", Stats: Stats{StatSpellDmg: 37}, Activate: ActivateQuagsEye, ActivateCD: -1}, // -1 will trigger an activation only once
-	{Slot: EquipTrinket, Name: "Icon of the Silver Crescent", SourceZone: "Shattrath", SourceDrop: "G'eras - 41 Badges", Stats: Stats{StatSpellDmg: 44}, Activate: ActivateSilverCrescent, ActivateCD: 120 * TicksPerSecond, CoolID: MagicIDISCTrink},
+	{Slot: EquipTrinket, Name: "Icon of the Silver Crescent", SourceZone: "Shattrath", SourceDrop: "G'eras - 41 Badges", Stats: Stats{StatSpellDmg: 44}, Activate: createSpellDmgActivate(MagicIDBlessingSilverCrescent, 155, 20), ActivateCD: 120 * TicksPerSecond, CoolID: MagicIDISCTrink},
 	{Slot: EquipTrinket, Name: "Natural Alignment Crystal", SourceZone: "BWL", SourceDrop: "", Stats: Stats{}, Activate: ActivateNAC, ActivateCD: 300 * TicksPerSecond, CoolID: MagicIDNACTrink},
 	{Slot: EquipTrinket, Name: "Neltharion's Tear", SourceZone: "BWL", SourceDrop: "Nefarian", Stats: Stats{StatSpellDmg: 44, StatSpellHit: 16}},
+	{Slot: EquipTrinket, Name: "Scryer's Bloodgem", SourceZone: "The Scryers - Revered", SourceDrop: "", Stats: Stats{0, 0, 0, 32, 0, 0, 0}, Activate: createSpellDmgActivate(MagicIDSpellPower, 150, 15), ActivateCD: 90, CoolID: MagicIDScryerTrink},
+	{Slot: EquipTrinket, Name: "Figurine - Living Ruby Serpent", SourceZone: "Jewelcarfting BoP", SourceDrop: "", Stats: Stats{23, 33, 0, 0, 0, 0, 0}, Activate: createSpellDmgActivate(MagicIDRubySerpent, 150, 20), ActivateCD: 300, CoolID: MagicIDRubySerpentTrink},
+	{Slot: EquipTrinket, Name: "Xi'ri's Gift", SourceZone: "The Sha'tar - Revered", SourceDrop: "", Stats: Stats{0, 0, 32, 0, 0, 0, 0}, Activate: createSpellDmgActivate(MagicIDSpellPower, 150, 15), ActivateCD: 90, CoolID: MagicIDXiriTrink},
+	{Slot: EquipTrinket, Name: "Shiffar's Nexus-Horn", SourceZone: "Arc - Harbinger Skyriss", SourceDrop: "", Stats: Stats{0, 0, 30, 0, 0, 0, 0}, Activate: ActivateNexusHorn, ActivateCD: -1},
+	{Slot: EquipTrinket, Name: "Darkmoon Card: Crusade", SourceZone: "Blessings Deck", SourceDrop: "", Activate: ActivateDCC, ActivateCD: -1},
+	// {Slot:EquipTrinket, Name:"Arcanist's Stone", SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
+	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }
 
 	{Slot: EquipTotem, Name: "Skycall Totem", SourceZone: "Geras", SourceDrop: "20 Badges", Stats: Stats{}, Activate: ActivateSkycall, ActivateCD: -1}, // -1 will trigger an activation only once
-
 }

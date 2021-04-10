@@ -195,7 +195,6 @@ func (sim *Simulation) addAura(a Aura) {
 	sim.debug(" +%s\n", AuraName(a.ID))
 	for i := range sim.Auras {
 		if sim.Auras[i].ID == a.ID {
-			// TODO: some auras can stack X values. Figure out plan
 			sim.Auras[i] = a // replace
 			return
 		}

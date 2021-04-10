@@ -222,9 +222,8 @@ func doSimMetrics(spo []string, stats tbc.Stats, equip tbc.Equipment, opt tbc.Op
 	output := ""
 	output += fmt.Sprintf("Spell Order: %v\n", spo)
 	output += fmt.Sprintf("DPS:")
-	output += fmt.Sprintf("\tMean: %0.1f\n", (mean / float64(seconds)))
+	output += fmt.Sprintf("\tMean: %0.1f +/- %0.1f\n", (mean / float64(seconds)), stdev/float64(seconds))
 	output += fmt.Sprintf("\tMax: %0.1f\n", (max / float64(seconds)))
-	output += fmt.Sprintf("\tStd.Dev: %0.1f\n", stdev/float64(seconds))
 	output += fmt.Sprintf("Total Casts:\n")
 
 	for k, v := range casts {

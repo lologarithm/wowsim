@@ -67,9 +67,26 @@ func AuraName(a int32) string {
 		return "Rune"
 	case MagicIDAllTrinket:
 		return "AllTrinket"
+
+	case MagicIDSpellPower:
+		return "SpellPower"
+	case MagicIDRubySerpent:
+		return "RubySerpent"
+	case MagicIDCallOfTheNexus:
+		return "CallOfTheNexus"
+	case MagicIDDCC:
+		return "Darkmoon Card Crusade"
+	case MagicIDDCCBonus:
+		return "Aura of the Crusade"
+	case MagicIDScryerTrink:
+		return "Scryer Trinket"
+	case MagicIDRubySerpentTrink:
+		return "Ruby Serpent Trinket"
+	case MagicIDXiriTrink:
+		return "Xiri Trinket"
 	}
 
-	return "unknown"
+	return "<<TODO: Add Aura name to switch!!>>"
 }
 
 // AuraEffects will mutate a cast or simulation state.
@@ -78,6 +95,10 @@ type AuraEffect func(sim *Simulation, c *Cast)
 // List of all magic effects and spells and items and stuff that can go on CD or have an aura.
 const (
 	MagicIDUnknown int32 = iota
+	//Spells
+	MagicIDLB12
+	MagicIDCL6
+
 	// Auras
 	MagicIDLOTalent
 	MagicIDJoW
@@ -96,10 +117,11 @@ const (
 	MagicIDMysticSkyfire
 	MagicIDMysticFocus
 	MagicIDEmberSkyfire
-
-	//Spells
-	MagicIDLB12
-	MagicIDCL6
+	MagicIDSpellPower
+	MagicIDRubySerpent
+	MagicIDCallOfTheNexus
+	MagicIDDCC
+	MagicIDDCCBonus
 
 	//Items
 	MagicIDISCTrink
@@ -107,6 +129,9 @@ const (
 	MagicIDPotion
 	MagicIDRune
 	MagicIDAllTrinket
+	MagicIDScryerTrink
+	MagicIDRubySerpentTrink
+	MagicIDXiriTrink
 )
 
 func AuraJudgementOfWisdom() Aura {
@@ -197,40 +222,88 @@ func AuraStormcaller(tick int) Aura {
 	}
 }
 
-func ActivateSilverCrescent(sim *Simulation) Aura {
-	return Aura{
-		ID:      MagicIDBlessingSilverCrescent,
-		Expires: sim.currentTick + 20*TicksPerSecond,
-		OnCast: func(sim *Simulation, c *Cast) {
-			c.Spellpower += 155
-		},
+// createSpellDmgActivate creates a function for trinket activation that uses +spellpower
+//  This is so we don't need a separate function for every spell power trinket.
+func createSpellDmgActivate(id int32, sp float64, durSeconds int) ItemActivation {
+	return func(sim *Simulation) Aura {
+		return Aura{
+			ID:      id,
+			Expires: sim.currentTick + durSeconds*TicksPerSecond,
+			OnCast: func(sim *Simulation, c *Cast) {
+				c.Spellpower += sp
+			},
+		}
 	}
 }
 
 func ActivateQuagsEye(sim *Simulation) Aura {
 	lastActivation := math.MinInt32
 	const hasteBonus = 320.0
+	internalCD := 45 * TicksPerSecond
 	return Aura{
 		ID:      MagicIDQuagsEye,
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
-			if lastActivation+(45*TicksPerSecond) < sim.currentTick && sim.rando.Float64() < 0.1 {
-				sim.debug(" +Quags Fungal Frenzy\n")
+			if lastActivation+internalCD < sim.currentTick && sim.rando.Float64() < 0.1 {
 				sim.Buffs[StatHaste] += hasteBonus
-				sim.addAura(AuraHasteRemoval(sim.currentTick, 6.0, hasteBonus, MagicIDFungalFrenzy))
+				sim.addAura(AuraStatRemoval(sim.currentTick, 6.0, hasteBonus, StatHaste, MagicIDFungalFrenzy))
 				lastActivation = sim.currentTick
 			}
 		},
 	}
 }
 
-func AuraHasteRemoval(tick int, seconds int, amount float64, id int32) Aura {
+func ActivateNexusHorn(sim *Simulation) Aura {
+	lastActivation := math.MinInt32
+	internalCD := 45 * TicksPerSecond
+	const spellBonus = 225.0
+	return Aura{
+		ID:      MagicIDQuagsEye,
+		Expires: math.MaxInt32,
+		OnCastComplete: func(sim *Simulation, c *Cast) {
+			if lastActivation+internalCD < sim.currentTick && sim.rando.Float64() < 0.2 {
+				sim.Buffs[StatSpellDmg] += spellBonus
+				sim.addAura(AuraStatRemoval(sim.currentTick, 10.0, spellBonus, StatSpellDmg, MagicIDCallOfTheNexus))
+				lastActivation = sim.currentTick
+			}
+		},
+	}
+}
+
+func ActivateDCC(sim *Simulation) Aura {
+	const spellBonus = 18.0
+	stacks := 0
+	return Aura{
+		ID:      MagicIDDCC,
+		Expires: math.MaxInt32,
+		OnCastComplete: func(sim *Simulation, c *Cast) {
+			if stacks < 10 {
+				stacks++
+				sim.Buffs[StatSpellDmg] += spellBonus
+			}
+			// Removal aura will refresh with new total spellpower based on stacks.
+			//  This will remove the old stack removal buff.
+			sim.addAura(Aura{
+				ID:      MagicIDDCCBonus,
+				Expires: sim.currentTick + (10 * TicksPerSecond),
+				OnExpire: func(sim *Simulation, c *Cast) {
+					sim.Buffs[StatSpellDmg] -= spellBonus * float64(stacks)
+					stacks = 0
+				},
+			})
+		},
+	}
+}
+
+// AuraStatRemoval creates a general aura for removing any buff stat on expiring.
+// This is useful for activations / effects that give temp stats.
+func AuraStatRemoval(tick int, seconds int, amount float64, stat Stat, id int32) Aura {
 	return Aura{
 		ID:      id,
 		Expires: tick + (seconds * TicksPerSecond),
 		OnExpire: func(sim *Simulation, c *Cast) {
-			sim.debug(" -haste %0.0f from %s\n", amount, AuraName(id))
-			sim.Buffs[StatHaste] -= amount
+			sim.debug(" -%0.0f %s from %s\n", amount, stat.StatName(), AuraName(id))
+			sim.Buffs[stat] -= amount
 		},
 	}
 }
@@ -238,7 +311,7 @@ func AuraHasteRemoval(tick int, seconds int, amount float64, id int32) Aura {
 func ActivateBloodlust(sim *Simulation) Aura {
 	sim.Buffs[StatHaste] += 472.8
 	sim.CDs[MagicIDBloodlust] = 40 * TicksPerSecond // assumes that multiple BLs are different shaman.
-	return AuraHasteRemoval(sim.currentTick, 40, 472.8, MagicIDBloodlust)
+	return AuraStatRemoval(sim.currentTick, 40, 472.8, StatHaste, MagicIDBloodlust)
 }
 
 func ActivateSkycall(sim *Simulation) Aura {
@@ -247,10 +320,10 @@ func ActivateSkycall(sim *Simulation) Aura {
 		ID:      MagicIDSkycall,
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
-			if sim.rando.Float64() < 0.1 { // TODO: what is actual proc rate?
+			if c.Spell.ID == MagicIDLB12 && sim.rando.Float64() < 0.15 {
 				sim.debug(" +Skycall Energized- \n")
 				sim.Buffs[StatHaste] += hasteBonus
-				sim.addAura(AuraHasteRemoval(sim.currentTick, 10, hasteBonus, MagicIDEnergized))
+				sim.addAura(AuraStatRemoval(sim.currentTick, 10, hasteBonus, StatHaste, MagicIDEnergized))
 			}
 		},
 	}
@@ -301,7 +374,7 @@ func ActivateMSD(sim *Simulation) Aura {
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			if lastActivation+(45*TicksPerSecond) < sim.currentTick && sim.rando.Float64() < 0.1 {
 				sim.Buffs[StatHaste] += hasteBonus
-				sim.addAura(AuraHasteRemoval(sim.currentTick, 4.0, hasteBonus, MagicIDMysticFocus))
+				sim.addAura(AuraStatRemoval(sim.currentTick, 4.0, hasteBonus, StatHaste, MagicIDMysticFocus))
 				lastActivation = sim.currentTick
 			}
 		},

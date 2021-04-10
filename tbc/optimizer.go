@@ -1,6 +1,7 @@
 package tbc
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -108,38 +109,36 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 }
 
 func printResult(metrics []SimMetrics, seconds int) {
-	// numSims := len(metrics)
-	// simDmgs := make([]float64, 0, numSims)
-	// for _, metric := range metrics {
-	// 	simDmgs = append(simDmgs, metric.TotalDamage)
-	// }
+	numSims := len(metrics)
+	simDmgs := make([]float64, 0, numSims)
+	for _, metric := range metrics {
+		simDmgs = append(simDmgs, metric.TotalDamage)
+	}
 
-	// totalDmg := 0.0
-	// tdSq := totalDmg
-	// max := 0.0
-	// for _, dmg := range simDmgs {
-	// 	totalDmg += dmg
-	// 	tdSq += dmg * dmg
+	totalDmg := 0.0
+	tdSq := totalDmg
+	max := 0.0
+	for _, dmg := range simDmgs {
+		totalDmg += dmg
+		tdSq += dmg * dmg
 
-	// 	if dmg > max {
-	// 		max = dmg
-	// 	}
-	// }
+		if dmg > max {
+			max = dmg
+		}
+	}
 
-	// meanSq := tdSq / float64(numSims)
-	// mean := totalDmg / float64(numSims)
-	// stdev := math.Sqrt(meanSq - mean*mean)
+	meanSq := tdSq / float64(numSims)
+	mean := totalDmg / float64(numSims)
+	stdev := math.Sqrt(meanSq - mean*mean)
 
-	// fmt.Printf("DPS:\n")
-	// fmt.Printf("\tMean: %0.1f\n", (mean / float64(seconds)))
-	// fmt.Printf("\tMax: %0.1f\n", (max / float64(seconds)))
-	// fmt.Printf("\tStd.Dev: %0.1f\n", stdev/float64(seconds))
-	// fmt.Printf("Total Casts:\n")
+	fmt.Printf("DPS:\n")
+	fmt.Printf("\tMean: %0.1f +/- %0.1f\n", (mean / float64(seconds)), stdev/float64(seconds))
+	fmt.Printf("\tMax: %0.1f\n", (max / float64(seconds)))
+	fmt.Printf("Total Casts:\n")
 
 	// for k, v := range casts {
-	// fmt.Printf("\t%s: %d\n", tbc.AuraName(k), v/numSims)
+	// 	fmt.Printf("\t%s: %d\n", AuraName(k), v/numSims)
 	// }
-
 }
 
 type EleAI struct {

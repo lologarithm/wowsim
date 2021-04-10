@@ -209,8 +209,8 @@ function runsim(currentGear) {
             }
             if (out.Rotation[0].startsWith("AI")) {
                 var castStats = {
-                    19: 0,
-                    18: 0
+                    1: 0, // TODO: expose these constants from the wasm somehow.
+                    2: 0
                 };
                 out.Casts.forEach((casts)=>{
                     casts.forEach((cast)=>{
@@ -218,8 +218,8 @@ function runsim(currentGear) {
                     });
                 });
                 fulloutput += "Average Casts:<br />"
-                fulloutput += " LB12: " + Math.round(castStats[18] / iters) + "<br />";
-                fulloutput += " CL6: " + Math.round(castStats[19] / iters) + "<br />";
+                fulloutput += " LB12: " + Math.round(castStats[1] / iters) + "<br />";
+                fulloutput += " CL6: " + Math.round(castStats[2] / iters) + "<br />";
             }
             fulloutput += "<br />";
             console.log("Appending Full Output: ", fulloutput)
