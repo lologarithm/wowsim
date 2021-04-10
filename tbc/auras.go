@@ -230,7 +230,7 @@ func AuraHasteRemoval(tick int, seconds int, amount float64, id int32) Aura {
 		Expires: tick + (seconds * TicksPerSecond),
 		OnExpire: func(sim *Simulation, c *Cast) {
 			sim.debug(" -haste %0.0f from %s\n", amount, AuraName(id))
-			sim.Buffs[StatHaste] += amount
+			sim.Buffs[StatHaste] -= amount
 		},
 	}
 }

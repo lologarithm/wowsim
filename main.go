@@ -54,7 +54,7 @@ func main() {
 		"Magma Plume Boots",
 		"Cobalt Band of Tyrigosa",
 		"Scintillating Coral Band",
-		"Khadgar's Knapsack",
+		"Mazthoril Honor Shield",
 		"Bleeding Hollow Warhammer",
 		"Quagmirran's Eye",
 		"Icon of the Silver Crescent",
@@ -110,7 +110,7 @@ func main() {
 		rotArray = strings.Split(*rotation, ",")
 	}
 
-	results := runTBCSim(gear, opt, 200, sims, rotArray, *noopt)
+	results := runTBCSim(gear, opt, 120, sims, rotArray, *noopt)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}

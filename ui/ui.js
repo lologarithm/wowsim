@@ -193,11 +193,13 @@ function runsim(currentGear) {
                 var values = out.DmgAtOOMs;
                 var avg = average(values);
                 var dev = standardDeviation(values, avg);
+
                 var simdur = Math.round(oomat/numOOM);
                 out.averageoom = Math.round(oomat/numOOM);
 
                 if (includeFullDPS) {
                     fulloutput += "Went OOM: " + numOOM + " / " + iters + " simulations.<br />" 
+                    fulloutput += "Average time to OOM: " + Math.round(oomat/numOOM) + " seconds.<br />";
                 } else {
                     fulloutput += "Average time to OOM: " + Math.round(oomat/numOOM) + " seconds.<br />";
                     fulloutput += "DPS at time of OOM: " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";        
