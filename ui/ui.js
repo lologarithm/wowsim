@@ -188,6 +188,9 @@ function runsim(currentGear) {
             if (includeFullDPS) {
                 fulloutput += "Duration: " + out.SimSeconds + " seconds.<br />"
                 fulloutput += "DPS: " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";
+            } else if (numOOM == 0) {
+                fulloutput += "Average time to OOM: Never<br />";
+                fulloutput += "DPS: " + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur) + "<br />";
             }
             if (numOOM > 0) {
                 var values = out.DmgAtOOMs;
