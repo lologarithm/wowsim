@@ -39,6 +39,9 @@ func NewCast(sim *Simulation, sp *Spell, spellDmg, spHit, spCrit float64) *Cast 
 		castTime -= 0.5 // Talent Lightning Mastery
 	}
 	castTime /= (1 + ((sim.Stats[StatHaste] + sim.Buffs[StatHaste]) / 1576)) // 15.76 rating grants 1% spell haste
+	if castTime < 1.0 {
+		castTime = 1.0 // can't cast faster than 1/sec even with max haste.
+	}
 	cast.TicksUntilCast = int(castTime * float64(TicksPerSecond))
 
 	if isLB || isCL {
