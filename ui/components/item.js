@@ -35,6 +35,7 @@ class ItemComponent {
         innerdiv.appendChild(this.socketComp.div);
     
         this.statpop = document.createElement("div");
+        this.statpop.classList.add("statpop");
         this.statpop.style.display = "none";
 
         var img = document.createElement("img");
@@ -42,10 +43,10 @@ class ItemComponent {
         img.src = "";
         img.addEventListener("click", (e) => {this.showItemSelector(e)});
         img.addEventListener("mouseenter", (e) => {
-            statpop.style.display = "block";
+            this.statpop.style.display = "block";
         });
         img.addEventListener("mouseleave", (e) => {
-            statpop.style.display = "none";
+            this.statpop.style.display = "none";
         });
 
         var maindiv = document.createElement("div");
@@ -54,7 +55,7 @@ class ItemComponent {
         maindiv.appendChild(img);
         maindiv.appendChild(innerdiv);
         maindiv.appendChild(this.selector.selectordiv);
-        maindiv.appendChild(statpop);
+        maindiv.appendChild(this.statpop);
 
         this.name = name;
         this.innerdiv = innerdiv;
@@ -82,7 +83,12 @@ class ItemComponent {
         console.log("New Item Equipped: ", newItem);
         if (newItem != null && newItem.Name != "") {
             this.name.innerText = newItem.Name;
-            this.st
+            this.statpop.innerText = "";
+            newItem.Stats.forEach((v,i)=>{
+                if (v > 0) {
+                    this.statpop.innerHTML += statnames[i] + ": " + v.toString() + "<br />";
+                }
+            });
 
             this.img.src = slotToIcon[this.slot];
             // updates the selector UI with the current gems/enchants (later)
@@ -97,6 +103,7 @@ class ItemComponent {
     }
 }
 
+var statnames = ["Int", "Stm","SpellCrit","SpellHit","SpellDmg","Haste","MP5","Mana","SpellPen"];
 function moveSelector(box, x, y) {
     if (x < 0) {
         x = 0;

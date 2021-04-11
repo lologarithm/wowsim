@@ -17,8 +17,7 @@ Items
 
 Engine
     Set Bonuses
-    Upgrader - find upgrade for a single piece? If we can get stat weights we can do it all.
-    Gem Optimizer - Find which gem combinations give most DPS.
+    Upgrader - List value of items with the stat weights.
 
 Other
     Implement Gear Phases

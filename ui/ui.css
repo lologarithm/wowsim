@@ -1,3 +1,12 @@
+.statpop {
+    background-color: #202020;
+    z-index: 100;
+    position: relative;
+    top: -25px;
+    left: 55px;
+    width: 300px;
+    text-align: left;
+}
 .equipselector {
     background-color: #505050;
     position: absolute;
