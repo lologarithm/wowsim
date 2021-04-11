@@ -12,6 +12,148 @@ var rotations = [][]string{
 	// {"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
 }
 
+type OptimalGemsResult struct {
+	Sims []EquipmentResult
+}
+
+type EquipmentResult struct {
+	Results []SimMetrics
+	Equip   Equipment
+}
+
+func StatWeights(opts Options, equip Equipment, seconds int, numSims int) []float64 {
+	type res struct {
+		s   Stat
+		val float64
+		m   []SimMetrics
+		d   float64
+	}
+	results := make(chan res, 10)
+
+	base := 0.0
+
+	doStat := func(mod Stat, value float64) {
+		myopts := opts
+		myopts.Buffs.Custom = Stats{StatLen: 0}
+		myopts.Buffs.Custom[mod] += value
+		stats := myopts.StatTotal(equip)
+
+		myOpts := myopts
+		myOpts.SpellOrder = []string{""}
+		myOpts.UseAI = true
+		simdmg := 0.0
+		sim := NewSim(stats, equip, myOpts)
+		simmet := make([]SimMetrics, 0, numSims)
+		for ns := 0; ns < numSims; ns++ {
+			metrics := sim.Run(seconds)
+			simdmg += metrics.TotalDamage
+			simmet = append(simmet, metrics)
+		}
+		results <- res{s: mod, val: value, m: simmet, d: simdmg / float64(numSims) / float64(seconds)}
+		if base == 0 {
+			base = simdmg / float64(numSims) / float64(seconds)
+		}
+	}
+
+	doStat(StatSpellDmg, 0)
+
+	statsToTest := []Stat{StatSpellDmg, StatSpellCrit, StatInt, StatSpellHit, StatMP5, StatHaste}
+	for _, v := range statsToTest {
+		go doStat(v, 50)
+	}
+
+	modded := make([]float64, StatLen)
+	for i := 0; i < len(statsToTest)+1; i++ {
+		res := <-results
+		// fmt.Printf("\n---- %s / +%0.0f  -  Diff: %0.1f\n", res.s.StatName(), res.val, res.d-base)
+		if res.s == StatSpellDmg && res.val == 0 {
+			continue
+		} else {
+			modded[res.s] = res.d - base
+		}
+		// printResult(res.m, seconds)
+	}
+
+	output := make([]float64, StatLen)
+	for _, v := range statsToTest {
+		output[v] = modded[v] / modded[StatSpellDmg]
+		fmt.Printf("---- RESULT ----\nValue (%s): %0.2f\n", Stat(v).StatName(), output[v])
+	}
+	return output
+}
+
+// OptimalGems returns DPS for each equipment/gem set.
+//   1. All +sp power
+//   2. Follow colors to get socket bonuses
+func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) OptimalGemsResult {
+	output := OptimalGemsResult{}
+
+	set1 := equip.Clone()
+	set2 := equip.Clone()
+	// set3 := equip.Clone()
+
+	ruby := GemLookup["Runed Living Ruby"] // red +sp
+	// dawnstone := GemLookup["Gleaming Dawnstone"] // yellow  +crit
+	nt := GemLookup["Potent Noble Topaz"] // orange  +sp/+crit
+	// fo := GemLookup["Infused Fire Opal"] // orange +sp/+int
+	chryo := GemLookup["Rune Covered Chrysoprase"] // green  crit/mp5
+	// tanz := GemLookup["Glowing Tanzanite"] // purple  sp/stm
+	// tala := GemLookup["Dazzling Talasite"] // green  int/mp5
+
+	for i := range set1 {
+		set1[i].Gems = make([]Gem, len(set1[i].GemSlots))
+		for gs, color := range set1[i].GemSlots {
+			if color != GemColorMeta {
+				set1[i].Gems[gs] = ruby
+			} else {
+				set1[i].Gems[gs] = Gems[0]
+			}
+		}
+	}
+
+	for i := range set2 {
+		set2[i].Gems = make([]Gem, len(set2[i].GemSlots))
+		for gs, color := range set2[i].GemSlots {
+			switch color {
+			case GemColorRed:
+				set2[i].Gems[gs] = ruby
+			case GemColorYellow:
+				set2[i].Gems[gs] = nt
+			case GemColorBlue:
+				set2[i].Gems[gs] = chryo
+			case GemColorMeta:
+				set2[i].Gems[gs] = Gems[0]
+			}
+		}
+	}
+
+	fmt.Printf("Set1:\n%s\nSet2:\n%s\n", opts.StatTotal(set1).Print(false), opts.StatTotal(set2).Print(false))
+
+	simdmg := 0.0
+	sim := NewSim(opts.StatTotal(set1), equip, opts)
+	simmet := make([]SimMetrics, 0, numSims)
+	for ns := 0; ns < numSims; ns++ {
+		metrics := sim.Run(seconds)
+		simdmg += metrics.TotalDamage
+		simmet = append(simmet, metrics)
+	}
+	fmt.Printf("Set1: %0.0f\n", simdmg/float64(numSims)/float64(seconds))
+	output.Sims = append(output.Sims, EquipmentResult{Results: simmet, Equip: set1})
+
+	simdmg = 0.0
+	sim = NewSim(opts.StatTotal(set2), equip, opts)
+	simmet = make([]SimMetrics, 0, numSims)
+	for ns := 0; ns < numSims; ns++ {
+		metrics := sim.Run(seconds)
+		simdmg += metrics.TotalDamage
+		simmet = append(simmet, metrics)
+	}
+	fmt.Printf("Set2: %0.0f\n", simdmg/float64(numSims)/float64(seconds))
+	output.Sims = append(output.Sims, EquipmentResult{Results: simmet, Equip: set2})
+
+	return output
+}
+
 // Finds the optimal rotation for given parameters.
 func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, numSims int) ([]SimMetrics, []string) {
 
@@ -64,10 +206,10 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 
 		if numLB == minLB || numLB == maxLB {
 			if simdmg >= topDmg {
-				printResult(simmet, seconds)
+				// printResult(simmet, seconds)
 				return simmet, rotation
 			}
-			printResult(topMets, seconds)
+			// printResult(topMets, seconds)
 			return topMets, topRot
 		}
 		// avgOOMAt := int(float64(oomat) / float64(numoom))
@@ -77,7 +219,7 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 				newLB = minLB
 			}
 			if newLB == numLB {
-				printResult(simmet, seconds)
+				// printResult(simmet, seconds)
 				return simmet, rotation
 			}
 			maxLB = numLB
@@ -92,7 +234,7 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 			}
 
 			if newLB == numLB {
-				printResult(simmet, seconds)
+				// printResult(simmet, seconds)
 				return simmet, rotation
 			}
 			minLB = numLB
@@ -102,13 +244,13 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 
 		// Optimal Found
 		// fmt.Printf("Optimal Found: %0.0f DPS (%d LB : 1 CL)\n", simdmg/float64(seconds)/float64(numSims), numLB)
-		printResult(simmet, seconds)
+		// printResult(simmet, seconds)
 		return simmet, rotation
 	}
 
 }
 
-func printResult(metrics []SimMetrics, seconds int) {
+func PrintResult(metrics []SimMetrics, seconds int) {
 	numSims := len(metrics)
 	simDmgs := make([]float64, 0, numSims)
 	for _, metric := range metrics {
@@ -142,93 +284,86 @@ func printResult(metrics []SimMetrics, seconds int) {
 }
 
 type EleAI struct {
-	LastMana    float64
-	DidPot      bool
-	LastCheck   int
-	Rotation    []int32
-	rotationIdx int
+	DidPot    bool
+	LastMana  float64
+	LastCheck int
 
-	rotations int
+	NumCasts int
+	LB       *Spell
+	CL       *Spell
 }
 
 func NewAI(sim *Simulation) *EleAI {
 	ai := &EleAI{
-		Rotation: sim.SpellRotation,
+		LB:       spellmap[MagicIDLB12],
+		CL:       spellmap[MagicIDCL6],
 		LastMana: sim.CurrentMana,
 	}
-	if sim.RotationIdx == -1 {
-		ai.Rotation = []int32{MagicIDCL6, MagicIDLB12, MagicIDLB12, MagicIDLB12, MagicIDLB12}
-	}
-	sim.debug("[AI] initialized rotation: %#v\n", sim.SpellRotation)
+	sim.debug("[AI] initialized\n")
 	return ai
 }
 
 func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
+	if ai.LastMana == 0 {
+		ai.LastMana = sim.CurrentMana
+	}
+	ai.NumCasts++
 	if didPot {
-		ai.DidPot = true
+		// Use Potion to reset the calculation.
+		ai.LastMana = sim.CurrentMana
+		ai.LastCheck = sim.currentTick
+		ai.NumCasts = 0
 	}
-	if ai.rotationIdx == len(ai.Rotation) {
-		ai.rotationIdx = 0
-		ai.rotations++
-
-		if ai.DidPot { // reset our behavior because potion messed up mana drain.
-			sim.debug("[AI] Resetting rotation selection because potion was used.\n")
-			ai.LastCheck = sim.currentTick
-			ai.rotations = 0
-			ai.LastMana = sim.CurrentMana
-			ai.DidPot = false
-		}
-	}
-	if ai.rotations == 1 {
-		// Re-evaluate our rotation.
+	if ai.NumCasts > 3 { // every 3 casts, re-eval mana drain
+		ai.NumCasts = 0
 		manaDrained := ai.LastMana - sim.CurrentMana
 		timePassed := sim.currentTick - ai.LastCheck
 		rate := manaDrained / float64(timePassed)
 		timeRemaining := sim.endTick - sim.currentTick
 		totalManaDrain := rate * float64(timeRemaining)
-		buffer := 0.0 // mana buffer to not module rotations too fast...
+		buffer := ai.CL.Mana // mana buffer of 1 extra LB just in case.
 
-		sim.debug("[AI] End of rotation, recalculating best rotation. Rate: %0.1f, Total Drain: %0.1f, CurrentMana: %0.1f\n", rate, totalManaDrain, sim.CurrentMana)
-		if totalManaDrain > sim.CurrentMana+buffer {
-			// too much mana drain, less chain lightning.
-			ai.Rotation = append(ai.Rotation, MagicIDLB12)
-			sim.debug("[AI] - adding LB to %#v\n", ai.Rotation)
-		} else if totalManaDrain < sim.CurrentMana-buffer {
-			// more chain lightning
-			if len(ai.Rotation) > 5 { // dont drop below 4xLB, 1xCL
-				ai.Rotation = ai.Rotation[:len(ai.Rotation)-1]
-				sim.debug("[AI] - dropping LB to %#v\n", ai.Rotation)
+		sim.debug("[AI] End of rotation, recalculating best rotation. Rate: %0.1f, Total Drain: %0.1f, LastMana: %0.0f, CurrentMana: %0.1f\n", rate, totalManaDrain, ai.LastMana, sim.CurrentMana)
+		// If we have enough mana to burn and CL is on CD, use it.
+		if totalManaDrain < sim.CurrentMana-buffer && sim.CDs[MagicIDCL6] < 1 {
+			cast := NewCast(sim, ai.CL, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
+			if sim.CurrentMana >= cast.ManaCost {
+				sim.CastingSpell = cast
+				return cast.TicksUntilCast
 			}
-		} else {
-			// continue current rotation
-		}
-
-		// Reset checker
-		ai.LastCheck = sim.currentTick
-		ai.LastMana = sim.CurrentMana
-		ai.rotations = 0
-	}
-
-	so := ai.Rotation[ai.rotationIdx]
-	sp := spellmap[so]
-	cast := NewCast(sim, sp, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
-	if sim.CDs[so] < 1 {
-		if sim.CurrentMana >= cast.ManaCost {
-			sim.CastingSpell = cast
-			ai.rotationIdx++
-			return cast.TicksUntilCast
-		} else {
-			sim.debug("[AI] OOM Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
-			if sim.metrics.OOMAt == 0 {
-				sim.metrics.OOMAt = sim.currentTick / TicksPerSecond
-				sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
-			}
-			return int(math.Ceil((cast.ManaCost - sim.CurrentMana) / sim.manaRegen()))
 		}
 	}
-	return sim.CDs[so]
+	cast := NewCast(sim, ai.LB, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
 
+	if sim.CurrentMana >= cast.ManaCost {
+		sim.CastingSpell = cast
+		return cast.TicksUntilCast
+	}
+
+	sim.debug("[AI] OOM Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
+	if sim.metrics.OOMAt == 0 {
+		sim.metrics.OOMAt = sim.currentTick / TicksPerSecond
+		sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
+	}
+	return int(math.Ceil((cast.ManaCost - sim.CurrentMana) / sim.manaRegen()))
 }
+
+// 	if didPot {
+// 		ai.DidPot = true
+// 	}
+// 	if ai.rotations == 1 {
+// 		// Re-evaluate our rotation.
+// 		} else {
+// 			// continue current rotation
+// 		}
+
+// 		// Reset checker
+// 		ai.LastCheck = sim.currentTick
+// 		ai.LastMana = sim.CurrentMana
+// 		ai.rotations = 0
+// 	}
+
+// }
 
 // 	res := make(chan optRes, 1)
 

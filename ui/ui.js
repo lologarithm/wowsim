@@ -24,7 +24,6 @@ var simlib = new window.Worker(`simworker.js`);
 var simlib2 = new window.Worker(`simworker.js`);
 
 var simlibBusy = false;
-var simlib2Busy = false;
 
 simlib.onmessage = (event) => {
     var m = event.data.msg;
@@ -57,7 +56,6 @@ simlib2.onmessage = (event) => {
 
 var simrequests = {};
 function simulate(iters, dur, gearlist, opts, rots, haste, onComplete) {
-    console.log("Called Simulate... rots:", rots);
     var id = makeid();
     simrequests[id] = onComplete
     var worker = simlib;
@@ -68,6 +66,22 @@ function simulate(iters, dur, gearlist, opts, rots, haste, onComplete) {
     }
     worker.postMessage({msg: "simulate", id: id, payload: {
         iters: iters, dur: dur, gearlist: gearlist, opts: opts, rots: rots, haste: haste,
+    }});
+}
+
+var worker2 =  false;
+function statweight(iters, dur, gearlist, opts, statToMod, onComplete) {
+    var id = makeid();
+    simrequests[id] = onComplete
+    var worker = simlib;
+    if (worker2) {
+        worker = simlib2;
+        worker2 = false;
+    } else {
+        worker2 = true;
+    }
+    worker.postMessage({msg: "statweight", id: id, payload: {
+        iters: iters, dur: dur, gearlist: gearlist, opts: opts, stat: statToMod,
     }});
 }
 
@@ -344,6 +358,51 @@ function average(data){
     return avg;
 }
 
+function calcStatWeights(gear) {
+    var iters = parseInt(document.getElementById("switer").value);
+    var dur = parseInt(document.getElementById("swdur").value);
+    var opts = getOptions();
+    
+    var baseDPS = 0.0;
+    var modDPS = [0, 0, 0, 0, 0, 0];
+
+    modDPS.forEach((v, i)=>{
+        var cell = document.getElementById("w"+i.toString());
+        cell.innerHTML = "<div uk-spinner=\"ratio: 1\"></div>";
+    });
+
+    statweight(iters, dur, gear, opts, 9, (res) => {
+        baseDPS = res;
+    }); // base
+
+
+    var onfinish = () => {
+        if (baseDPS == 0) {
+            return;
+        }
+        if (modDPS[0] == 0) {
+            return;
+        }
+        var ddps = modDPS[0] - baseDPS;
+        modDPS.forEach((v, i)=>{
+            if (v == 0) {
+                return;
+            }
+            var weight = (v-baseDPS) / ddps;
+            var cell = document.getElementById("w"+i.toString());
+            cell.innerText = weight.toFixed(2);
+        });
+    };
+
+    statweight(iters, dur, gear, opts, 4, (res) => {modDPS[0] = res;onfinish();}); // sp
+    statweight(iters, dur, gear, opts, 0, (res) => {modDPS[1] = res;onfinish();}); // int
+    statweight(iters, dur, gear, opts, 2, (res) => {modDPS[2] = res;onfinish();}); // crit
+    statweight(iters, dur, gear, opts, 3, (res) => {modDPS[3] = res;onfinish();}); // hit
+    statweight(iters, dur, gear, opts, 5, (res) => {modDPS[4] = res;onfinish();}); // haste
+    statweight(iters, dur, gear, opts, 6, (res) => {modDPS[5] = res;onfinish();}); // mp5
+
+
+}
 
 window.addEventListener('click', function(e){   
     if (gearUI == null) {
@@ -390,6 +449,11 @@ function popgear(gearList) {
     var hastebut = document.getElementById("hastebut");
     hastebut.addEventListener("click", (event)=>{
         hastedRotations(cleanGear(gearUI.currentGear));
+    });
+
+    var caclweights = document.getElementById("calcstatweight");
+    caclweights.addEventListener("click", (event)=>{
+        calcStatWeights(cleanGear(gearUI.currentGear));
     });
 }
 
@@ -439,7 +503,82 @@ function updateGearStats(gearlist) {
     computeStats(cleanedGear, opts, (result) => {
         for (const [key, value] of Object.entries(result)) {
             var lab = document.getElementById("f"+key.toLowerCase());
-            lab.innerText = value;
+            if (key.toLowerCase() == "statspellcrit") {
+                lab.innerText = value.toString() + " ("  + (value/22.08).toFixed(1) + "%)";
+            } else if (key.toLowerCase() == "statspellhit") {
+                lab.innerText = value.toString() + " ("  + (value/12.6).toFixed(1) + "%)";
+            } else if (key.toLowerCase() == "statspellhaste") {
+                lab.innerText = value.toString() + " ("  + (value/15.76).toFixed(1) + "%)";
+            } else {
+                lab.innerText = value;
+            }
         }    
     });
 }
+
+
+/// I hate html and javascript so much sometimes.
+
+var panedrag = false;
+var panediv = document.getElementById("panediv");
+var calcpane = document.getElementById("calctabs");
+var inpanel = document.getElementById("inputdata");
+var outpanel = document.getElementById("calcdiv");
+var h = window.innerHeight;
+
+window.addEventListener("touchstart", (e)=>{
+    if (panediv == null) {
+        panediv = document.getElementById("panediv");
+        calcpane = document.getElementById("calctabs");
+        inpanel = document.getElementById("inputdata");
+        outpanel = document.getElementById("calcdiv");
+    }
+    if (panediv.contains(e.target) || calcpane.contains(e.target)) {
+        console.log("now dragging...");
+        panedrag = true;
+        h = window.innerHeight;
+        e.preventDefault();
+    }
+    if( e.changedTouches.length > 1) {
+        panedrag = false;
+    }
+});
+window.addEventListener("mousedown", (e)=>{
+    if (panediv == null) {
+        panediv = document.getElementById("panediv");
+        inpanel = document.getElementById("inputdata");
+        outpanel = document.getElementById("calcdiv");
+        calcpane = document.getElementById("calctabs");
+    }
+    if (panediv.contains(e.target) || calcpane.contains(e.target)) {
+        console.log("now mouse dragging...");
+        panedrag = true;
+        h = window.innerHeight;
+        e.preventDefault();
+    }
+});
+window.addEventListener("touchend", (e)=>{
+    panedrag = false;
+});
+window.addEventListener("mouseup", (e)=>{
+    panedrag = false;
+});
+
+window.addEventListener("touchmove", (e)=>{
+    if (panedrag) {
+        console.log("dragging...", e)
+        var percent = e.changedTouches[0].pageY / (h+60);
+        inpanel.style.height = "calc(" + (percent*100).toString() + "% - 100px)";
+        outpanel.style.height = "calc(" + (100-(percent*100)).toString() + "% - 100px)";
+        e.preventDefault();
+    }
+});
+
+window.addEventListener("mousemove", (e)=>{
+    if (panedrag) {
+        var percent = e.pageY / (h+60);
+        inpanel.style.height = "calc(" + (percent*100).toString() + "% - 100px)";
+        outpanel.style.height = "calc(" + (100-(percent*100)).toString() + "% - 100px)";
+        e.preventDefault();
+    }
+});

@@ -8,18 +8,17 @@ UI
     Gear Quality Colors
     Gear Change data on hover of item change dropdown.
     Gear Stats on hover
-    Gem Display
 
 Items
     Gear Quality
-    Trinkets
+    Lightnin Capacitor
     Validate gear stats - unsure if item data source is accurate.
     Enchants
 
 Engine
-    Socket Bonuses
     Set Bonuses
     Upgrader - find upgrade for a single piece? If we can get stat weights we can do it all.
+    Gem Optimizer - Find which gem combinations give most DPS.
 
 Other
     Implement Gear Phases

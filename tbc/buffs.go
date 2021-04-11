@@ -105,6 +105,9 @@ type Buffs struct {
 
 	// Target Debuff
 	JudgementOfWisdom bool
+
+	// Custom
+	Custom Stats
 }
 
 func (b Buffs) AddStats(s Stats) Stats {
@@ -125,6 +128,9 @@ func (b Buffs) AddStats(s Stats) Stats {
 	}
 	s[StatMP5] += float64(b.SpriestDPS) * 0.25
 
+	for k, v := range b.Custom {
+		s[k] += v
+	}
 	return s
 }
 

@@ -26,7 +26,7 @@ type Simulation struct {
 
 	bloodlustCasts int
 	Options        Options
-	SpellRotation  []int32
+	SpellRotation  []*Spell
 	RotationIdx    int
 
 	// ticks until cast is complete
@@ -60,24 +60,30 @@ type SimMetrics struct {
 //   Technically we can calculate stats from equip/options but want the ability to override those stats
 //   mostly for stat weight purposes.
 func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
-	if len(options.SpellOrder) == 0 {
-		// fmt.Printf("[ERROR] No rotation given to sim.\n")
+	if len(options.SpellOrder) == 0 && !options.UseAI {
+		fmt.Printf("[ERROR] No rotation given to sim.\n")
 		return nil
 	}
 	rotIdx := 0
-	if options.SpellOrder[0] == "pri" {
-		rotIdx = -1
-		options.SpellOrder = options.SpellOrder[1:]
-	}
-	rot := make([]int32, len(options.SpellOrder))
-	for i, v := range options.SpellOrder {
-		for _, sp := range spells {
-			if sp.Name == v {
-				rot[i] = sp.ID
-				break
+	var rot []*Spell
+	if !options.UseAI {
+		if options.SpellOrder[0] == "pri" {
+			rotIdx = -1
+			options.SpellOrder = options.SpellOrder[1:]
+		}
+		rot = make([]*Spell, len(options.SpellOrder))
+		for i, v := range options.SpellOrder {
+			fmt.Printf("Finding spell %#v\n", v)
+			for _, sp := range spells {
+				if sp.Name == v {
+					rot[i] = &sp
+					fmt.Printf("Found spell %#v\n", v)
+					break
+				}
 			}
 		}
 	}
+	fmt.Printf("Rotation: %#v  UseAI: %v\n", rot, options.UseAI)
 	sim := &Simulation{
 		RotationIdx:   rotIdx,
 		Stats:         stats,
@@ -207,8 +213,8 @@ func ChooseSpell(sim *Simulation, didPot bool) int {
 		lowestWait := math.MaxInt32
 		wasMana := false
 		for i := 0; i < len(sim.SpellRotation); i++ {
-			so := sim.SpellRotation[i]
-			sp := spellmap[so]
+			sp := sim.SpellRotation[i]
+			so := sp.ID
 			cast := NewCast(sim, sp, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
 			if sim.CDs[so] > 0 { // if
 				if sim.CDs[so] < lowestWait {
@@ -233,8 +239,8 @@ func ChooseSpell(sim *Simulation, didPot bool) int {
 		return lowestWait
 	}
 
-	so := sim.SpellRotation[sim.RotationIdx]
-	sp := spellmap[so]
+	sp := sim.SpellRotation[sim.RotationIdx]
+	so := sp.ID
 	cast := NewCast(sim, sp, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
 	if sim.CDs[so] < 1 {
 		if sim.CurrentMana >= cast.ManaCost {

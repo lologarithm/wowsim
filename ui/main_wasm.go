@@ -13,10 +13,12 @@ func main() {
 	c := make(chan struct{}, 0)
 
 	simfunc := js.FuncOf(Simulate)
+	statfunc := js.FuncOf(StatWeight)
 	statsfunc := js.FuncOf(ComputeStats)
 	gearlistfunc := js.FuncOf(GearList)
 
 	js.Global().Set("simulate", simfunc)
+	js.Global().Set("statweight", statfunc)
 	js.Global().Set("computestats", statsfunc)
 	js.Global().Set("gearlist", gearlistfunc)
 	js.Global().Call("wasmready")
@@ -159,6 +161,34 @@ func parseRotation(val js.Value) [][]string {
 
 // Simulate takes in number of iterations, duration, a gear list, and simulation options.
 // (iterations, duration, gearlist, options, <optional, custom rotation)
+func StatWeight(this js.Value, args []js.Value) interface{} {
+	numSims := args[0].Int()
+	if numSims == 1 {
+		tbc.IsDebug = true
+	}
+	seconds := args[1].Int()
+	gear := getGear(args[2])
+	opts := parseOptions(args[3])
+	stat := args[4].Int()
+
+	opts.Buffs.Custom = tbc.Stats{tbc.StatLen: 0}
+	opts.Buffs.Custom[tbc.Stat(stat)] += 50
+	opts.UseAI = true // use AI optimal rotation.
+
+	simdmg := 0.0
+	sim := tbc.NewSim(opts.StatTotal(gear), gear, opts)
+	simmet := make([]tbc.SimMetrics, 0, numSims)
+	for ns := 0; ns < numSims; ns++ {
+		metrics := sim.Run(seconds)
+		simdmg += metrics.TotalDamage
+		simmet = append(simmet, metrics)
+	}
+
+	return simdmg / float64(numSims) / float64(seconds)
+}
+
+// Simulate takes in number of iterations, duration, a gear list, and simulation options.
+// (iterations, duration, gearlist, options, <optional, custom rotation)
 func Simulate(this js.Value, args []js.Value) interface{} {
 	// TODO: Accept talents, buffs, and consumes as inputs.
 
@@ -277,21 +307,11 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 	}
 
 	if !doingCustom && doOptimize {
-		rotationOpts := opts
-		rotationOpts.UseAI = false
-		bestRotMetrics, rotation := tbc.OptimalRotation(stats, rotationOpts, equip, seconds, numSims)
-		simMetrics = SimResult{Rotation: rotation}
-		for _, rotmet := range bestRotMetrics {
-			pm(rotmet)
-		}
-		simMetrics.SimSeconds = seconds
-		results = append(results, simMetrics)
-
 		opts.UseAI = true
-		dosim(rotation, seconds) // now do one AI
-		results[len(results)-1].Rotation = []string{"AI Optimized"}
+		dosim([]string{"AI Optimized"}, seconds) // Let AI determine best possible DPS
 	} else {
 		for _, spells := range spellOrders {
+			fmt.Printf("Running sim for: %#v\n", spells)
 			dosim(spells, seconds)
 		}
 	}

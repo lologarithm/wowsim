@@ -24,8 +24,8 @@
                 <li><a href="#">Buffs</a></li>
                 <li><a href="#">Notes</a></li>
             </ul>
-            <ul id="inputdata" class="uk-switcher uk-margin">
-                <li id="gear" style="height: 50%;overflow: auto; overflow-x:hidden;min-height: 400px;">
+            <ul id="inputdata" class="uk-switcher uk-margin" style="height: calc(50% - 100px);margin-bottom: 3px;">
+                <li id="gear" style="height: 100%;overflow: auto; overflow-x:hidden;">
                     <div class="uk-grid-small uk-child-width-expand@s uk-text-center" uk-grid>
                         <div style="min-width: 330px">
                             <div class="uk-grid-small uk-child-width-expand@s uk-text-center" uk-grid>
@@ -57,12 +57,12 @@
                         </div>
                     </div>
                 </li>
-                <li id="talents" style="height: 50%;overflow: auto;">
+                <li id="talents" style="height: 100%;overflow: auto;">
                     <h4>Standard Elemental Build</h4>
                     <b>Elemental:</b> Convection, Concussion, Call of Thunder, Elemental Focus, Elemental Fury, Lightning Mastery, UnrelentingStorm(3/5), Elemental Mastery, Lightning Overload, Totem of Wrath<br />
                     <b>Resto:</b> Natures Guidance, Tidal Mastery<br />
                 </li>
-                <li id="buffs" style="height: 50%;overflow: auto;">
+                <li id="buffs" style="height: 100%;overflow: auto;">
                     <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid" style="height: 50%"> 
                         <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid buffs" style=>
                             <b style="width: 100%;text-align: right;font-size: 0.7em;color: #1e87f0;">Raid Buffs</b>
@@ -119,10 +119,9 @@
                         </div>
                     </div>
                 </li>
-                <li id="notes" style="height: 50%;overflow: auto;">
+                <li id="notes" style="height: 100%;overflow: auto;">
                     <ul>
                         <li>All activatable abilities and items are activated on CD (usually at the start of fight).</li>
-                        <li>Gems and gemming bonuses are not implemented.</li>
                         <li>Set bonuses are not implemented.</li>
                         <li>Unsure of exact spell pen. Using classic 2.5% chance for a 25% partial resist (this is probably wrong).</li>
                         <li>The 'Hasted Rotations' tab will calculate the max DPS rotation for the given gear set and at fixed haste levels.</li>
@@ -130,27 +129,29 @@
                     </ul>
                 </li>
             </ul>
-            <div id="calcdiv">
+            <hr id="panediv" style="margin-top: 2px;margin-bottom:5px;cursor: ns-resize; height: 10px" />
+            <div id="calcdiv" style="height: calc(50% - 100px)">
                 <ul id="calctabs" uk-tab="connect: #calcs">
                     <li class="uk-active"><a href="#">Sim</a></li>
                     <li><a href="#">Histogram</a></li>
                     <li><a href="#">Hasted Rotations</a></li>
+                    <li><a href="#">Gear & Stat Weights</a></li>
                 </ul>
-                <ul id="calcs" class="uk-switcher uk-margin">
+                <ul id="calcs" class="uk-switcher uk-margin" style="height: 100%;overflow: auto;">
                     <li>
                         <div style="text-align: right">
-                            <button id="simrunbut">Run Simulation</button>
                             Iterations: <input id="iters" type="text" value="1000" style="width: 60px"></input>
                             Duration: <input id="dur" type="text" value="300" style="width: 60px"></input>
                             Optimize: <input id="doopt" type="checkbox" class="uk-checkbox" checked></input>
+                            <button id="simrunbut">Run Simulation</button>
                         </div>
                         <div id="output1" style="overflow: auto; top: 0px; bottom: 0px;"></div>
                         <div id="output2" style="overflow: auto; top: 0px; bottom: 0px;"></div>
                     </li>
-                    <li style="height: 35%">
+                    <li>
                         DPS Histogram
                     </li>
-                    <li style="height: 35%">
+                    <li>
                         <div style="text-align: right;">
                             <button id="hastebut">Optimize Haste Rotation</button>
                         </div>
@@ -162,7 +163,7 @@
                             <li>Even a very small amount of haste like 20 makes CL / 4LB > CL / 3LB</li>
                         </ul>
                         <div id="hasterots" style="float:left">
-                            <table class="hastetable">
+                            <table class="hastetable" style="margin-top: 0px">
                                 <tr><th>Haste</th><th>Rotation</th><th>DPS</th></tr>
                                 <tr><td></td><td></td><td></td></tr>
                                 <tr><td></td><td></td><td></td></tr>
@@ -174,6 +175,29 @@
                                 <tr><td></td><td></td><td></td></tr>
                             </table>
                         </div>
+                    </li>
+                    <li>
+                        <button id="calcstatweight" style="float: right">Calculate</button>
+                        <label style="float:right">Duration:<input id="swdur" type="text" value="300" style="width: 60px"></input></label>
+                        <label style="float:right">Iterations:<input id="switer" type="text" value="1000" style="width: 60px"></input></label>
+                        <table id="statweights" style="background-color: #404040; width: 50%;margin: 0px auto;">
+                            <tr style="font-size: 1.3em;font-weight: 700;text-align: center;">
+                                <th>Dmg</th>
+                                <th>Int</th>
+                                <th>Crit</th>
+                                <th>Hit</th>
+                                <th>Haste</th>
+                                <th>MP5</th>
+                            </tr>
+                            <tr style="font-size: 1.2em;text-align: center;">
+                                <td id="w0">0</td>
+                                <td id="w1">0</td>
+                                <td id="w2">0</td>
+                                <td id="w3">0</td>
+                                <td id="w4">0</td>
+                                <td id="w5">0</td>
+                            </tr>
+                        </table>
                     </li>
                 </ul>    
             </div>

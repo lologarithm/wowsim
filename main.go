@@ -110,7 +110,7 @@ func main() {
 		rotArray = strings.Split(*rotation, ",")
 	}
 
-	results := runTBCSim(gear, opt, 120, sims, rotArray, *noopt)
+	results := runTBCSim(gear, opt, 300, sims, rotArray, *noopt)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
@@ -148,12 +148,32 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 
 	if !noopt {
 		fmt.Printf("\n------- OPTIMIZING -------\n")
-		_, optimalRotation := tbc.OptimalRotation(stats, opt, equip, seconds, numSims)
-		fmt.Printf("\n-------   DONE   -------\n")
+		optResult, optimalRotation := tbc.OptimalRotation(stats, opt, equip, seconds, numSims)
+		fmt.Printf("\n-------   DONE  -------\n")
+		fmt.Printf("Ratio: 1CL : %dLB\n", len(optimalRotation)-1)
+		tbc.PrintResult(optResult, seconds)
 
 		opt.UseAI = true
-		go doSimMetrics(optimalRotation, stats, equip, opt, seconds, numSims, statchan)
+		go doSimMetrics([]string{"AI"}, stats, equip, opt, seconds, numSims, statchan)
 		results = append(results, <-statchan)
+
+		// opt.SpellOrder = optimalRotation
+		// tbc.OptimalGems(opt, equip, seconds, numSims)
+
+		// Gem it up.... for now
+		ruby := tbc.GemLookup["Runed Living Ruby"]
+		for i := range equip {
+			equip[i].Gems = make([]tbc.Gem, len(equip[i].GemSlots))
+			for gs, color := range equip[i].GemSlots {
+				if color != tbc.GemColorMeta {
+					equip[i].Gems[gs] = ruby
+				} else {
+					equip[i].Gems[gs] = tbc.Gems[0]
+				}
+			}
+		}
+
+		tbc.StatWeights(opt, equip, seconds, numSims)
 	}
 
 	return results

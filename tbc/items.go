@@ -38,6 +38,7 @@ var Gems = []Gem{
 	{Name: "Potent Pyrestone", Color: GemColorOrange, Stats: Stats{StatSpellCrit: 5, StatSpellDmg: 6}},
 	{Name: "Infused Fire Opal", Color: GemColorOrange, Stats: Stats{StatInt: 4, StatSpellDmg: 6}},
 	{Name: "Rune Covered Chrysoprase", Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatSpellCrit: 5}},
+	{Name: "Dazzling Talasite", Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatInt: 4}},
 }
 
 var ItemLookup = map[string]Item{}
@@ -116,15 +117,25 @@ func (gm GemColor) Intersects(o GemColor) bool {
 	if gm == GemColorMeta {
 		return false // meta gems o nothing.
 	}
-	if gm == GemColorRed { // red
+	if gm == GemColorRed {
 		return o == GemColorOrange || o == GemColorPurple
 	}
-	if gm == GemColorBlue { // blue
+	if gm == GemColorBlue {
 		return o == GemColorGreen || o == GemColorPurple
 	}
-	if gm == GemColorYellow { // yellow
+	if gm == GemColorYellow {
 		return o == GemColorGreen || o == GemColorOrange
 	}
+	if gm == GemColorOrange {
+		return o == GemColorYellow || o == GemColorRed
+	}
+	if gm == GemColorGreen {
+		return o == GemColorYellow || o == GemColorBlue
+	}
+	if gm == GemColorPurple {
+		return o == GemColorBlue || o == GemColorRed
+	}
+
 	return false // dunno wtf this is.
 }
 
@@ -183,21 +194,37 @@ const (
 	EquipTotem
 )
 
+func (e Equipment) Clone() Equipment {
+	ne := make(Equipment, len(e))
+	for i, v := range e {
+		vc := v
+		ne[i] = vc
+	}
+	return ne
+}
+
 func (e Equipment) Stats() Stats {
 	s := Stats{StatLen: 0}
 	for _, item := range e {
 		for k, v := range item.Stats {
 			s[k] += v
 		}
-		isMatched := len(item.Gems) == len(item.GemSlots)
+		isMatched := len(item.Gems) == len(item.GemSlots) && len(item.GemSlots) > 0
 		for gi, g := range item.Gems {
 			for k, v := range g.Stats {
 				s[k] += v
 			}
 			isMatched = isMatched && g.Color.Intersects(item.GemSlots[gi])
+			if !isMatched {
+			}
+		}
+		if len(item.GemSlots) > 0 {
 		}
 		if isMatched {
 			for k, v := range item.SocketBonus {
+				if v == 0 {
+					continue
+				}
 				s[k] += v
 			}
 		}

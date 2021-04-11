@@ -45,9 +45,15 @@ class SelectorComponent {
 
         var search = document.createElement("input");
         search.addEventListener("keyup", (e) => {this.searchHandler(e)});
-        
+
+        var closebut = document.createElement("button");
+        closebut.innerText = "X";
+        closebut.style.backgroundColor = "red";
+        closebut.style.marginLeft = "5px";
+        closebut.addEventListener("click", (e) => {this.hide()});
+
         var clearbutton = document.createElement("button");
-        clearbutton.innerText = "Clear";
+        clearbutton.innerText = "Remove";
         clearbutton.addEventListener("click", (e) => {this.notifyItemChange("None")});
     
         var itemselector = document.createElement("div");
@@ -77,6 +83,7 @@ class SelectorComponent {
         var selectordiv = document.createElement("div");
         selectordiv.classList.add("equipselector");
         selectordiv.style.display = "none";
+        selectordiv.appendChild(closebut);
         selectordiv.appendChild(clearbutton);
         selectordiv.appendChild(seltabs);
         selectordiv.appendChild(gemseldiv);
@@ -169,7 +176,7 @@ class SelectorComponent {
         var div = document.createElement("div");
         div.classList.add("gemselectorlist")
         Object.entries(this.allgear.Gems).filter((v) => {
-            return colorIntersects(color, v[1].Color);
+            return true; //colorIntersects(color, v[1].Color);
         }).forEach((gem) => {
             var name = gem[1].Name;
             var itemdiv = document.createElement("div");

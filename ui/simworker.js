@@ -644,5 +644,12 @@ addEventListener('message', async (e) => {
 	} else if (msg == "setID") {
 		workerID = payload;
 		postMessage({msg: "idconfirm"})
+	} else if (msg == "statweight") {
+		var result = statweight(payload.iters, payload.dur, payload.gearlist, payload.opts, payload.stat);
+		postMessage({
+			msg: "statweight",
+			id: e.data.id,
+			payload: result,
+		});
 	}
 }, false);
