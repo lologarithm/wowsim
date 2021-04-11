@@ -398,10 +398,16 @@ function calcStatWeights(gear) {
             if (i == 3 && sp_hitModDPS != 0.0) {
                 var sphitdiff = sp_hitModDPS - baseDPS;
                 var weight = (v-baseDPS) / sphitdiff;
+                if (weight < 0.01) {
+                    weight = 0.0;
+                }
                 cell.innerText = weight.toFixed(2);
                 return; 
             }
             var weight = (v-baseDPS) / ddps;
+            if (weight < 0.01) {
+                weight = 0.0;
+            }
             cell.innerText = weight.toFixed(2);
         });
 

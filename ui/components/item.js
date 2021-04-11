@@ -2,12 +2,16 @@
 
 class ItemComponent {
     slot;
+    
+    // UI Elements
     name;
     innerdiv;
     img;
     maindiv;
-    selector;
+    statpop;
 
+    // Sub Components
+    selector;
     socketComp;
 
     constructor(slot, allgems) {
@@ -30,10 +34,19 @@ class ItemComponent {
         innerdiv.appendChild(name);
         innerdiv.appendChild(this.socketComp.div);
     
+        this.statpop = document.createElement("div");
+        this.statpop.style.display = "none";
+
         var img = document.createElement("img");
         img.id = slot+"icon";
         img.src = "";
         img.addEventListener("click", (e) => {this.showItemSelector(e)});
+        img.addEventListener("mouseenter", (e) => {
+            statpop.style.display = "block";
+        });
+        img.addEventListener("mouseleave", (e) => {
+            statpop.style.display = "none";
+        });
 
         var maindiv = document.createElement("div");
         maindiv.id = slot;
@@ -41,6 +54,7 @@ class ItemComponent {
         maindiv.appendChild(img);
         maindiv.appendChild(innerdiv);
         maindiv.appendChild(this.selector.selectordiv);
+        maindiv.appendChild(statpop);
 
         this.name = name;
         this.innerdiv = innerdiv;
@@ -68,7 +82,7 @@ class ItemComponent {
         console.log("New Item Equipped: ", newItem);
         if (newItem != null && newItem.Name != "") {
             this.name.innerText = newItem.Name;
-            // gearlist.push(newItem.Name);
+            this.st
 
             this.img.src = slotToIcon[this.slot];
             // updates the selector UI with the current gems/enchants (later)
