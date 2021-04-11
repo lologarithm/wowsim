@@ -73,17 +73,14 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		}
 		rot = make([]*Spell, len(options.SpellOrder))
 		for i, v := range options.SpellOrder {
-			fmt.Printf("Finding spell %#v\n", v)
 			for _, sp := range spells {
 				if sp.Name == v {
 					rot[i] = &sp
-					fmt.Printf("Found spell %#v\n", v)
 					break
 				}
 			}
 		}
 	}
-	fmt.Printf("Rotation: %#v  UseAI: %v\n", rot, options.UseAI)
 	sim := &Simulation{
 		RotationIdx:   rotIdx,
 		Stats:         stats,

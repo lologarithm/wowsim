@@ -70,7 +70,7 @@ function simulate(iters, dur, gearlist, opts, rots, haste, onComplete) {
 }
 
 var worker2 =  false;
-function statweight(iters, dur, gearlist, opts, statToMod, onComplete) {
+function statweight(iters, dur, gearlist, opts, statToMod, modAmount, onComplete) {
     var id = makeid();
     simrequests[id] = onComplete
     var worker = simlib;
@@ -81,7 +81,7 @@ function statweight(iters, dur, gearlist, opts, statToMod, onComplete) {
         worker2 = true;
     }
     worker.postMessage({msg: "statweight", id: id, payload: {
-        iters: iters, dur: dur, gearlist: gearlist, opts: opts, stat: statToMod,
+        iters: iters, dur: dur, gearlist: gearlist, opts: opts, stat: statToMod, modVal: modAmount
     }});
 }
 
@@ -364,6 +364,7 @@ function calcStatWeights(gear) {
     var opts = getOptions();
     
     var baseDPS = 0.0;
+    var sp_hitModDPS = 0.0
     var modDPS = [0, 0, 0, 0, 0, 0];
 
     modDPS.forEach((v, i)=>{
@@ -371,7 +372,8 @@ function calcStatWeights(gear) {
         cell.innerHTML = "<div uk-spinner=\"ratio: 1\"></div>";
     });
 
-    statweight(iters, dur, gear, opts, 9, (res) => {
+    // A base DPS without any modified stats.
+    statweight(iters, dur, gear, opts, 0, 0, (res) => {
         baseDPS = res;
     }); // base
 
@@ -384,22 +386,39 @@ function calcStatWeights(gear) {
             return;
         }
         var ddps = modDPS[0] - baseDPS;
+
+        var complete = true;
         modDPS.forEach((v, i)=>{
             if (v == 0) {
+                complete = false;
                 return;
             }
-            var weight = (v-baseDPS) / ddps;
             var cell = document.getElementById("w"+i.toString());
+            // sphit uses different value;
+            if (i == 3 && sp_hitModDPS != 0.0) {
+                var sphitdiff = sp_hitModDPS - baseDPS;
+                var weight = (v-baseDPS) / sphitdiff;
+                cell.innerText = weight.toFixed(2);
+                return; 
+            }
+            var weight = (v-baseDPS) / ddps;
             cell.innerText = weight.toFixed(2);
         });
+
+        if (complete) {
+            
+        }
     };
 
-    statweight(iters, dur, gear, opts, 4, (res) => {modDPS[0] = res;onfinish();}); // sp
-    statweight(iters, dur, gear, opts, 0, (res) => {modDPS[1] = res;onfinish();}); // int
-    statweight(iters, dur, gear, opts, 2, (res) => {modDPS[2] = res;onfinish();}); // crit
-    statweight(iters, dur, gear, opts, 3, (res) => {modDPS[3] = res;onfinish();}); // hit
-    statweight(iters, dur, gear, opts, 5, (res) => {modDPS[4] = res;onfinish();}); // haste
-    statweight(iters, dur, gear, opts, 6, (res) => {modDPS[5] = res;onfinish();}); // mp5
+
+    statweight(iters, dur, gear, opts, 4, 25, (res) => {sp_hitModDPS = res;onfinish();}); // sp
+    statweight(iters, dur, gear, opts, 3, 25, (res) => {modDPS[3] = res;onfinish();}); // hit
+
+    statweight(iters, dur, gear, opts, 4, 100, (res) => {modDPS[0] = res;onfinish();}); // sp
+    statweight(iters, dur, gear, opts, 0, 100, (res) => {modDPS[1] = res;onfinish();}); // int
+    statweight(iters, dur, gear, opts, 2, 100, (res) => {modDPS[2] = res;onfinish();}); // crit
+    statweight(iters, dur, gear, opts, 5, 100, (res) => {modDPS[4] = res;onfinish();}); // haste
+    statweight(iters, dur, gear, opts, 6, 100, (res) => {modDPS[5] = res;onfinish();}); // mp5
 
 
 }

@@ -645,7 +645,7 @@ addEventListener('message', async (e) => {
 		workerID = payload;
 		postMessage({msg: "idconfirm"})
 	} else if (msg == "statweight") {
-		var result = statweight(payload.iters, payload.dur, payload.gearlist, payload.opts, payload.stat);
+		var result = statweight(payload.iters, payload.dur, payload.gearlist, payload.opts, payload.stat, payload.modVal);
 		postMessage({
 			msg: "statweight",
 			id: e.data.id,

@@ -170,9 +170,10 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	gear := getGear(args[2])
 	opts := parseOptions(args[3])
 	stat := args[4].Int()
+	statModVal := args[5].Float()
 
 	opts.Buffs.Custom = tbc.Stats{tbc.StatLen: 0}
-	opts.Buffs.Custom[tbc.Stat(stat)] += 50
+	opts.Buffs.Custom[tbc.Stat(stat)] += statModVal
 	opts.UseAI = true // use AI optimal rotation.
 
 	simdmg := 0.0
@@ -311,7 +312,6 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		dosim([]string{"AI Optimized"}, seconds) // Let AI determine best possible DPS
 	} else {
 		for _, spells := range spellOrders {
-			fmt.Printf("Running sim for: %#v\n", spells)
 			dosim(spells, seconds)
 		}
 	}

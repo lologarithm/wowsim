@@ -77,7 +77,6 @@ func StatWeights(opts Options, equip Equipment, seconds int, numSims int) []floa
 	output := make([]float64, StatLen)
 	for _, v := range statsToTest {
 		output[v] = modded[v] / modded[StatSpellDmg]
-		fmt.Printf("---- RESULT ----\nValue (%s): %0.2f\n", Stat(v).StatName(), output[v])
 	}
 	return output
 }
