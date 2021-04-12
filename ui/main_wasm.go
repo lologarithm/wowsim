@@ -114,6 +114,7 @@ func parseOptions(val js.Value) tbc.Options {
 			JudgementOfWisdom:        val.Get("debuffjow").Truthy(),
 			Misery:                   val.Get("debuffmis").Truthy(),
 			Moonkin:                  val.Get("buffmoon").Truthy(),
+			MoonkinRavenGoddess:      val.Get("buffmoonrg").Truthy(),
 			SpriestDPS:               val.Get("buffspriest").Int(),
 			WaterShield:              val.Get("sbufws").Truthy(),
 		},

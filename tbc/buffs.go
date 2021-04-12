@@ -101,8 +101,9 @@ type Buffs struct {
 	ImprovedDivineSpirit     bool
 
 	// Party Buffs
-	Moonkin    bool
-	SpriestDPS int // adds Mp5 ~ 25% (dps*5%*5sec = 25%)
+	Moonkin             bool
+	MoonkinRavenGoddess bool // adds 20 spell crit to moonkin aura
+	SpriestDPS          int  // adds Mp5 ~ 25% (dps*5%*5sec = 25%)
 
 	// Self Buffs
 	WaterShield    bool
@@ -128,6 +129,9 @@ func (b Buffs) AddStats(s Stats) Stats {
 	}
 	if b.Moonkin {
 		s[StatSpellCrit] += 110.4
+		if b.MoonkinRavenGoddess {
+			s[StatSpellCrit] += 20
+		}
 	}
 	if b.WaterShield {
 		s[StatMP5] += 50
