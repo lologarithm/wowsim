@@ -44,6 +44,7 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 				if sim.CDs[v] < 1 {
 					sim.CDs[v] = 120 * TicksPerSecond // item goes on CD for 120s
 					sim.addAura(ActivateDrums(sim))
+					break
 				}
 			}
 		}

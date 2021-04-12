@@ -56,7 +56,7 @@ func main() {
 		"Scintillating Coral Band",
 		"Mazthoril Honor Shield",
 		"Bleeding Hollow Warhammer",
-		"Quagmirran's Eye",
+		// "Quagmirran's Eye",
 		"Icon of the Silver Crescent",
 		"Totem of the Void",
 	)
@@ -67,7 +67,7 @@ func main() {
 
 	opt := tbc.Options{
 		NumBloodlust: 1,
-		NumDrums:     0,
+		NumDrums:     2,
 		Buffs: tbc.Buffs{
 			ArcaneInt:                true,
 			GiftOftheWild:            true,

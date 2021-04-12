@@ -84,6 +84,16 @@ func AuraName(a int32) string {
 		return "Ruby Serpent Trinket"
 	case MagicIDXiriTrink:
 		return "Xiri Trinket"
+	case MagicIDDrums:
+		return "Drums of Battle"
+	case MagicIDDrum1:
+		return "Drum #1"
+	case MagicIDDrum2:
+		return "Drum #2"
+	case MagicIDDrum3:
+		return "Drum #3"
+	case MagicIDDrum4:
+		return "Drum #4"
 	}
 
 	return "<<TODO: Add Aura name to switch!!>>"
