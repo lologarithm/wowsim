@@ -138,8 +138,7 @@ func (sim *Simulation) reset() {
 	sim.Auras = []Aura{}
 	sim.metrics = SimMetrics{}
 
-	sim.debug("\nSIM RESET\nRotation: %v\n", sim.SpellRotation)
-	sim.debug("Effective MP5: %0.1f\n", sim.Stats[StatMP5]+sim.Buffs[StatMP5])
+	sim.debug("SIM RESET\n")
 	sim.debug("----------------------\n")
 
 	// Activate all talents

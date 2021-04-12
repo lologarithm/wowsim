@@ -184,6 +184,7 @@ func AuraJudgementOfWisdom() Aura {
 }
 
 func AuraLightningOverload(lvl int) Aura {
+	chance := 0.04 * float64(lvl)
 	return Aura{
 		ID:      MagicIDLOTalent,
 		Expires: math.MaxInt32,
@@ -194,17 +195,11 @@ func AuraLightningOverload(lvl int) Aura {
 			if c.IsLO {
 				return // can't proc LO on LO
 			}
-			if sim.rando.Float64() < 0.04*float64(lvl) {
+			if sim.rando.Float64() < chance {
 				sim.debug(" +Lightning Overload\n")
-				dmg := c.DidDmg
-				if c.DidCrit {
-					dmg /= 2
-				}
 				clone := &Cast{
 					IsLO:       true,
 					Spell:      c.Spell,
-					Hit:        c.Hit,
-					Crit:       c.Crit,
 					Spellpower: c.Spellpower,
 					Effects:    []AuraEffect{func(sim *Simulation, c *Cast) { c.DidDmg /= 2 }},
 				}

@@ -324,12 +324,16 @@ func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
 		timeRemaining := sim.endTick - sim.currentTick
 		totalManaDrain := rate * float64(timeRemaining)
 		buffer := ai.CL.Mana // mana buffer of 1 extra CL
+		// if sim.currentTick-sim.endTick < 4*TicksPerSecond { // dont buffer the last few casts.
+		// 	buffer = 0
+		// }
 
 		sim.debug("[AI] CL Ready: Mana/Tick: %0.1f, Est Mana Drain: %0.1f, CurrentMana: %0.1f\n", rate, totalManaDrain, sim.CurrentMana)
 		// If we have enough mana to burn and CL is on CD, use it.
 		if totalManaDrain < sim.CurrentMana-buffer {
 			cast := NewCast(sim, ai.CL)
 			if sim.CurrentMana >= cast.ManaCost {
+				sim.debug("[AI] Selected CL\n")
 				sim.CastingSpell = cast
 				return cast.TicksUntilCast
 			}
@@ -338,6 +342,7 @@ func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
 	cast := NewCast(sim, ai.LB)
 
 	if sim.CurrentMana >= cast.ManaCost {
+		sim.debug("[AI] Selected LB\n")
 		sim.CastingSpell = cast
 		return cast.TicksUntilCast
 	}
