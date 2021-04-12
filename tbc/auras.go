@@ -438,12 +438,12 @@ func ActivateSpellstrike(sim *Simulation) Aura {
 	const spellBonus = 92.0
 	const duration = 10.0
 	return Aura{
-		ID:      MagicIDSpellstrikeInfusion,
+		ID:      MagicIDSpellstrike,
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			if sim.rando.Float64() < 0.05 { // TODO: validate
 				sim.addAura(Aura{
-					ID:      MagicIDManaEtchedInsight,
+					ID:      MagicIDSpellstrikeInfusion,
 					Expires: sim.currentTick + (duration * TicksPerSecond),
 					OnCastComplete: func(sim *Simulation, c *Cast) {
 						c.Spellpower += spellBonus

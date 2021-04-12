@@ -66,8 +66,8 @@ func main() {
 	fmt.Printf("Gear Stats:\n%s", gearStats.Print(true))
 
 	opt := tbc.Options{
-		// NumBloodlust: 1,
-		// NumDrums:     2,
+		NumBloodlust: 4,
+		NumDrums:     4,
 		Buffs: tbc.Buffs{
 			ArcaneInt:                true,
 			GiftOftheWild:            true,

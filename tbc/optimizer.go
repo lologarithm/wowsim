@@ -297,6 +297,7 @@ func NewAI(sim *Simulation) *EleAI {
 		LB:       spellmap[MagicIDLB12],
 		CL:       spellmap[MagicIDCL6],
 		LastMana: sim.CurrentMana,
+		NumCasts: 3,
 	}
 	sim.debug("[AI] initialized\n")
 	return ai
@@ -308,23 +309,25 @@ func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
 	}
 	ai.NumCasts++
 	if didPot {
-		// Use Potion to reset the calculation.
+		// Use Potion to reset the calculation... only early on in fight.
 		ai.LastMana = sim.CurrentMana
 		ai.LastCheck = sim.currentTick
 		ai.NumCasts = 0
 	}
-	if ai.NumCasts > 3 { // every 3 casts, re-eval mana drain
-		ai.NumCasts = 0
+	if sim.CDs[MagicIDCL6] < 1 && ai.NumCasts > 3 {
 		manaDrained := ai.LastMana - sim.CurrentMana
 		timePassed := sim.currentTick - ai.LastCheck
+		if timePassed == 0 {
+			timePassed = 1
+		}
 		rate := manaDrained / float64(timePassed)
 		timeRemaining := sim.endTick - sim.currentTick
 		totalManaDrain := rate * float64(timeRemaining)
-		buffer := ai.CL.Mana // mana buffer of 1 extra LB just in case.
+		buffer := ai.CL.Mana // mana buffer of 1 extra CL
 
-		sim.debug("[AI] End of rotation, recalculating best rotation. Rate: %0.1f, Total Drain: %0.1f, LastMana: %0.0f, CurrentMana: %0.1f\n", rate, totalManaDrain, ai.LastMana, sim.CurrentMana)
+		sim.debug("[AI] CL Ready: Mana/Tick: %0.1f, Est Mana Drain: %0.1f, CurrentMana: %0.1f\n", rate, totalManaDrain, sim.CurrentMana)
 		// If we have enough mana to burn and CL is on CD, use it.
-		if totalManaDrain < sim.CurrentMana-buffer && sim.CDs[MagicIDCL6] < 1 {
+		if totalManaDrain < sim.CurrentMana-buffer {
 			cast := NewCast(sim, ai.CL)
 			if sim.CurrentMana >= cast.ManaCost {
 				sim.CastingSpell = cast
