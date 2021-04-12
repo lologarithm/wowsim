@@ -239,13 +239,21 @@ function runsim(currentGear) {
     simulate(iters, dur, currentGear, secondOpts, null, 0, (out) => { 
         var stats = processSimResult(out);
         aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> dps<br /></div>`
+        
+        var rotstats = document.getElementById("rotstats");
+        rotstats.innerHTML = `<text>LB Casts: ${Math.round(stats.casts[1]/iters)}  CL Casts: ${Math.round(stats.casts[2]/iters)}</text>`;
+
         var chartcanvas = document.createElement("canvas"); // `<canvas id="myChart" width="600" height="400"></canvas>`;
         var rotout = document.getElementById("rotout");
         var bounds = rotout.getBoundingClientRect();
-        chartcanvas.height = bounds.height;
+
+
+        var rotchart = document.getElementById("rotchart");
+        rotchart.innerHTML = "";
+        chartcanvas.height = bounds.height - 30;
         chartcanvas.width = bounds.width;
         var ctx = chartcanvas.getContext('2d');
-        rotout.appendChild(chartcanvas);
+        rotchart.appendChild(chartcanvas);
 
         var labels = Object.keys(stats.dpsHist);
         var vals = [];
@@ -605,7 +613,7 @@ window.addEventListener("mousemove", (e)=>{
 var theme = "dark";
 function toggletheme() {
     if (theme == "light") {
-        document.getElementById("themebulb").src = "icons/light-bulb.svg";
+        document.getElementById("themebulb").src = "../icons/light-bulb.svg";
         document.children[0].children[1].classList.remove("lighttheme")
         document.children[0].classList.remove("lighttheme")
         
@@ -619,7 +627,7 @@ function toggletheme() {
 
         theme = "dark";
     } else {
-        document.getElementById("themebulb").src = "icons/lightbulb.svg";
+        document.getElementById("themebulb").src = "../icons/lightbulb.svg";
 
         document.children[0].children[1].classList.remove("uk-light") 
         document.children[0].classList.remove("darktheme")
