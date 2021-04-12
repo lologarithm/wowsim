@@ -82,6 +82,11 @@ class SelectorComponent {
 
         var selectordiv = document.createElement("div");
         selectordiv.classList.add("equipselector");
+        if (theme == "dark") {
+            selectordiv.classList.add("dtl");
+        } else {
+            selectordiv.classList.add("ltl");
+        }
         selectordiv.style.display = "none";
         selectordiv.appendChild(closebut);
         selectordiv.appendChild(clearbutton);

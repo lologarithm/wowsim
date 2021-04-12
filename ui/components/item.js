@@ -36,6 +36,11 @@ class ItemComponent {
     
         this.statpop = document.createElement("div");
         this.statpop.classList.add("statpop");
+        if (theme == "dart") {
+            this.statpop.classList.add("dtm"); 
+        } else {
+            this.statpop.classList.add("ltm"); 
+        }
         this.statpop.style.display = "none";
 
         var img = document.createElement("img");
@@ -86,9 +91,14 @@ class ItemComponent {
             this.statpop.innerText = "";
             newItem.Stats.forEach((v,i)=>{
                 if (v > 0) {
-                    this.statpop.innerHTML += statnames[i] + ": " + v.toString() + "<br />";
+                    this.statpop.innerHTML +=  `<text style="font-size: 0.9em;">${statnames[i]}: ${v.toString()}</text><br />`;
                 }
             });
+            var source = newItem.SourceZone;
+            if (newItem.SourceDrop != "") {
+                source += " - " + newItem.SourceDrop;
+            }
+            this.statpop.innerHTML += `<text style="font-size: 0.7em;">Source: ${source}</text>`
 
             this.img.src = slotToIcon[this.slot];
             // updates the selector UI with the current gems/enchants (later)
@@ -104,6 +114,7 @@ class ItemComponent {
 }
 
 var statnames = ["Int", "Stm","SpellCrit","SpellHit","SpellDmg","Haste","MP5","Mana","SpellPen"];
+
 function moveSelector(box, x, y) {
     if (x < 0) {
         x = 0;

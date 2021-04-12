@@ -531,3 +531,5 @@ var items = []Item{
 
 	{Slot: EquipTotem, Name: "Skycall Totem", SourceZone: "Geras", SourceDrop: "20 Badges", Stats: Stats{}, Activate: ActivateSkycall, ActivateCD: -1}, // -1 will trigger an activation only once
 }
+
+//  C'thun ring, belt and gloves, Sapph cloak and trinket, KT trinket, 4hm ring

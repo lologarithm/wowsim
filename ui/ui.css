@@ -1,14 +1,18 @@
+.simnums {
+    font-size: 1.8em;
+    margin-left: 10px;
+}
 .statpop {
-    background-color: #202020;
+    /* background-color: #202020; */
     z-index: 100;
     position: relative;
     top: -25px;
     left: 55px;
     width: 300px;
     text-align: left;
+    border: 1px solid black;
 }
 .equipselector {
-    background-color: #505050;
     position: absolute;
     z-index: 100;
     width: 400px;
@@ -78,7 +82,7 @@
     margin-left: 0 !important;
     margin-bottom: 0 !important;
     margin-right: 1em;
-    background-color: #4d4d4d;
+    /* background-color: #4d4d4d; */
     height: 1.1em;
     width: 1.1em;
     float: left;
@@ -94,7 +98,7 @@
     cursor: pointer;
 }
 #gearstats {
-    background-color: #404040;
+    /* background-color: #404040; */
     height: 90%;
     margin-left: auto;
 }
@@ -121,12 +125,13 @@
     margin: -1px;
 }
 button:hover {
-    color: #F0F0F0;
-    background-color: #aa6900;
+    /* color: #F0F0F0; */
+    /* background-color: #aa6900; */
 }
 button {
-    background-color: #a36500;
-    color: #E0E0E0;
+    /* background-color: orange; */
+    /* background-color: #a36500; */
+    /* color: #E0E0E0; */
     cursor: pointer;
 }
 input:focus {
@@ -134,8 +139,8 @@ input:focus {
     border:1px solid orange;
 }
 h2, h3, h4, pre, input {
-    color: #D0D0D0;
-    background-color: #303030;
+    /* color: #D0D0D0; */
+    /* background-color: #303030; */
 }
 h4 {
     font-size: 1em;
@@ -144,24 +149,24 @@ h4 {
     color: orange;
 }
 .uk-tab {
-    color: #D0D0D0;
+    /* color: #D0D0D0; */
 }
 .uk-tab > .uk-active > a {
-    background-color: #303030;
-    color: #D0D0D0;
+    /* background-color: #303030; */
+    /* color: #D0D0D0; */
 }
 .uk-tab > * > a:hover {
-    color: #F0F0F0;
+    /* color: #F0F0F0; */
 }
 .uk-tab > .uk-active > a:hover {
-    color: #F0F0F0;
+    /* color: #F0F0F0; */
 }
 .uk-button:hover {
-    color: #F0F0F0;
+    /* color: #F0F0F0; */
     border:1px solid orange;
 }
 .uk-button:active, .uk-button:focus {
-    color: #F0F0F0;
+    /* color: #F0F0F0; */
     border:1px solid orange;
 }
 .uk-button {
@@ -169,41 +174,73 @@ h4 {
     width: 90%;
     height: 40px;
     padding: 1px;
-    color: #D0D0D0;
+    /* color: #D0D0D0; */
 }
 .uk-dropdown {
-    color: #D0D0D0;
-    background-color: #404040;
+    /* color: #D0D0D0; */
+    /* background-color: #404040; */
+    background-color: #E0E0E0;
 }
 .uk-dropdown-nav {
     width: 300px;
-    color: #D0D0D0;
-    background-color: #404040;
+    /* color: #D0D0D0; */
+    /* background-color: #404040; */
+    background-color: #E0E0E0;
 }
 .buffs {
     margin: 7px !important;
-    background-color: #404040;
     padding: 3px;
 }
+
 .buffdrop {
-    background-color: #404040;
-    color: #F0F0F0;
+    /* background-color: #404040; */
+    /* color: #F0F0F0; */
+    background-color: #E0E0E0;
 }
+
 .hastetable {
     margin: 15px auto;
     border-collapse: collapse;
-    background-color: #505050;
+    /* background-color: #505050; */
     border:1px solid #D0D0D0;
 }
+
 .hastetable td {
     padding: 10px;
     border:1px solid #D0D0D0;
 }
 
-html, body {
+#root {
+    height: 100%;
+}
+
+.lighttheme {
+    background-color: #FFFFFF;
+    color: #303030;
+}
+.ltl {
+    background-color: #F0F0F0;
+    color: #303030;
+}
+.ltm {
+    background-color: #EEEEEE;
+    color: #303030;
+}
+.ltd {
+    background-color: #D0D0D0;
+    color: #303030;
+}
+
+.darktheme {
     background-color: #303030;
     color: #D0D0D0;
 }
-#root {
-    height: 100%;
+.dtl {
+    background-color: #505050;
+}
+.dtm {
+    background-color: #404040;
+}
+.dtd {
+    background-color: #303030;
 }

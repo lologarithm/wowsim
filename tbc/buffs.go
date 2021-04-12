@@ -59,7 +59,7 @@ func (tt Totems) AddStats(s Stats) Stats {
 	s[StatSpellCrit] += 66.24 * float64(tt.TotemOfWrath)
 	s[StatSpellHit] += 37.8 * float64(tt.TotemOfWrath)
 	if tt.WrathOfAir {
-		s[StatSpellDmg] += 104
+		s[StatSpellDmg] += 101
 	}
 	if tt.ManaStream {
 		s[StatMP5] += 50
