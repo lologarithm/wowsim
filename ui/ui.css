@@ -16,6 +16,7 @@
     position: absolute;
     z-index: 100;
     width: 400px;
+    border:1px solid black;
 }
 .equipselector > button {
     float: right;
