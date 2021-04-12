@@ -130,7 +130,9 @@ class SelectorComponent {
         var listItem = document.createElement("div");
         listItem.classList.add("equipselitem");
         listItem.innerText = item.Name;
-        listItem.addEventListener("click", (e)=>{this.gearClickHandler(item.Name);});
+        listItem.addEventListener("click", (e)=>{
+            this.gearClickHandler(item.Name);
+        });
             
         this.selectorlist.appendChild(listItem);
         this.items.push(item.Name);

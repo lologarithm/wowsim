@@ -57,6 +57,8 @@ func AuraName(a int32) string {
 		return "LB12"
 	case MagicIDCL6:
 		return "CL6"
+	case MagicIDTLCLB:
+		return "TLC-LB"
 	case MagicIDISCTrink:
 		return "Trink"
 	case MagicIDNACTrink:
@@ -123,6 +125,7 @@ const (
 	//Spells
 	MagicIDLB12
 	MagicIDCL6
+	MagicIDTLCLB
 
 	// Auras
 	MagicIDLOTalent
@@ -156,6 +159,7 @@ const (
 	MagicIDManaEtched
 	MagicIDManaEtchedHit
 	MagicIDManaEtchedInsight
+	MagicIDMisery
 
 	//Items
 	MagicIDISCTrink
@@ -183,6 +187,17 @@ func AuraJudgementOfWisdom() Aura {
 	}
 }
 
+// Currently coded into the 'cast' function because we need something to change 'final' damage.
+// TODO: this could be coded as 'onspellhit'!
+// func AuraMisery() Aura {
+// 	return Aura{
+// 		ID:      MagicIDMisery,
+// 		Expires: math.MaxInt32,
+// 		OnCastComplete: func(sim *Simulation, c *Cast) {
+// 		},
+// 	}
+// }
+
 func AuraLightningOverload(lvl int) Aura {
 	chance := 0.04 * float64(lvl)
 	return Aura{
@@ -198,10 +213,9 @@ func AuraLightningOverload(lvl int) Aura {
 			if sim.rando.Float64() < chance {
 				sim.debug(" +Lightning Overload\n")
 				clone := &Cast{
-					IsLO:       true,
-					Spell:      c.Spell,
-					Spellpower: c.Spellpower,
-					Effects:    []AuraEffect{func(sim *Simulation, c *Cast) { c.DidDmg /= 2 }},
+					IsLO:    true,
+					Spell:   c.Spell,
+					Effects: []AuraEffect{func(sim *Simulation, c *Cast) { c.DidDmg /= 2 }},
 				}
 				sim.Cast(clone)
 			}
@@ -392,11 +406,12 @@ func ActivateCSD(sim *Simulation) Aura {
 
 func ActivateIED(sim *Simulation) Aura {
 	lastActivation := math.MinInt32
+	const icd = 15 * TicksPerSecond
 	return Aura{
 		ID:      MagicIDInsightfulEarthstorm,
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
-			if lastActivation+(15*TicksPerSecond) < sim.currentTick && sim.rando.Float64() < 0.04 {
+			if lastActivation+icd < sim.currentTick && sim.rando.Float64() < 0.04 {
 				lastActivation = sim.currentTick
 				sim.debug(" *Insightful Earthstorm Mana Restore - 300\n")
 				sim.CurrentMana += 300
@@ -408,11 +423,12 @@ func ActivateIED(sim *Simulation) Aura {
 func ActivateMSD(sim *Simulation) Aura {
 	lastActivation := math.MinInt32
 	const hasteBonus = 320.0
+	const icd = 35 * TicksPerSecond
 	return Aura{
 		ID:      MagicIDMysticSkyfire,
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
-			if lastActivation+(45*TicksPerSecond) < sim.currentTick && sim.rando.Float64() < 0.1 {
+			if lastActivation+icd < sim.currentTick && sim.rando.Float64() < 0.15 {
 				sim.Buffs[StatHaste] += hasteBonus
 				sim.addAura(AuraStatRemoval(sim.currentTick, 4.0, hasteBonus, StatHaste, MagicIDMysticFocus))
 				lastActivation = sim.currentTick
@@ -464,6 +480,40 @@ func ActivateManaEtched(sim *Simulation) Aura {
 						c.Spellpower += spellBonus
 					},
 				})
+			}
+		},
+	}
+}
+
+func ActivateTLC(sim *Simulation) Aura {
+	const spellBonus = 110.0
+	const duration = 15.0
+
+	tlcspell := spellmap[MagicIDTLCLB]
+	const icd = 2.5 * TicksPerSecond
+
+	charges := 0
+	lastActivation := 0
+	return Aura{
+		ID:      MagicIDManaEtched,
+		Expires: math.MaxInt32,
+		OnSpellHit: func(sim *Simulation, c *Cast) {
+			if lastActivation+icd >= sim.currentTick {
+				return
+			}
+			if !c.DidCrit {
+				return
+			}
+			lastActivation = sim.currentTick
+			charges++
+			sim.debug(" Lightning Capacitor Charges: %d\n", charges)
+			if charges >= 3 {
+				sim.debug(" Lightning Capacitor Triggered!\n")
+				clone := &Cast{
+					Spell: tlcspell,
+				}
+				sim.Cast(clone)
+				charges = 0
 			}
 		},
 	}

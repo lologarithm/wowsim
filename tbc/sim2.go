@@ -62,14 +62,14 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 		didPot := false
 		totalRegen := (sim.Stats[StatMP5] + sim.Buffs[StatMP5])
 		// Pop potion before next cast if we have less than the mana provided by the potion minues 1mp5 tick.
-		if sim.Stats[StatMana]-sim.CurrentMana+totalRegen >= 1500 && sim.CDs[MagicIDRune] < 1 {
+		if sim.Options.Consumes.DarkRune && sim.Stats[StatMana]-sim.CurrentMana+totalRegen >= 1500 && sim.CDs[MagicIDRune] < 1 {
 			// Restores 900 to 1500 mana. (2 Min Cooldown)
 			sim.CurrentMana += 900 + (sim.rando.Float64() * 600)
 			sim.CDs[MagicIDRune] = 120 * TicksPerSecond
 			didPot = true
-			sim.debug("Used Mana Potion\n")
+			sim.debug("Used Dark Rune\n")
 		}
-		if sim.Stats[StatMana]-sim.CurrentMana+totalRegen >= 3000 && sim.CDs[MagicIDPotion] < 1 {
+		if sim.Options.Consumes.SuperManaPotion && sim.Stats[StatMana]-sim.CurrentMana+totalRegen >= 3000 && sim.CDs[MagicIDPotion] < 1 {
 			// Restores 1800 to 3000 mana. (2 Min Cooldown)
 			sim.CurrentMana += 1800 + (sim.rando.Float64() * 1200)
 			sim.CDs[MagicIDPotion] = 120 * TicksPerSecond

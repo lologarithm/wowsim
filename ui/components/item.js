@@ -89,11 +89,13 @@ class ItemComponent {
         if (newItem != null && newItem.Name != "") {
             this.name.innerText = newItem.Name;
             this.statpop.innerText = "";
-            newItem.Stats.forEach((v,i)=>{
-                if (v > 0) {
-                    this.statpop.innerHTML +=  `<text style="font-size: 0.9em;">${statnames[i]}: ${v.toString()}</text><br />`;
-                }
-            });
+            if (newItem.Stats != null) {
+                newItem.Stats.forEach((v,i)=>{
+                    if (v > 0) {
+                        this.statpop.innerHTML +=  `<text style="font-size: 0.9em;">${statnames[i]}: ${v.toString()}</text><br />`;
+                    }
+                });    
+            }
             var source = newItem.SourceZone;
             if (newItem.SourceDrop != "") {
                 source += " - " + newItem.SourceDrop;

@@ -20,6 +20,7 @@ const (
 	StatMP5
 	StatMana
 	StatSpellPen
+	StatSpirit
 
 	StatLen
 )
@@ -44,6 +45,8 @@ func (s Stat) StatName() string {
 		return "StatMana"
 	case StatSpellPen:
 		return "StatSpellPen"
+	case StatSpirit:
+		return "StatSpirit"
 	}
 
 	return "none"

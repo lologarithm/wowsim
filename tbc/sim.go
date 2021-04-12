@@ -151,6 +151,10 @@ func (sim *Simulation) reset() {
 		sim.addAura(AuraJudgementOfWisdom())
 	}
 
+	// if sim.Options.Buffs.Misery { // this is for now implemented directly in the spell cast function.
+	// 	sim.addAura(AuraJudgementOfWisdom())
+	// }
+
 	// Activate all permanent item effects.
 	for _, item := range sim.activeEquip {
 		if item.Activate != nil && item.ActivateCD == -1 {
@@ -296,7 +300,11 @@ func (sim *Simulation) Cast(cast *Cast) {
 		if sim.rando.Float64() < crit {
 			cast.DidCrit = true
 			// TODO: Make Elemental Fury talent check here.
-			dmg *= (cast.CritBonus * 2) - 1 // if CSD equipped the cast crit bonus will be modified during 'onCastComplete.'
+			critBonus := 1.5
+			if cast.CritBonus != 0 {
+				critBonus = cast.CritBonus
+			}
+			dmg *= (critBonus * 2) - 1 // if CSD equipped the cast crit bonus will be modified during 'onCastComplete.'
 			sim.addAura(AuraElementalFocus(sim.currentTick))
 			if IsDebug {
 				dbgCast += " crit"
@@ -308,6 +316,9 @@ func (sim *Simulation) Cast(cast *Cast) {
 		if sim.Options.Talents.Concussion > 0 && cast.Spell.ID == MagicIDLB12 || cast.Spell.ID == MagicIDCL6 {
 			// Talent Concussion
 			dmg *= 1 + (0.01 * sim.Options.Talents.Concussion)
+		}
+		if sim.Options.Buffs.Misery {
+			dmg *= 1.05
 		}
 
 		// Average Resistance (AR) = (Target's Resistance / (Caster's Level * 5)) * 0.75
@@ -336,6 +347,9 @@ func (sim *Simulation) Cast(cast *Cast) {
 		if IsDebug {
 			dbgCast += " miss"
 		}
+		cast.DidDmg = 0
+		cast.DidCrit = false
+		cast.DidHit = false
 	}
 	sim.metrics.Casts = append(sim.metrics.Casts, cast)
 	sim.debug("%s: %0.0f\n", dbgCast, cast.DidDmg)

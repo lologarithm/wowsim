@@ -31,6 +31,9 @@ func (o Options) StatTotal(e Equipment) Stats {
 	if o.Buffs.BlessingOfKings {
 		stats[StatInt] *= 1.1 // blessing of kings
 	}
+	if o.Buffs.ImprovedDivineSpirit {
+		stats[StatSpellDmg] += stats[StatSpirit] * 0.1
+	}
 
 	// Final calculations
 	stats[StatSpellCrit] += (stats[StatInt] / 80) / 100
@@ -42,9 +45,10 @@ func (o Options) StatTotal(e Equipment) Stats {
 
 func (o Options) BaseStats() Stats {
 	stats := Stats{
-		StatInt:  104,  // Base
-		StatMana: 2958, // level 70 shaman
-		StatLen:  0,
+		StatInt:    104,  // Base
+		StatMana:   2958, // level 70 shaman
+		StatSpirit: 135,  // lvl 70 shaman
+		StatLen:    0,
 	}
 	return stats
 }
@@ -94,6 +98,7 @@ type Buffs struct {
 	GiftOftheWild            bool
 	BlessingOfKings          bool
 	ImprovedBlessingOfWisdom bool
+	ImprovedDivineSpirit     bool
 
 	// Party Buffs
 	Moonkin    bool
@@ -105,6 +110,7 @@ type Buffs struct {
 
 	// Target Debuff
 	JudgementOfWisdom bool
+	Misery            bool
 
 	// Custom
 	Custom Stats

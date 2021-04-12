@@ -109,9 +109,11 @@ function getOptions() {
     options.buffgotw =  document.getElementById("buffgotw").checked;
     options.buffbk =  document.getElementById("buffbk").checked;
     options.buffibow =  document.getElementById("buffibow").checked;
+    options.buffids =  document.getElementById("buffids").checked;
     options.buffmoon =  document.getElementById("buffmoon").checked;
     options.sbufws =  document.getElementById("sbufws").checked;
     options.debuffjow =  document.getElementById("debuffjow").checked;
+    options.debuffmis =  document.getElementById("debuffmis").checked;
     options.confbl =  document.getElementById("confbl").checked;
     options.confmr =  document.getElementById("confmr").checked;
     options.conbwo =  document.getElementById("conbwo").checked;
@@ -192,11 +194,19 @@ function runsim(currentGear) {
 
         var castStats = {
             1: 0, // TODO: expose these constants from the wasm somehow.
-            2: 0
+            2: 0,
+            3: 0,
+            999: 0,
+            998: 0,
         };
         out.Casts.forEach((casts)=>{
             casts.forEach((cast)=>{
-                castStats[cast.ID] += 1
+                if (!cast.IsLO)  {
+                    castStats[cast.ID] += 1
+                } else {
+                    castStats[1000-cast.ID] += 1
+                }
+                
             });
         });
       
@@ -241,7 +251,21 @@ function runsim(currentGear) {
         aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> dps<br /></div>`
         
         var rotstats = document.getElementById("rotstats");
-        rotstats.innerHTML = `<text>Lightning Bolt: ${Math.round(stats.casts[1]/iters)}</text><text>Chain Lightning: ${Math.round(stats.casts[2]/iters)}</text>`;
+        var castIDToName = {
+            1: "LB",
+            2: "CL",
+            3: "TLC LB",
+            999: "LB Overload",
+            998: "CL Overload",
+        }
+        rotstats.innerHTML = "";
+        Object.entries(stats.casts).forEach((entry) => {
+            if (entry[1] == 0) {
+                return;
+            }
+            rotstats.innerHTML += `<text>${castIDToName[entry[0]]}: ${Math.round(entry[1]/iters)}</text>`;
+        });
+        // <text>Chain Lightning: ${Math.round(stats.casts[2]/iters)}</text><text>Lightning Bolt Overload: ${Math.round(stats.casts[999]/iters)}</text><text>Chain Lightning Overload: ${Math.round(stats.casts[998]/iters)}</text>`;
 
         var chartcanvas = document.createElement("canvas"); // `<canvas id="myChart" width="600" height="400"></canvas>`;
         var rotout = document.getElementById("rotout");
@@ -521,7 +545,9 @@ function updateGearStats(gearlist) {
     computeStats(cleanedGear, null, (result) => {
         for (const [key, value] of Object.entries(result)) {
             var lab = document.getElementById(key.toLowerCase());
-            lab.innerText = value;
+            if (lab != null) {
+                lab.innerText = value;
+            }
         }
     });
 
@@ -535,6 +561,8 @@ function updateGearStats(gearlist) {
                 lab.innerText = value.toString() + " ("  + (value/12.6).toFixed(1) + "%)";
             } else if (key.toLowerCase() == "statspellhaste") {
                 lab.innerText = value.toString() + " ("  + (value/15.76).toFixed(1) + "%)";
+            } else if (key.toLowerCase() == "statspirit") {
+                // do nothing...
             } else {
                 lab.innerText = value;
             }

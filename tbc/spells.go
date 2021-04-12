@@ -99,6 +99,7 @@ var spells = []Spell{
 	// {ID: MagicIDES8, Name: "ES8", Coeff: 0.3858, CastTime: 1.5, Cooldown: 6, MinDmg: 658, MaxDmg: 692, Mana: 535, DamageType: DamageTypeNature},
 	// {ID: MagicIDFrS5, Name: "FrS5", Coeff: 0.3858, CastTime: 1.5, Cooldown: 6, MinDmg: 640, MaxDmg: 676, Mana: 525, DamageType: DamageTypeFrost},
 	// {ID: MagicIDFlS7, Name: "FlS7", Coeff: 0.15, CastTime: 1.5, Cooldown: 6, MinDmg: 377, MaxDmg: 420, Mana: 500, DotDmg: 100, DotDur: 6, DamageType: DamageTypeFire},
+	{ID: MagicIDTLCLB, Name: "TLCLB", Coeff: 0.0, CastTime: 0, MinDmg: 694, MaxDmg: 807, Mana: 0, DamageType: DamageTypeNature},
 }
 
 var spellmap = map[int32]*Spell{}
@@ -107,9 +108,6 @@ func init() {
 	for _, sp := range spells {
 		sp2 := sp //wtf go?
 		spp := &sp2
-		if spp.Coeff == 0 {
-			spp.Coeff = spp.CastTime / 3.5
-		}
 		spellmap[sp.ID] = spp
 	}
 }

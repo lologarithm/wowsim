@@ -110,7 +110,9 @@ func parseOptions(val js.Value) tbc.Options {
 			GiftOftheWild:            val.Get("buffgotw").Truthy(),
 			BlessingOfKings:          val.Get("buffbk").Truthy(),
 			ImprovedBlessingOfWisdom: val.Get("buffibow").Truthy(),
+			ImprovedDivineSpirit:     val.Get("buffids").Truthy(),
 			JudgementOfWisdom:        val.Get("debuffjow").Truthy(),
+			Misery:                   val.Get("debuffmis").Truthy(),
 			Moonkin:                  val.Get("buffmoon").Truthy(),
 			SpriestDPS:               val.Get("buffspriest").Int(),
 			WaterShield:              val.Get("sbufws").Truthy(),
@@ -246,6 +248,7 @@ type CastMetric struct {
 	ID   int32
 	Hit  bool
 	Crit bool
+	IsLO bool
 	Dmg  float64
 	Time float64 // seconds it took to cast this spell
 }
@@ -272,6 +275,7 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		for _, v := range metrics.Casts {
 			casts = append(casts, CastMetric{
 				ID:   v.Spell.ID,
+				IsLO: v.IsLO,
 				Hit:  v.DidHit,
 				Crit: v.DidCrit,
 				Dmg:  v.DidDmg,

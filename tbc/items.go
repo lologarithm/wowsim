@@ -529,6 +529,7 @@ var items = []Item{
 	{Slot: EquipTrinket, Name: "Xi'ri's Gift", SourceZone: "The Sha'tar - Revered", SourceDrop: "", Stats: Stats{0, 0, 32, 0, 0, 0, 0}, Activate: createSpellDmgActivate(MagicIDSpellPower, 150, 15), ActivateCD: 90, CoolID: MagicIDXiriTrink},
 	{Slot: EquipTrinket, Name: "Shiffar's Nexus-Horn", SourceZone: "Arc - Harbinger Skyriss", SourceDrop: "", Stats: Stats{0, 0, 30, 0, 0, 0, 0}, Activate: ActivateNexusHorn, ActivateCD: -1},
 	{Slot: EquipTrinket, Name: "Darkmoon Card: Crusade", SourceZone: "Blessings Deck", SourceDrop: "", Activate: ActivateDCC, ActivateCD: -1},
+	{Slot: EquipTrinket, Name: "The Lightning Capacitor", SourceZone: "Kara", SourceDrop: "", Activate: ActivateTLC, ActivateCD: -1},
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }
 

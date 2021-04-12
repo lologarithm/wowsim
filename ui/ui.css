@@ -146,6 +146,7 @@ button {
 input:focus {
     outline: none !important;
     border:1px solid orange;
+    height: 32px;
 }
 h2, h3, h4, pre, input {
     /* color: #D0D0D0; */
