@@ -11,7 +11,6 @@
     margin-left: 10px;
 }
 .statpop {
-    /* background-color: #202020; */
     z-index: 100;
     position: relative;
     top: -25px;
@@ -80,9 +79,6 @@
     margin-left: 1em;
     margin-bottom: 0.5em;
 }
-/* .gemselectorlist {
-    margin-top: 3em;
-} */
 .gemselectorlist > div:hover { 
     cursor: pointer;
     color: orange;
@@ -91,7 +87,6 @@
     margin-left: 0 !important;
     margin-bottom: 0 !important;
     margin-right: 1em;
-    /* background-color: #4d4d4d; */
     height: 1.1em;
     width: 1.1em;
     float: left;
@@ -107,7 +102,6 @@
     cursor: pointer;
 }
 #gearstats {
-    /* background-color: #404040; */
     height: 90%;
     margin-left: auto;
 }
@@ -133,51 +127,11 @@
     border: 1px solid orange;
     margin: -1px;
 }
-button:hover {
-    /* color: #F0F0F0; */
-    /* background-color: #aa6900; */
-}
-button {
-    /* background-color: orange; */
-    /* background-color: #a36500; */
-    /* color: #E0E0E0; */
-    cursor: pointer;
-}
-input:focus {
-    outline: none !important;
-    border:1px solid orange;
-    height: 32px;
-}
-h2, h3, h4, pre, input {
-    /* color: #D0D0D0; */
-    /* background-color: #303030; */
-}
 h4 {
     font-size: 1em;
 }
 #gear li:hover {
     color: orange;
-}
-.uk-tab {
-    /* color: #D0D0D0; */
-}
-.uk-tab > .uk-active > a {
-    /* background-color: #303030; */
-    /* color: #D0D0D0; */
-}
-.uk-tab > * > a:hover {
-    /* color: #F0F0F0; */
-}
-.uk-tab > .uk-active > a:hover {
-    /* color: #F0F0F0; */
-}
-.uk-button:hover {
-    /* color: #F0F0F0; */
-    border:1px solid orange;
-}
-.uk-button:active, .uk-button:focus {
-    /* color: #F0F0F0; */
-    border:1px solid orange;
 }
 .uk-button {
     line-height: 1.1;
