@@ -103,7 +103,7 @@ func parseOptions(val js.Value) tbc.Options {
 	opt := tbc.Options{
 		ExitOnOOM:    val.Get("exitoom").Truthy(),
 		NumBloodlust: val.Get("buffbl").Int(),
-		NumDrums:     val.Get("buffdrum").Int(),
+		NumDrums:     val.Get("buffdrums").Int(),
 		UseAI:        val.Get("useai").Truthy(),
 		Buffs: tbc.Buffs{
 			ArcaneInt:                val.Get("buffai").Truthy(),

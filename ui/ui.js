@@ -125,7 +125,7 @@ function getOptions() {
     options.buffbl =  parseInt(document.getElementById("buffbl").value) || 0;
     options.buffspriest = parseInt(document.getElementById("buffspriest").value) || 0;
     options.totwr =  parseInt(document.getElementById("totwr").value) || 0;
-    options.buffdrum = 0; // todo, drums
+    options.buffdrums = parseInt(document.getElementById("buffdrums").value) || 0;
 
     return options;
 }

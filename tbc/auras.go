@@ -122,6 +122,7 @@ const (
 	MagicIDCallOfTheNexus
 	MagicIDDCC
 	MagicIDDCCBonus
+	MagicIDDrums // drums effect
 
 	//Items
 	MagicIDISCTrink
@@ -132,6 +133,10 @@ const (
 	MagicIDScryerTrink
 	MagicIDRubySerpentTrink
 	MagicIDXiriTrink
+	MagicIDDrum1 // Party drum item CDs
+	MagicIDDrum2
+	MagicIDDrum3
+	MagicIDDrum4
 )
 
 func AuraJudgementOfWisdom() Aura {
@@ -306,6 +311,12 @@ func AuraStatRemoval(tick int, seconds int, amount float64, stat Stat, id int32)
 			sim.Buffs[stat] -= amount
 		},
 	}
+}
+
+func ActivateDrums(sim *Simulation) Aura {
+	sim.Buffs[StatHaste] += 80
+	sim.CDs[MagicIDDrums] = 30 * TicksPerSecond
+	return AuraStatRemoval(sim.currentTick, 30, 80, StatHaste, MagicIDDrums)
 }
 
 func ActivateBloodlust(sim *Simulation) Aura {

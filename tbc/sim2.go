@@ -34,6 +34,19 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 	}
 
 	if sim.CastingSpell == nil {
+		if sim.Options.NumDrums > 0 && sim.CDs[MagicIDDrums] < 1 {
+			// We have drums in the sim, and the drums aura isn't turned on.
+			// Iterate our drum
+			for i, v := range []int32{MagicIDDrum1, MagicIDDrum2, MagicIDDrum3, MagicIDDrum4} {
+				if i == sim.Options.NumDrums {
+					break
+				}
+				if sim.CDs[v] < 1 {
+					sim.CDs[v] = 120 * TicksPerSecond // item goes on CD for 120s
+					sim.addAura(ActivateDrums(sim))
+				}
+			}
+		}
 		// Activate any specials
 		if sim.Options.NumBloodlust > sim.bloodlustCasts && sim.CDs[MagicIDBloodlust] < 1 {
 			sim.addAura(ActivateBloodlust(sim))
