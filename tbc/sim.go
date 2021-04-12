@@ -163,6 +163,19 @@ func (sim *Simulation) reset() {
 			}
 		}
 	}
+
+	// Activate Set Bonuses
+	for _, set := range sets {
+		itemCount := 0
+		for _, i := range sim.Equip {
+			if set.Items[i.Name] {
+				itemCount++
+				if bonus, ok := set.Bonuses[itemCount]; ok {
+					sim.addAura(bonus(sim))
+				}
+			}
+		}
+	}
 }
 
 func (sim *Simulation) Run(seconds int) SimMetrics {
@@ -212,7 +225,7 @@ func ChooseSpell(sim *Simulation, didPot bool) int {
 		for i := 0; i < len(sim.SpellRotation); i++ {
 			sp := sim.SpellRotation[i]
 			so := sp.ID
-			cast := NewCast(sim, sp, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
+			cast := NewCast(sim, sp)
 			if sim.CDs[so] > 0 { // if
 				if sim.CDs[so] < lowestWait {
 					lowestWait = sim.CDs[so]
@@ -238,7 +251,7 @@ func ChooseSpell(sim *Simulation, didPot bool) int {
 
 	sp := sim.SpellRotation[sim.RotationIdx]
 	so := sp.ID
-	cast := NewCast(sim, sp, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
+	cast := NewCast(sim, sp)
 	if sim.CDs[so] < 1 {
 		if sim.CurrentMana >= cast.ManaCost {
 			sim.CastingSpell = cast
@@ -265,16 +278,23 @@ func (sim *Simulation) Cast(cast *Cast) {
 			aur.OnCastComplete(sim, cast)
 		}
 	}
+	hit := 0.83 + ((sim.Stats[StatSpellHit] + sim.Buffs[StatSpellHit]) / 1260.0) + cast.Hit // 12.6 hit == 1% hit
+	if hit > 1.0 {
+		hit = 0.99 // can't get away from the 1% miss
+	}
+
 	sim.debug("Completed Cast (%s)\n", cast.Spell.Name)
 	dbgCast := cast.Spell.Name
-	if sim.rando.Float64() < cast.Hit {
-		dmg := (sim.rando.Float64() * (cast.Spell.MaxDmg - cast.Spell.MinDmg)) + cast.Spell.MinDmg + (sim.Stats[StatSpellDmg] * cast.Spell.Coeff)
-		// dmg := (float64(sim.rando.Intn(int(cast.Spell.MaxDmg-cast.Spell.MinDmg))) + cast.Spell.MinDmg) + (sim.Stats[StatSpellDmg] * cast.Spell.Coeff)
+	if sim.rando.Float64() < hit {
+		sp := sim.Stats[StatSpellDmg] + sim.Buffs[StatSpellDmg] + cast.Spellpower
+		dmg := (sim.rando.Float64() * (cast.Spell.MaxDmg - cast.Spell.MinDmg)) + cast.Spell.MinDmg + (sp * cast.Spell.Coeff)
 		if cast.DidDmg != 0 { // use the pre-set dmg
 			dmg = cast.DidDmg
 		}
 		cast.DidHit = true
-		if sim.rando.Float64() < cast.Crit {
+
+		crit := ((sim.Stats[StatSpellCrit] + sim.Buffs[StatSpellCrit]) / 2208.0) + cast.Crit // 22.08 crit == 1% crit
+		if sim.rando.Float64() < crit {
 			cast.DidCrit = true
 			// TODO: Make Elemental Fury talent check here.
 			dmg *= (cast.CritBonus * 2) - 1 // if CSD equipped the cast crit bonus will be modified during 'onCastComplete.'
@@ -314,7 +334,9 @@ func (sim *Simulation) Cast(cast *Cast) {
 		}
 		sim.metrics.TotalDamage += cast.DidDmg
 	} else {
-		dbgCast += " miss"
+		if IsDebug {
+			dbgCast += " miss"
+		}
 	}
 	sim.metrics.Casts = append(sim.metrics.Casts, cast)
 	sim.debug("%s: %0.0f\n", dbgCast, cast.DidDmg)

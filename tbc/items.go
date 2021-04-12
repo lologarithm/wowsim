@@ -1,6 +1,9 @@
 package tbc
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 var Gems = []Gem{
 	// {Name: "Destructive Skyfire Diamond", Color: GemColorMeta, Stats: Stats{}},
@@ -533,3 +536,49 @@ var items = []Item{
 }
 
 //  C'thun ring, belt and gloves, Sapph cloak and trinket, KT trinket, 4hm ring
+
+type ItemSet struct {
+	Name    string
+	Items   map[string]bool
+	Bonuses map[int]ItemActivation // maps item count to activations
+}
+
+var sets = []ItemSet{
+	{
+		Name:  "Netherstrike",
+		Items: map[string]bool{"Netherstrike Breastplate": true, "Netherstrike Bracers": true, "Netherstrike Belt": true},
+		Bonuses: map[int]ItemActivation{3: func(sim *Simulation) Aura {
+			sim.Buffs[StatSpellDmg] += 23
+			return Aura{ID: MagicIDNetherstrike, Expires: math.MaxInt32}
+		}},
+	},
+	{
+		Name:  "The Twin Stars",
+		Items: map[string]bool{"Charlotte's Ivy": true, "Lola's Eve": true},
+		Bonuses: map[int]ItemActivation{2: func(sim *Simulation) Aura {
+			sim.Buffs[StatSpellDmg] += 15
+			return Aura{ID: MagicIDNetherstrike, Expires: math.MaxInt32}
+		}},
+	},
+	{
+		Name:  "Tidefury",
+		Items: map[string]bool{"Tidefury Helm": true, "Tidefury Shoulderguards": true, "Tidefury Chestpiece": true, "Tidefury Kilt": true},
+		Bonuses: map[int]ItemActivation{4: func(sim *Simulation) Aura {
+			sim.Buffs[StatMP5] += 3 // TODO: check if water shield is actually up.
+			return Aura{ID: MagicIDNetherstrike, Expires: math.MaxInt32}
+		}},
+	},
+	{
+		Name:    "Spellstrike",
+		Items:   map[string]bool{"Spellstrike Hood": true, "Spellstrike Pants": true},
+		Bonuses: map[int]ItemActivation{2: ActivateSpellstrike},
+	},
+	{
+		Name:  "Mana Etched",
+		Items: map[string]bool{"Mana-Etched Crown": true, "Mana-Etched Spaulders": true, "Mana-Etched Vestments": true, "Mana-Etched Gloves": true, "Mana-Etched Pantaloons": true},
+		Bonuses: map[int]ItemActivation{4: ActivateManaEtched, 2: func(sim *Simulation) Aura {
+			sim.Buffs[StatSpellHit] += 35
+			return Aura{ID: MagicIDManaEtchedHit, Expires: math.MaxInt32}
+		}},
+	},
+}

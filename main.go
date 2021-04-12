@@ -42,7 +42,7 @@ func main() {
 	}
 
 	gear := tbc.NewEquipmentSet(
-		"Cyclone Faceguard (Tier 4)",
+		"Spellstrike Hood",
 		"Brooch of Heightened Potential",
 		"Pauldrons of Wild Magic",
 		"Ogre Slayer's Cover",
@@ -50,7 +50,7 @@ func main() {
 		"World's End Bracers",
 		"Earth Mantle Handwraps",
 		"Wave-Song Girdle",
-		"Stormsong Kilt",
+		"Spellstrike Pants",
 		"Magma Plume Boots",
 		"Cobalt Band of Tyrigosa",
 		"Scintillating Coral Band",
@@ -60,14 +60,14 @@ func main() {
 		"Icon of the Silver Crescent",
 		"Totem of the Void",
 	)
-	gear[tbc.EquipHead].Gems[0] = tbc.GemLookup["Chaotic Skyfire Diamond"]
+	// gear[tbc.EquipHead].Gems[0] = tbc.GemLookup["Chaotic Skyfire Diamond"]
 
 	gearStats := gear.Stats()
 	fmt.Printf("Gear Stats:\n%s", gearStats.Print(true))
 
 	opt := tbc.Options{
-		NumBloodlust: 1,
-		NumDrums:     2,
+		// NumBloodlust: 1,
+		// NumDrums:     2,
 		Buffs: tbc.Buffs{
 			ArcaneInt:                true,
 			GiftOftheWild:            true,

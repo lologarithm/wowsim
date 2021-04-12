@@ -67,7 +67,6 @@ func AuraName(a int32) string {
 		return "Rune"
 	case MagicIDAllTrinket:
 		return "AllTrinket"
-
 	case MagicIDSpellPower:
 		return "SpellPower"
 	case MagicIDRubySerpent:
@@ -94,6 +93,22 @@ func AuraName(a int32) string {
 		return "Drum #3"
 	case MagicIDDrum4:
 		return "Drum #4"
+	case MagicIDNetherstrike:
+		return "Netherstrike Set"
+	case MagicIDTwinStars:
+		return "Twin Stars Set"
+	case MagicIDTidefury:
+		return "Tidefury Set"
+	case MagicIDSpellstrike:
+		return "Spellstrike Set"
+	case MagicIDSpellstrikeInfusion:
+		return "Spellstrike Infusion"
+	case MagicIDManaEtched:
+		return "Mana-Etched Set"
+	case MagicIDManaEtchedHit:
+		return "Mana-EtchedHit"
+	case MagicIDManaEtchedInsight:
+		return "Mana-EtchedInsight"
 	}
 
 	return "<<TODO: Add Aura name to switch!!>>"
@@ -133,6 +148,14 @@ const (
 	MagicIDDCC
 	MagicIDDCCBonus
 	MagicIDDrums // drums effect
+	MagicIDNetherstrike
+	MagicIDTwinStars
+	MagicIDTidefury
+	MagicIDSpellstrike
+	MagicIDSpellstrikeInfusion
+	MagicIDManaEtched
+	MagicIDManaEtchedHit
+	MagicIDManaEtchedInsight
 
 	//Items
 	MagicIDISCTrink
@@ -216,11 +239,11 @@ func AuraEleMastery() Aura {
 		ID:      MagicIDEleMastery,
 		Expires: math.MaxInt32,
 		OnCast: func(sim *Simulation, c *Cast) {
-			c.Crit = 1.01 // 101% chance of crit
 			c.ManaCost = 0
 			sim.CDs[MagicIDEleMastery] = 180 * TicksPerSecond
 		},
 		OnCastComplete: func(sim *Simulation, c *Cast) {
+			c.Crit += 1.01 // 101% chance of crit
 			sim.removeAuraByID(MagicIDEleMastery)
 		},
 	}
@@ -230,8 +253,7 @@ func AuraStormcaller(tick int) Aura {
 	return Aura{
 		ID:      MagicIDStormcaller,
 		Expires: tick + (8 * TicksPerSecond),
-		OnCast: func(sim *Simulation, c *Cast) {
-			sim.debug(" +Stormcaller\n")
+		OnCastComplete: func(sim *Simulation, c *Cast) {
 			c.Spellpower += 50
 		},
 	}
@@ -244,7 +266,7 @@ func createSpellDmgActivate(id int32, sp float64, durSeconds int) ItemActivation
 		return Aura{
 			ID:      id,
 			Expires: sim.currentTick + durSeconds*TicksPerSecond,
-			OnCast: func(sim *Simulation, c *Cast) {
+			OnCastComplete: func(sim *Simulation, c *Cast) {
 				c.Spellpower += sp
 			},
 		}
@@ -355,8 +377,10 @@ func ActivateNAC(sim *Simulation) Aura {
 		ID:      MagicIDNAC,
 		Expires: sim.currentTick + 300*TicksPerSecond,
 		OnCast: func(sim *Simulation, c *Cast) {
-			c.Spellpower += 250
 			c.ManaCost *= 1.2
+		},
+		OnCastComplete: func(sim *Simulation, c *Cast) {
+			c.Spellpower += 250
 		},
 	}
 }
@@ -407,5 +431,45 @@ func ActivateESD(sim *Simulation) Aura {
 	return Aura{
 		ID:      MagicIDEmberSkyfire,
 		Expires: math.MaxInt32,
+	}
+}
+
+func ActivateSpellstrike(sim *Simulation) Aura {
+	const spellBonus = 92.0
+	const duration = 10.0
+	return Aura{
+		ID:      MagicIDSpellstrikeInfusion,
+		Expires: math.MaxInt32,
+		OnCastComplete: func(sim *Simulation, c *Cast) {
+			if sim.rando.Float64() < 0.05 { // TODO: validate
+				sim.addAura(Aura{
+					ID:      MagicIDManaEtchedInsight,
+					Expires: sim.currentTick + (duration * TicksPerSecond),
+					OnCastComplete: func(sim *Simulation, c *Cast) {
+						c.Spellpower += spellBonus
+					},
+				})
+			}
+		},
+	}
+}
+
+func ActivateManaEtched(sim *Simulation) Aura {
+	const spellBonus = 110.0
+	const duration = 15.0
+	return Aura{
+		ID:      MagicIDManaEtched,
+		Expires: math.MaxInt32,
+		OnCastComplete: func(sim *Simulation, c *Cast) {
+			if sim.rando.Float64() < 0.02 { // TODO: validate
+				sim.addAura(Aura{
+					ID:      MagicIDManaEtchedInsight,
+					Expires: sim.currentTick + (duration * TicksPerSecond),
+					OnCastComplete: func(sim *Simulation, c *Cast) {
+						c.Spellpower += spellBonus
+					},
+				})
+			}
+		},
 	}
 }

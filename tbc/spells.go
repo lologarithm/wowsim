@@ -8,10 +8,11 @@ type Cast struct {
 	// Pre-hit Mutatable State
 	TicksUntilCast int
 	ManaCost       float64
-	Hit            float64
-	Crit           float64
-	CritBonus      float64
-	Spellpower     float64
+
+	Hit        float64 // Direct % bonus... 0.1 == 10%
+	Crit       float64 // Direct % bonus... 0.1 == 10%
+	CritBonus  float64 // Multiplier to critical dmg bonus.
+	Spellpower float64 // Bonus Spellpower to add at end of cast.
 
 	// Calculated Values
 	DidHit  bool
@@ -22,11 +23,11 @@ type Cast struct {
 	Effects []AuraEffect // effects applied ONLY to this cast.
 }
 
-func NewCast(sim *Simulation, sp *Spell, spellDmg, spHit, spCrit float64) *Cast {
+func NewCast(sim *Simulation, sp *Spell) *Cast {
 	cast := &Cast{
 		Spell:      sp,
 		ManaCost:   float64(sp.Mana),
-		Spellpower: spellDmg, // TODO: type specific bonuses...
+		Spellpower: 0, // TODO: type specific bonuses...
 		CritBonus:  1.5,
 	}
 
@@ -47,12 +48,6 @@ func NewCast(sim *Simulation, sp *Spell, spellDmg, spHit, spCrit float64) *Cast 
 	if isLB || isCL {
 		cast.ManaCost *= 1 - (0.2 * float64(sim.Options.Talents.Convection))
 	}
-
-	cast.Hit = 0.83 + (spHit / 1260.0) // 12.6 hit == 1% hit
-	if cast.Hit > 1.0 {
-		cast.Hit = 0.99 // can't get away from the 1% miss
-	}
-	cast.Crit = (spCrit / 2208.0) // 22.08 crit == 1% crit
 
 	// Apply any on cast effects.
 	for _, aur := range sim.Auras {

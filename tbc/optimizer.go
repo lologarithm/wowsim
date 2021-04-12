@@ -325,14 +325,14 @@ func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
 		sim.debug("[AI] End of rotation, recalculating best rotation. Rate: %0.1f, Total Drain: %0.1f, LastMana: %0.0f, CurrentMana: %0.1f\n", rate, totalManaDrain, ai.LastMana, sim.CurrentMana)
 		// If we have enough mana to burn and CL is on CD, use it.
 		if totalManaDrain < sim.CurrentMana-buffer && sim.CDs[MagicIDCL6] < 1 {
-			cast := NewCast(sim, ai.CL, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
+			cast := NewCast(sim, ai.CL)
 			if sim.CurrentMana >= cast.ManaCost {
 				sim.CastingSpell = cast
 				return cast.TicksUntilCast
 			}
 		}
 	}
-	cast := NewCast(sim, ai.LB, sim.Stats[StatSpellDmg], sim.Stats[StatSpellHit], sim.Stats[StatSpellCrit])
+	cast := NewCast(sim, ai.LB)
 
 	if sim.CurrentMana >= cast.ManaCost {
 		sim.CastingSpell = cast

@@ -241,7 +241,7 @@ function runsim(currentGear) {
         aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> dps<br /></div>`
         
         var rotstats = document.getElementById("rotstats");
-        rotstats.innerHTML = `<text>LB Casts: ${Math.round(stats.casts[1]/iters)}  CL Casts: ${Math.round(stats.casts[2]/iters)}</text>`;
+        rotstats.innerHTML = `<text>Lightning Bolt: ${Math.round(stats.casts[1]/iters)}</text><text>Chain Lightning: ${Math.round(stats.casts[2]/iters)}</text>`;
 
         var chartcanvas = document.createElement("canvas"); // `<canvas id="myChart" width="600" height="400"></canvas>`;
         var rotout = document.getElementById("rotout");
