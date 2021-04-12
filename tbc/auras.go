@@ -160,6 +160,8 @@ const (
 	MagicIDManaEtchedHit
 	MagicIDManaEtchedInsight
 	MagicIDMisery
+	MagicIDEyeOfTheNight
+	MagicIDChainTO
 
 	//Items
 	MagicIDISCTrink
@@ -174,6 +176,8 @@ const (
 	MagicIDDrum2
 	MagicIDDrum3
 	MagicIDDrum4
+	MagicIDEyeOfTheNightTrink
+	MagicIDChainTOTrink
 )
 
 func AuraJudgementOfWisdom() Aura {
@@ -515,6 +519,16 @@ func ActivateTLC(sim *Simulation) Aura {
 				sim.Cast(clone)
 				charges = 0
 			}
+		},
+	}
+}
+
+func ActivateChainTO(sim *Simulation) Aura {
+	return Aura{
+		ID:      MagicIDChainTO,
+		Expires: sim.currentTick + 30*60*TicksPerSecond,
+		OnCastComplete: func(sim *Simulation, c *Cast) {
+			c.Crit += 0.02
 		},
 	}
 }

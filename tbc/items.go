@@ -258,7 +258,6 @@ var items = []Item{
 	{Slot: EquipNeck, Name: "Torc of the Sethekk Prophet", SourceZone: "Brother Against Brother - Auchindoun ", SourceDrop: "", Stats: Stats{18, 0, 21, 0, 19, 0, 0}},
 	{Slot: EquipNeck, Name: "Natasha's Ember Necklace", SourceZone: "The Hound-Master - BEM Quest", SourceDrop: "", Stats: Stats{15, 0, 10, 0, 29, 0, 0}},
 	{Slot: EquipNeck, Name: "Warp Engineer's Prismatic Chain", SourceZone: "Mech - Mechano Lord Capacitus", SourceDrop: "", Stats: Stats{18, 17, 16, 0, 19, 0, 0}},
-	{Slot: EquipNeck, Name: "Eye of the Night", SourceZone: "Jewelcrafting BoE", SourceDrop: "", Stats: Stats{0, 0, 26, 16, 0, 0, 0}},
 	{Slot: EquipNeck, Name: "Hydra-fang Necklace", SourceZone: "H UB - Ghaz'an", SourceDrop: "", Stats: Stats{16, 17, 0, 16, 19, 0, 0}},
 	{Slot: EquipNeck, Name: "Manasurge Pendant", SourceZone: "25 Badge of Justice - G'eras", SourceDrop: "", Stats: Stats{22, 24, 0, 0, 28, 0, 0}},
 	{Slot: EquipNeck, Name: "Natasha's Arcane Filament", SourceZone: "The Hound-Master - BEM Quest", SourceDrop: "", Stats: Stats{10, 22, 0, 0, 29, 0, 0}},
@@ -520,6 +519,7 @@ var items = []Item{
 	{Slot: EquipOffhand, Name: "Antonidas's Aegis of Rapt Concentration", SourceZone: "Hyjal", SourceDrop: "Archimonde", Stats: Stats{StatStm: 28, StatInt: 32, StatSpellDmg: 42, StatHaste: 0, StatSpellCrit: 20, StatSpellHit: 0, StatMP5: 0}},
 	{Slot: EquipOffhand, Name: "Chronicle of Dark Secrets", SourceZone: "Hyjal", SourceDrop: "Winterchill", Stats: Stats{StatStm: 16, StatInt: 12, StatSpellDmg: 42, StatHaste: 0, StatSpellCrit: 23, StatSpellHit: 17, StatMP5: 0}},
 
+	// Hand Written
 	{Slot: EquipTrinket, Name: "Quagmirran's Eye", SourceZone: "The Slave Pens", SourceDrop: "Quagmirran", Stats: Stats{StatSpellDmg: 37}, Activate: ActivateQuagsEye, ActivateCD: -1}, // -1 will trigger an activation only once
 	{Slot: EquipTrinket, Name: "Icon of the Silver Crescent", SourceZone: "Shattrath", SourceDrop: "G'eras - 41 Badges", Stats: Stats{StatSpellDmg: 44}, Activate: createSpellDmgActivate(MagicIDBlessingSilverCrescent, 155, 20), ActivateCD: 120 * TicksPerSecond, CoolID: MagicIDISCTrink},
 	{Slot: EquipTrinket, Name: "Natural Alignment Crystal", SourceZone: "BWL", SourceDrop: "", Stats: Stats{}, Activate: ActivateNAC, ActivateCD: 300 * TicksPerSecond, CoolID: MagicIDNACTrink},
@@ -530,6 +530,9 @@ var items = []Item{
 	{Slot: EquipTrinket, Name: "Shiffar's Nexus-Horn", SourceZone: "Arc - Harbinger Skyriss", SourceDrop: "", Stats: Stats{0, 0, 30, 0, 0, 0, 0}, Activate: ActivateNexusHorn, ActivateCD: -1},
 	{Slot: EquipTrinket, Name: "Darkmoon Card: Crusade", SourceZone: "Blessings Deck", SourceDrop: "", Activate: ActivateDCC, ActivateCD: -1},
 	{Slot: EquipTrinket, Name: "The Lightning Capacitor", SourceZone: "Kara", SourceDrop: "", Activate: ActivateTLC, ActivateCD: -1},
+	{Slot: EquipNeck, Name: "Eye of the Night", SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatStm: 0, StatInt: 0, StatSpellDmg: 0, StatHaste: 0, StatSpellCrit: 26, StatSpellHit: 16, StatMP5: 0, StatSpellPen: 15}, Activate: createSpellDmgActivate(MagicIDEyeOfTheNight, 34, 30*60), ActivateCD: 3600, CoolID: MagicIDEyeOfTheNightTrink},
+	{Slot: EquipNeck, Name: "Chain of the Twilight Owl", SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatStm: 0, StatInt: 19, StatSpellDmg: 21, StatHaste: 0, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 0}, Activate: ActivateChainTO, ActivateCD: 3600, CoolID: MagicIDChainTOTrink},
+
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }
 
