@@ -66,8 +66,8 @@ func main() {
 	fmt.Printf("Gear Stats:\n%s", gearStats.Print(true))
 
 	opt := tbc.Options{
-		NumBloodlust: 1,
-		NumDrums:     0,
+		NumBloodlust: 5,
+		NumDrums:     4,
 		Buffs: tbc.Buffs{
 			ArcaneInt:                true,
 			GiftOftheWild:            true,
@@ -110,7 +110,7 @@ func main() {
 		rotArray = strings.Split(*rotation, ",")
 	}
 
-	results := runTBCSim(gear, opt, 300, sims, rotArray, *noopt)
+	results := runTBCSim(gear, opt, 100, sims, rotArray, *noopt)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
@@ -124,8 +124,8 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 	spellOrders := [][]string{
 		// {"CL6", "LB12", "LB12", "LB12"},
 		// {"CL6", "LB12", "LB12", "LB12", "LB12"},
-		// {"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
-		// {"LB12"},               // only LB
+		{"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
+		{"LB12"},               // only LB
 	}
 	if len(customRotation) > 0 {
 		fmt.Printf("Using Custom Rotation: %v\n", customRotation)

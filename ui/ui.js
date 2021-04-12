@@ -235,7 +235,7 @@ function runsim(currentGear) {
         }
         priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(max)}</text> dps<br /><text style="font-size:0.7em">${Math.round(stats.oomat)}s to oom at peak dps.</text></div>`
     });
-    simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0, (out) => { 
+    simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0, (out) => {
         var stats = processSimResult(out);
         var ttoom = stats.oomat;
         if (ttoom == 0) {
@@ -311,13 +311,6 @@ function runsim(currentGear) {
 
 function hastedRotations(currentGear) {
     console.log("Starting hasted rotations...");
-    var gearlist = [];
-    slotToID.forEach(k => {
-        var item = currentGear[k];
-        if (item != null && item.Name != "") {
-            gearlist.push(item.Name);
-        }
-    });
     var opts = getOptions();
     opts.buffbl = 0;
     opts.buffdrum = 0;
@@ -334,7 +327,7 @@ function hastedRotations(currentGear) {
     hastes.forEach( haste => {
         hasteCounter++;
         var myCounter = hasteCounter;
-        simulate(400, 30, gearlist, opts, rots, haste, (output) => {
+        simulate(400, 30, currentGear, opts, rots, haste, (output) => {
             var maxdmg = 0.0;
             var maxrot = {};
     
@@ -561,7 +554,7 @@ function updateGearStats(gearlist) {
                 lab.innerText = value.toString() + " ("  + (value/12.6).toFixed(1) + "%)";
             } else if (key.toLowerCase() == "statspellhaste") {
                 lab.innerText = value.toString() + " ("  + (value/15.76).toFixed(1) + "%)";
-            } else if (key.toLowerCase() == "statspirit") {
+            } else if (lab == null) {
                 // do nothing...
             } else {
                 lab.innerText = value;
