@@ -324,10 +324,15 @@ function hastedRotations(currentGear) {
 
 
     var hasteCounter = 0;
+    var rows = document.getElementById("hasterots").firstElementChild.firstElementChild.children;
     hastes.forEach( haste => {
         hasteCounter++;
         var myCounter = hasteCounter;
-        simulate(400, 30, currentGear, opts, rots, haste, (output) => {
+        var row = rows[myCounter];
+        row.children[1].innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
+        row.children[2].innerText = "";
+
+        simulate(800, 40, currentGear, opts, rots, haste, (output) => {
             var maxdmg = 0.0;
             var maxrot = {};
     
@@ -346,8 +351,6 @@ function hastedRotations(currentGear) {
             var dev = standardDeviation(values, avg);
             var simdur = maxrot.SimSeconds;
             var rotTitle = "CL / " + (maxrot.Rotation.length-1).toString() + "xLB";
-            var rows = document.getElementById("hasterots").firstElementChild.firstElementChild.children;
-            var row = rows[myCounter];
             row.children[0].innerText = haste;
             row.children[1].innerText = rotTitle;
             row.children[2].innerText = "" + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur);
