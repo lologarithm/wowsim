@@ -310,8 +310,8 @@ func ActivateNexusHorn(sim *Simulation) Aura {
 	return Aura{
 		ID:      MagicIDQuagsEye,
 		Expires: math.MaxInt32,
-		OnCastComplete: func(sim *Simulation, c *Cast) {
-			if lastActivation+internalCD < sim.currentTick && sim.rando.Float64() < 0.2 {
+		OnSpellHit: func(sim *Simulation, c *Cast) {
+			if lastActivation+internalCD < sim.currentTick && c.DidCrit && sim.rando.Float64() < 0.2 {
 				sim.Buffs[StatSpellDmg] += spellBonus
 				sim.addAura(AuraStatRemoval(sim.currentTick, 10.0, spellBonus, StatSpellDmg, MagicIDCallOfTheNexus))
 				lastActivation = sim.currentTick

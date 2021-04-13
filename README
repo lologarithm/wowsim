@@ -7,19 +7,25 @@ UI
     Icons
     Gear Quality Colors
     Gear Change data on hover of item change dropdown.
+    Add options for several 'party' items and bonuses. 
+        2p t4
+        Chain of Twilight Owl
+        Eye of the Night
 
 Items
     Gear Quality
     Lightning Capacitor
     Validate gear stats - unsure if item data source is accurate.
     Enchants
-    Investigate Darkmoon Card Crusade - dps is lower than expected.
 
 Engine
-    Set Bonuses
+    Set Bonuses (missing t4/5/6)
     Upgrader - List value of items with the stat weights.
 
 Other
     Implement Gear Phases
     seventyupgrades importer
     Add armor type to allow for a 'mail-only' optimization
+    'Gear Sets' both pre-made and let players save the setup. (optionally allow for saving of buffs as well)
+    History - Make another results tab that holds the history of all sims. (probably just Peak DPS + Avg DPS)
+    

@@ -213,7 +213,7 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 	}
 	gear := getGear(args[2])
 	opt := parseOptions(args[3])
-	doOptimize := args[3].Get("doopt").Truthy()
+	doOptimize := args[3].Get("doopt").Truthy() || opt.UseAI
 	stats := opt.StatTotal(gear)
 	if customHaste != 0 {
 		stats[tbc.StatHaste] = customHaste

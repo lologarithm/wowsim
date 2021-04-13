@@ -20,6 +20,8 @@ var defaultGear = [
     {Name:"Icon of the Silver Crescent"}
 ];
 
+
+// This code is all for interacting with the workers.
 var simlib = new window.Worker(`simworker.js`);
 var simlib2 = new window.Worker(`simworker.js`);
 
@@ -101,6 +103,7 @@ function computeStats(gear, opts, onComplete) {
     simlib.postMessage({msg: "computeStats", id: id, payload: {gear: gear, opts: opts}});
 }
 
+// Pulls options from the input 'options' pane for use in sims.
 function getOptions() {
     var options = {};
 
@@ -140,7 +143,83 @@ var castIDToName = {
     998: "CL Overload",
 }
 
-// Actually runs the sim.
+// processSimResult will take the output from a numer of sims
+// and process stuff like DPS and std dev.
+function processSimResult(output) {
+    var resultStats = {};
+    var out = output[0];
+    var maxDPS = 0;
+
+    var dpsHist = {};
+    var oomDPSHist = {};
+
+    var total = out.TotalDmgs.reduce(function(sum, value){
+        var dps = value/out.SimSeconds;
+        var dpsRounded = Math.round(dps/10) * 10;
+        if (dpsHist[dpsRounded] == null) {
+            dpsHist[dpsRounded] = 0;
+        }
+        dpsHist[dpsRounded] += 1;
+        if (dps > maxDPS) {
+            maxDPS = dps;
+        }
+        return sum + value;
+    }, 0);
+    var dps = total / out.SimSeconds / out.TotalDmgs.length;        
+    var values = out.TotalDmgs;
+    var avg = average(values);
+    var dev = standardDeviation(values, avg) / out.SimSeconds;
+    
+    var oomat = 0;
+    var numOOM = out.OOMAt.reduce(function(sum, value){
+        if (value > 0) {
+            oomat += value;
+            return sum + 1;
+        }
+        return sum;
+    }, 0);
+    oomat /= (numOOM);
+
+    var dpsAtOOM = 0;
+    if (numOOM > 0) {
+        out.DmgAtOOMs.forEach((v, i) => {
+            dpsAtOOM += v / out.OOMAt[i];
+        });
+        dpsAtOOM /= numOOM;
+    }
+
+    var castStats = {
+        1: 0, // TODO: expose these constants from the wasm somehow.
+        2: 0,
+        3: 0,
+        999: 0,
+        998: 0,
+    };
+    out.Casts.forEach((casts)=>{
+        casts.forEach((cast)=>{
+            if (!cast.IsLO)  {
+                castStats[cast.ID] += 1
+            } else {
+                castStats[1000-cast.ID] += 1
+            }
+            
+        });
+    });
+  
+    resultStats.total = total;
+    resultStats.maxDPS = maxDPS;
+    resultStats.dps = dps;
+    resultStats.dev = dev;
+    resultStats.oomat = oomat;
+    resultStats.numOOM = numOOM;
+    resultStats.dpsAtOOM = dpsAtOOM;
+    resultStats.casts = castStats;
+    resultStats.dpsHist = dpsHist;
+
+    return resultStats;
+}
+
+// Populates the 'Sim' tab in the results pane.
 function runsim(currentGear) {
 
     var iters = parseInt(document.getElementById("iters").value);
@@ -159,81 +238,6 @@ function runsim(currentGear) {
 
 
     var veryMax = 0.0;
-
-    var processSimResult = function(output) {
-        var resultStats = {};
-        var out = output[0];
-        var maxDPS = 0;
-
-        var dpsHist = {};
-        var oomDPSHist = {};
-
-        var total = out.TotalDmgs.reduce(function(sum, value){
-            var dps = value/out.SimSeconds;
-            var dpsRounded = Math.round(dps/10) * 10;
-            if (dpsHist[dpsRounded] == null) {
-                dpsHist[dpsRounded] = 0;
-            }
-            dpsHist[dpsRounded] += 1;
-            if (dps > maxDPS) {
-                maxDPS = dps;
-            }
-            return sum + value;
-        }, 0);
-        var dps = total / out.SimSeconds / iters;        
-        var values = out.TotalDmgs;
-        var avg = average(values);
-        var dev = standardDeviation(values, avg) / out.SimSeconds;
-        
-        var oomat = 0;
-        var numOOM = out.OOMAt.reduce(function(sum, value){
-            if (value > 0) {
-                oomat += value;
-                return sum + 1;
-            }
-            return sum;
-        }, 0);
-        oomat /= (numOOM);
-
-        var dpsAtOOM = 0;
-        if (numOOM > 0) {
-            out.DmgAtOOMs.forEach((v, i) => {
-                dpsAtOOM += v / out.OOMAt[i];
-            });
-            dpsAtOOM /= numOOM;
-        }
-
-        var castStats = {
-            1: 0, // TODO: expose these constants from the wasm somehow.
-            2: 0,
-            3: 0,
-            999: 0,
-            998: 0,
-        };
-        out.Casts.forEach((casts)=>{
-            casts.forEach((cast)=>{
-                if (!cast.IsLO)  {
-                    castStats[cast.ID] += 1
-                } else {
-                    castStats[1000-cast.ID] += 1
-                }
-                
-            });
-        });
-      
-        resultStats.total = total;
-        resultStats.maxDPS = maxDPS;
-        resultStats.dps = dps;
-        resultStats.dev = dev;
-        resultStats.oomat = oomat;
-        resultStats.numOOM = numOOM;
-        resultStats.dpsAtOOM = dpsAtOOM;
-        resultStats.casts = castStats;
-        resultStats.dpsHist = dpsHist;
-
-        return resultStats;
-    }
-
 
     var firstOpts = getOptions();
     firstOpts.exitoom = true;
@@ -263,10 +267,11 @@ function runsim(currentGear) {
 
     var secondOpts = getOptions();
     secondOpts.useai = true;
+    secondOpts.doopt = true;
     simulate(iters, dur, currentGear, secondOpts, null, 0, (out) => { 
         var stats = processSimResult(out);
         console.log("AI Casts: ", stats.casts);
-        aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> dps<br /></div>`
+        aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> +/- ${Math.round(stats.dev)} dps<br /></div>`
         
         var rotstats = document.getElementById("rotstats");
         rotstats.innerHTML = "";
@@ -296,10 +301,21 @@ function runsim(currentGear) {
         var ctx = chartcanvas.getContext('2d');
         rotchart.appendChild(chartcanvas);
 
-        var labels = Object.keys(stats.dpsHist);
+        var min = stats.dps - stats.dev;
+        var max = stats.dps + stats.dev;
+        var labels = Object.keys(stats.dpsHist)
         var vals = [];
+        var devvals = [];
+
         labels.forEach((k, i) => {
-            vals[i] = stats.dpsHist[k];
+            var val = parseInt(k);
+            if (val > min && val < max) {
+                devvals.push(stats.dpsHist[k]);
+                vals.push(0);
+            } else {
+                vals.push(stats.dpsHist[k]);
+                devvals.push(0);
+            }
             labels[i] += " DPS";
         });
         var myChart = new Chart(ctx, {
@@ -307,10 +323,17 @@ function runsim(currentGear) {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Count',
+                    label: "DPS",
                     data: vals,
                     backgroundColor: [
                         '#1e87f0',
+                    ],
+                },
+                {
+                    label: "Expected DPS",
+                    data: devvals,
+                    backgroundColor: [
+                        '#FF6961',
                     ],
                 }]
             },
@@ -326,6 +349,7 @@ function runsim(currentGear) {
     });
 }
 
+// Populates the 'Hasted Rotations' tab in results pane.
 function hastedRotations(currentGear) {
     console.log("Starting hasted rotations...");
     var opts = getOptions();
@@ -396,6 +420,7 @@ function average(data){
     return avg;
 }
 
+// Populates the 'Gear & Stat Weights' tab in results pane.
 function calcStatWeights(gear) {
     var iters = parseInt(document.getElementById("switer").value);
     var dur = parseInt(document.getElementById("swdur").value);
@@ -404,7 +429,7 @@ function calcStatWeights(gear) {
     var baseDPS = 0.0;
     var sp_hitModDPS = 0.0
     var modDPS = [0, 0, 0, 0, 0, 0];
-
+    var weights = [0, 0, 0, 0, 0, 0, 0]; // Int, X, Crit, Hit, Dmg, Haste, MP5
     modDPS.forEach((v, i)=>{
         var cell = document.getElementById("w"+i.toString());
         cell.innerHTML = "<div uk-spinner=\"ratio: 1\"></div>";
@@ -416,7 +441,9 @@ function calcStatWeights(gear) {
     }); // base
 
 
+    var done = [];
     var onfinish = () => {
+        done.push(true);
         if (baseDPS == 0) {
             return;
         }
@@ -425,10 +452,8 @@ function calcStatWeights(gear) {
         }
         var ddps = modDPS[0] - baseDPS;
 
-        var complete = true;
         modDPS.forEach((v, i)=>{
             if (v == 0) {
-                complete = false;
                 return;
             }
             var cell = document.getElementById("w"+i.toString());
@@ -439,6 +464,7 @@ function calcStatWeights(gear) {
                 if (weight < 0.01) {
                     weight = 0.0;
                 }
+                weights[3] = weight;
                 cell.innerText = weight.toFixed(2);
                 return; 
             }
@@ -446,11 +472,23 @@ function calcStatWeights(gear) {
             if (weight < 0.01) {
                 weight = 0.0;
             }
+            
+            if (i == 0) {
+                weights[4] = weight;
+            } else if (i == 1) {
+                weights[0] = weight;
+            } else if (i == 2) {
+                weights[2] = weight;
+            } else if (i == 4) {
+                weights[5] = weight;
+            } else if (i == 5) {
+                weights[6] = weight;
+            }
             cell.innerText = weight.toFixed(2);
         });
 
-        if (complete) {
-            
+        if (done.length == 7) {
+            showGearRecommendations(weights);
         }
     };
 
@@ -465,6 +503,126 @@ function calcStatWeights(gear) {
     statweight(iters, dur, gear, opts, 6, 100, (res) => {modDPS[5] = res;onfinish();}); // mp5
 
 
+}
+
+function showGearRecommendations(weights) {
+    var itemWeightsBySlot = {};
+    var curSlotWeights = {};
+    var csdVal = currentFinalStats["StatSpellDmg"] * (currentFinalStats["StatSpellCrit"]/2208) * 0.09;
+    // process all items to find the weighted value.
+    // find the value of each slots currently equipped item.
+    Object.entries(gearUI.allitems).forEach((entry) => {
+        var name = entry[0];
+        var item = entry[1];
+
+        var value = 0.0;
+        if (item.Stats != null) {
+            weights.forEach((w, i)=>{
+                if (item.Stats[i] != null) {
+                    value += item.Stats[i]*w
+                }
+            });
+        }
+        if (itemWeightsBySlot[item.Slot] == null) {
+            itemWeightsBySlot[item.Slot] = [];
+        }
+        if (item.GemSlots != null && item.GemSlots.length > 0) {
+            var numGems = item.GemSlots.length;
+            if (item.GemSlots[0] == 1) {
+                numGems--;
+                // how to value a CSD
+                // ~ spellpower * crit chance * 0.09 = increased damage per cast.
+                value += csdVal;
+            }
+            value += (numGems * 9) * weights[4]; // just for measuring use 9 spell power gems in every slot.
+        }
+        var curEquip = gearUI.currentGear[slotToID[item.Slot]];
+        if (curEquip != null && curEquip.Name == item.Name) {
+            curSlotWeights[item.Slot] = value;
+        }
+        itemWeightsBySlot[item.Slot].push({Name: item.Name, Weight: value});
+        itemWeightsBySlot[item.Slot] = itemWeightsBySlot[item.Slot].sort((a,b)=> b.Weight - a.Weight);
+    });
+    var uptab = document.getElementById("upgrades");
+    uptab.innerHTML = "";
+    
+    var curSlot = -1;
+    Object.entries(itemWeightsBySlot).forEach((entry)=>{
+        if (entry[0] == 11 || entry[0] == 14) {
+            // Skip rings/trinkets for now. Trinkets will be separate and rings need 
+            // to check a finger1/2 instead of finger generically.
+            return;
+        }
+        if (curSlot != entry[0]) {
+            var row = document.createElement("tr");
+            var col1 = document.createElement("td");
+            slotToID[entry[0]].replace("equip", "");
+            var title = slotToID[entry[0]].replace("equip", "");
+            col1.innerHTML = "<h3>" +title.charAt(0).toUpperCase() + title.substr(1)+"</h3>";
+
+            var col2 = document.createElement("td");
+            var col3 = document.createElement("td");
+            row.appendChild(col1);
+            row.appendChild(col2);
+            row.appendChild(col3);
+            uptab.appendChild(row);
+            curSlot = entry[0];
+        }
+        // get current item slot.
+        var alt = 0;
+        entry[1].forEach((v) => {
+            alt++;
+            var row = document.createElement("tr");
+            if (alt%2 == 0) {
+                row.style.backgroundColor = "#808080";
+            }
+            var col1 = document.createElement("td");
+            col1.innerText = v.Name;
+            var col2 = document.createElement("td");
+            col2.innerText = Math.round(v.Weight - curSlotWeights[curSlot]);
+            var col3 = document.createElement("td");
+            var col4 = document.createElement("td");
+            var simbut = document.createElement("button");
+            simbut.innerText = "Sim";
+
+            var item = Object.assign({Name: ""}, gearUI.allitems[v.Name]);
+            simbut.addEventListener("click", (e)=>{
+                col4.innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
+                var newgear = {};
+                Object.entries(gearUI.currentGear).forEach((entry)=>{
+                    if (entry[0] == slotToID[item.Slot]) {
+                        // replace
+                        newgear[entry[0]] = item;
+                        if (item.GemSlots != null) {
+                            item.Gems = [];
+                            item.GemSlots.forEach((color, i) => {             
+                                if (color == 1) {
+                                    item.Gems[i] = gearUI.allgems["Chaotic Skyfire Diamond"];
+                                } else {
+                                    item.Gems[i] = gearUI.allgems["Runed Living Ruby"];
+                                }                                    
+                            });    
+                        }
+                    } else {
+                        newgear[entry[0]] = entry[1];
+                    }
+                });
+                var iters = parseInt(document.getElementById("iters").value);
+                var dur = parseInt(document.getElementById("dur").value);
+                var opts = getOptions();
+                simulate(iters, dur, cleanGear(newgear), opts, null, null, (res)=>{
+                    var statistics = processSimResult(res);
+                    col4.innerText = Math.round(statistics.dps).toString() + " +/- " + Math.round(statistics.dev).toString();
+                });
+            });
+            col3.appendChild(simbut);
+            row.appendChild(col1);
+            row.appendChild(col2);
+            row.appendChild(col3);
+            row.appendChild(col4);
+            uptab.appendChild(row);
+        })
+    });
 }
 
 window.addEventListener('click', function(e){   
@@ -520,6 +678,7 @@ function popgear(gearList) {
     });
 }
 
+// clearGear strips off all parts of gear that is non-changing. This lets us pass minimal data to sim and store in local storage.
 function cleanGear(gear) {
     var cleanedGear = [];
     Object.entries(gear).forEach((entry)=>{
@@ -548,6 +707,9 @@ function cleanGear(gear) {
     return cleanedGear
 }
 
+var currentFinalStats = {};
+
+// Updates the 'stats' pane in the viewport.
 function updateGearStats(gearlist) {
     
     var cleanedGear = cleanGear(gearlist); // converts to array with minimal data for serialization.
@@ -566,6 +728,7 @@ function updateGearStats(gearlist) {
 
     var opts = getOptions();
     computeStats(cleanedGear, opts, (result) => {
+        currentFinalStats = result;
         for (const [key, value] of Object.entries(result)) {
             var lab = document.getElementById("f"+key.toLowerCase());
             if (key.toLowerCase() == "statspellcrit") {
