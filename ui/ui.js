@@ -132,6 +132,14 @@ function getOptions() {
     return options;
 }
 
+var castIDToName = {
+    1: "LB",
+    2: "CL",
+    3: "TLC LB",
+    999: "LB Overload",
+    998: "CL Overload",
+}
+
 // Actually runs the sim.
 function runsim(currentGear) {
 
@@ -149,6 +157,8 @@ function runsim(currentGear) {
     priout.innerHTML = metricHTML;
     aiout.innerHTML = metricHTML;
 
+
+    var veryMax = 0.0;
 
     var processSimResult = function(output) {
         var resultStats = {};
@@ -187,9 +197,10 @@ function runsim(currentGear) {
 
         var dpsAtOOM = 0;
         if (numOOM > 0) {
-            dpsAtOOM = out.DmgAtOOMs.reduce(function(sum, value){
-                return sum + value;
-            }, 0) / (numOOM * oomat);
+            out.DmgAtOOMs.forEach((v, i) => {
+                dpsAtOOM += v / out.OOMAt[i];
+            });
+            dpsAtOOM /= numOOM;
         }
 
         var castStats = {
@@ -231,7 +242,13 @@ function runsim(currentGear) {
         var stats = processSimResult(out);
         var max = stats.dps;
         if (stats.dpsAtOOM > max) {
+            console.log(`DPS: ${stats.dps}, OOM DPS: ${stats.dpsAtOOM}`);
             max = stats.dpsAtOOM;
+        }
+        if (max > veryMax) {
+            veryMax = max;
+        } else {
+            max = veryMax;
         }
         priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(max)}</text> dps<br /><text style="font-size:0.7em">${Math.round(stats.oomat)}s to oom at peak dps.</text></div>`
     });
@@ -248,16 +265,10 @@ function runsim(currentGear) {
     secondOpts.useai = true;
     simulate(iters, dur, currentGear, secondOpts, null, 0, (out) => { 
         var stats = processSimResult(out);
+        console.log("AI Casts: ", stats.casts);
         aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> dps<br /></div>`
         
         var rotstats = document.getElementById("rotstats");
-        var castIDToName = {
-            1: "LB",
-            2: "CL",
-            3: "TLC LB",
-            999: "LB Overload",
-            998: "CL Overload",
-        }
         rotstats.innerHTML = "";
         Object.entries(stats.casts).forEach((entry) => {
             if (entry[1] == 0) {
@@ -265,12 +276,18 @@ function runsim(currentGear) {
             }
             rotstats.innerHTML += `<text>${castIDToName[entry[0]]}: ${Math.round(entry[1]/iters)}</text>`;
         });
-        // <text>Chain Lightning: ${Math.round(stats.casts[2]/iters)}</text><text>Lightning Bolt Overload: ${Math.round(stats.casts[999]/iters)}</text><text>Chain Lightning Overload: ${Math.round(stats.casts[998]/iters)}</text>`;
 
         var chartcanvas = document.createElement("canvas"); // `<canvas id="myChart" width="600" height="400"></canvas>`;
         var rotout = document.getElementById("rotout");
         var bounds = rotout.getBoundingClientRect();
 
+        // Dirty hack in case the prio casting runs out of mana after BL is done but the average case has enough mana to burn priority casting.
+        if (stats.dps > veryMax) {
+            if (priout.childNodes.length > 0) {
+                priout.childNodes[0].childNodes[1].innerText = Math.round(stats.dps);
+            }
+            veryMax = stats.dps;
+        }
 
         var rotchart = document.getElementById("rotchart");
         rotchart.innerHTML = "";

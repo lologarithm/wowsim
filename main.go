@@ -43,31 +43,42 @@ func main() {
 
 	gear := tbc.NewEquipmentSet(
 		"Spellstrike Hood",
-		"Brooch of Heightened Potential",
+		"Charlotte's Ivy",
 		"Pauldrons of Wild Magic",
 		"Ogre Slayer's Cover",
 		"Tidefury Chestpiece",
 		"World's End Bracers",
 		"Earth Mantle Handwraps",
-		"Wave-Song Girdle",
-		"Spellstrike Pants",
+		"Netherstrike Belt",
+		"Stormsong Kilt",
 		"Magma Plume Boots",
 		"Cobalt Band of Tyrigosa",
 		"Scintillating Coral Band",
 		"Mazthoril Honor Shield",
 		"Gavel of Unearthed Secrets",
-		"The Lightning Capacitor",
+		"Natural Alignment Crystal",
 		"Icon of the Silver Crescent",
 		"Totem of the Void",
 	)
 	// gear[tbc.EquipHead].Gems[0] = tbc.GemLookup["Chaotic Skyfire Diamond"]
+	ruby := tbc.GemLookup["Runed Living Ruby"]
+	for i := range gear {
+		gear[i].Gems = make([]tbc.Gem, len(gear[i].GemSlots))
+		for gs, color := range gear[i].GemSlots {
+			if color != tbc.GemColorMeta {
+				gear[i].Gems[gs] = ruby
+			} else {
+				gear[i].Gems[gs] = tbc.Gems[0]
+			}
+		}
+	}
 
 	gearStats := gear.Stats()
 	fmt.Printf("Gear Stats:\n%s", gearStats.Print(true))
 
 	opt := tbc.Options{
-		NumBloodlust: 5,
-		NumDrums:     4,
+		NumBloodlust: 1,
+		NumDrums:     0,
 		Buffs: tbc.Buffs{
 			ArcaneInt:                true,
 			GiftOftheWild:            true,
@@ -75,15 +86,15 @@ func main() {
 			ImprovedBlessingOfWisdom: true,
 			JudgementOfWisdom:        true,
 			Moonkin:                  false,
-			SpriestDPS:               0,
+			SpriestDPS:               1000,
 			WaterShield:              true,
 		},
 		Consumes: tbc.Consumes{
-			BrilliantWizardOil: true,
-			MajorMageblood:     true,
+			BrilliantWizardOil: false,
+			MajorMageblood:     false,
 			BlackendBasilisk:   false,
 			SuperManaPotion:    true,
-			DarkRune:           true,
+			DarkRune:           false,
 		},
 		Talents: tbc.Talents{
 			LightninOverload:   5,
@@ -110,7 +121,7 @@ func main() {
 		rotArray = strings.Split(*rotation, ",")
 	}
 
-	results := runTBCSim(gear, opt, 100, sims, rotArray, *noopt)
+	results := runTBCSim(gear, opt, 50, sims, rotArray, *noopt)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
@@ -159,19 +170,6 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 
 		// opt.SpellOrder = optimalRotation
 		// tbc.OptimalGems(opt, equip, seconds, numSims)
-
-		// Gem it up.... for now
-		// ruby := tbc.GemLookup["Runed Living Ruby"]
-		// for i := range equip {
-		// 	equip[i].Gems = make([]tbc.Gem, len(equip[i].GemSlots))
-		// 	for gs, color := range equip[i].GemSlots {
-		// 		if color != tbc.GemColorMeta {
-		// 			equip[i].Gems[gs] = ruby
-		// 		} else {
-		// 			equip[i].Gems[gs] = tbc.Gems[0]
-		// 		}
-		// 	}
-		// }
 
 		// tbc.StatWeights(opt, equip, seconds, numSims)
 	}
