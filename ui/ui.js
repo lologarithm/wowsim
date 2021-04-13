@@ -607,8 +607,8 @@ function showGearRecommendations(weights) {
                         newgear[entry[0]] = entry[1];
                     }
                 });
-                var iters = parseInt(document.getElementById("iters").value);
-                var dur = parseInt(document.getElementById("dur").value);
+                var iters = parseInt(document.getElementById("switer").value);
+                var dur = parseInt(document.getElementById("swdur").value);
                 var opts = getOptions();
                 simulate(iters, dur, cleanGear(newgear), opts, null, null, (res)=>{
                     var statistics = processSimResult(res);
