@@ -508,7 +508,7 @@ function calcStatWeights(gear) {
 function showGearRecommendations(weights) {
     var itemWeightsBySlot = {};
     var curSlotWeights = {};
-    var csdVal = currentFinalStats["StatSpellDmg"] * (currentFinalStats["StatSpellCrit"]/2208) * 0.09;
+    var csdVal = (((currentFinalStats["StatSpellDmg"]*0.795)+603)*2 * (currentFinalStats["StatSpellCrit"]/2208) * 0.045) / 0.795;
     // process all items to find the weighted value.
     // find the value of each slots currently equipped item.
     Object.entries(gearUI.allitems).forEach((entry) => {

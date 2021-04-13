@@ -235,6 +235,9 @@ func (e Equipment) Stats() Stats {
 	return s
 }
 
+// Hopefully get access to:
+// https://docs.google.com/spreadsheets/d/1XkLW3o9VrYg8VT84tCoINq-KxP9EA876RdhIzO-PcQk/edit#gid=1056257705
+
 var items = []Item{
 	// source: https://docs.google.com/spreadsheets/d/1X-XO9N1_MPIq-UIpTN13LrhXRoho9fe26YEEM48QmPk/edit#gid=2035379487
 	{Slot: EquipHead, Name: "Gadgetstorm Goggles", SourceZone: "Engineering BoP", SourceDrop: "", Stats: Stats{0, 28, 40, 12, 55, 0, 0}, GemSlots: []GemColor{0x1, 0x3}},
