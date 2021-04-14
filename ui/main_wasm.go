@@ -189,14 +189,22 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	opts.RSeed = time.Now().Unix()
 	fmt.Printf("Random Seed: %d\n", opts.RSeed)
 	// allcasts := []*tbc.Cast{}
+
+	oomcount := 0
 	for ns := 0; ns < numSims; ns++ {
 		opts.RSeed++
 		sim := tbc.NewSim(opts.StatTotal(gear), gear, opts)
 		metrics := sim.Run(seconds)
 		simdmg += metrics.TotalDamage
 		simmet = append(simmet, metrics)
+		if metrics.OOMAt > 0 && metrics.OOMAt < seconds-5 {
+			oomcount++
+		}
 	}
 
+	if float64(oomcount)/float64(numSims) > 0.25 {
+		return -1
+	}
 	return simdmg / float64(numSims) / float64(seconds)
 }
 

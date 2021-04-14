@@ -271,6 +271,7 @@ function runsim(currentGear) {
     secondOpts.doopt = true;
     simulate(iters, dur, currentGear, secondOpts, null, 0, (out) => { 
         var stats = processSimResult(out);
+        console.log("AI Stats: ", stats);
         aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> +/- ${Math.round(stats.dev)} dps<br /></div>`
         
         var rotstats = document.getElementById("rotstats");
@@ -281,8 +282,18 @@ function runsim(currentGear) {
             }
             rotstats.innerHTML += `<text>${castIDToName[entry[0]]}: ${Math.round(entry[1]/iters)}</text>`;
         });
+        var percentoom = stats.numOOM/iters;
+        if (percentoom > 0.02) {
+            var dangerStyle = "";
+            if (percentoom > 0.05 && percentoom <= 0.25) {
+                dangerStyle= "border-color: #FDFD96;"
+            } else if (percentoom > 0.25) {
+                dangerStyle= "border-color: #FF6961;"
+            }
+            rotstats.innerHTML += `<text title="Downranking is not currently implemented." style="${dangerStyle};cursor: pointer">${Math.round(stats.numOOM/iters*100)}% of simulations went OOM.`
+        }
 
-        var chartcanvas = document.createElement("canvas"); // `<canvas id="myChart" width="600" height="400"></canvas>`;
+        var chartcanvas = document.createElement("canvas");
         var rotout = document.getElementById("rotout");
         var bounds = rotout.getBoundingClientRect();
 
@@ -434,6 +445,17 @@ function calcStatWeights(gear) {
     // A base DPS without any modified stats.
     statweight(iters, dur, gear, opts, 0, 0, (res) => {
         baseDPS = res;
+        if (baseDPS < 1) {
+            // we failed.
+            modDPS.forEach((v, i)=>{
+                var cell = document.getElementById("w"+i.toString());
+                cell.innerHTML = `<text style="color:#FF6961">OOM</text>`;
+            });        
+            var uptab = document.getElementById("upgrades");
+            var nr = document.createElement("text");
+            nr.innerText = `Simulations went OOM and so weights will be incorrect as downranking is not yet implemented.`;
+            uptab.appendChild(nr);
+        }
         console.log("Base DPS: ", res);
     }); // base
 
@@ -441,7 +463,7 @@ function calcStatWeights(gear) {
     var done = [];
     var onfinish = () => {
         done.push(true);
-        if (baseDPS == 0) {
+        if (baseDPS < 1) {
             return;
         }
         if (modDPS[0] == 0) {
@@ -454,6 +476,10 @@ function calcStatWeights(gear) {
                 return;
             }
             var cell = document.getElementById("w"+i.toString());
+            if (v == -1) {
+                cell.innerHTML = `<text style="color:#FF6961">OOM</text>`;
+                return;
+            }
             // sphit uses different value;
             if (i == 3 && sp_hitModDPS != 0.0) {
                 var sphitdiff = sp_hitModDPS - baseDPS;
@@ -486,6 +512,16 @@ function calcStatWeights(gear) {
 
         if (done.length == 7) {
             console.log("Mod DPS: ", modDPS);
+
+            var oomed = true;
+            modDPS.forEach((v) => {
+                if (v > 0) {
+                    oomed = false;
+                }
+            });
+            if (oomed) {
+                return;
+            }
             showGearRecommendations(weights);
         }
     };
@@ -498,8 +534,6 @@ function calcStatWeights(gear) {
     statweight(iters, dur, gear, opts, 2, 20, (res) => {modDPS[2] = res;onfinish();}); // crit
     statweight(iters, dur, gear, opts, 5, 20, (res) => {modDPS[4] = res;onfinish();}); // haste
     statweight(iters, dur, gear, opts, 6, 20, (res) => {modDPS[5] = res;onfinish();}); // mp5
-
-
 }
 
 function showGearRecommendations(weights) {
