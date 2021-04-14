@@ -117,6 +117,8 @@ func parseOptions(val js.Value) tbc.Options {
 			MoonkinRavenGoddess:      val.Get("buffmoonrg").Truthy(),
 			SpriestDPS:               val.Get("buffspriest").Int(),
 			WaterShield:              val.Get("sbufws").Truthy(),
+			EyeOfNight:               val.Get("buffeyenight").Truthy(),
+			TwilightOwl:              val.Get("bufftwilightowl").Truthy(),
 		},
 		Consumes: tbc.Consumes{
 			FlaskOfBlindingLight:     val.Get("confbl").Truthy(),
@@ -139,6 +141,7 @@ func parseOptions(val js.Value) tbc.Options {
 		Totems: tbc.Totems{
 			TotemOfWrath: val.Get("totwr").Int(),
 			WrathOfAir:   val.Get("totwoa").Truthy(),
+			Cyclone2PC:   val.Get("totcycl2p").Truthy(),
 			ManaStream:   val.Get("totms").Truthy(),
 		},
 	}

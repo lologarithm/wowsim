@@ -57,6 +57,7 @@ type Totems struct {
 	TotemOfWrath int
 	WrathOfAir   bool
 	ManaStream   bool
+	Cyclone2PC   bool // Cyclone set 2pc bonus
 }
 
 func (tt Totems) AddStats(s Stats) Stats {
@@ -64,6 +65,10 @@ func (tt Totems) AddStats(s Stats) Stats {
 	s[StatSpellHit] += 37.8 * float64(tt.TotemOfWrath)
 	if tt.WrathOfAir {
 		s[StatSpellDmg] += 101
+		if tt.Cyclone2PC {
+			print("Activating Cyclone 2PC")
+			s[StatSpellDmg] += 20
+		}
 	}
 	if tt.ManaStream {
 		s[StatMP5] += 50
@@ -104,6 +109,8 @@ type Buffs struct {
 	Moonkin             bool
 	MoonkinRavenGoddess bool // adds 20 spell crit to moonkin aura
 	SpriestDPS          int  // adds Mp5 ~ 25% (dps*5%*5sec = 25%)
+	EyeOfNight          bool // Eye of night bonus from party member (not you)
+	TwilightOwl         bool // from party member
 
 	// Self Buffs
 	WaterShield    bool
@@ -132,6 +139,12 @@ func (b Buffs) AddStats(s Stats) Stats {
 		if b.MoonkinRavenGoddess {
 			s[StatSpellCrit] += 20
 		}
+	}
+	if b.TwilightOwl {
+		s[StatSpellCrit] += 44.16
+	}
+	if b.EyeOfNight {
+		s[StatSpellDmg] += 34
 	}
 	if b.WaterShield {
 		s[StatMP5] += 50

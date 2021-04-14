@@ -14,13 +14,11 @@ UI
 
 Items
     Gear Quality
-    Lightning Capacitor
     Validate gear stats - unsure if item data source is accurate.
     Enchants
 
 Engine
-    Set Bonuses (missing t4/5/6)
-    Upgrader - List value of items with the stat weights.
+    Set Bonuses (missing t5/6)
 
 Other
     Implement Gear Phases

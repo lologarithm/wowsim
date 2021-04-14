@@ -126,6 +126,9 @@ function getOptions() {
     options.condr =  document.getElementById("condr").checked;
     options.totms =  document.getElementById("totms").checked;
     options.totwoa =  document.getElementById("totwoa").checked;
+    options.totcycl2p =  document.getElementById("totcycl2p").checked;
+    options.buffeyenight = document.getElementById("buffeyenight").checked;
+    options.bufftwilightowl = document.getElementById("bufftwilightowl").checked;
 
     options.buffbl =  parseInt(document.getElementById("buffbl").value) || 0;
     options.buffspriest = parseInt(document.getElementById("buffspriest").value) || 0;
@@ -673,6 +676,22 @@ function popgear(gearList) {
     caclweights.addEventListener("click", (event)=>{
         calcStatWeights(cleanGear(gearUI.currentGear));
     });
+
+    var inputs = document.querySelectorAll("#buffs input");
+    for (var i = 0; i < inputs.length; i++) {
+        var inp = inputs[i];
+        inp.addEventListener("input", (e)=>{
+            updateGearStats(gearUI.currentGear);
+        });
+    }
+    var selects = document.querySelectorAll("#buffs select");
+    for (var i = 0; i < selects.length; i++) {
+        var sel = selects[i];
+        sel.addEventListener("change", (e)=>{
+            updateGearStats(gearUI.currentGear);
+        })
+    }
+
 }
 
 // clearGear strips off all parts of gear that is non-changing. This lets us pass minimal data to sim and store in local storage.
@@ -809,7 +828,6 @@ window.addEventListener("mousemove", (e)=>{
         e.preventDefault();
     }
 });
-
 
 var theme = "dark";
 function toggletheme() {

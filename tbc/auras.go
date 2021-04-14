@@ -162,6 +162,9 @@ const (
 	MagicIDMisery
 	MagicIDEyeOfTheNight
 	MagicIDChainTO
+	MagicIDCyclone2pc
+	MagicIDCyclone4pc
+	MagicIDCycloneMana // proc from 4pc
 
 	//Items
 	MagicIDISCTrink
@@ -524,11 +527,35 @@ func ActivateTLC(sim *Simulation) Aura {
 }
 
 func ActivateChainTO(sim *Simulation) Aura {
+	if sim.Options.Buffs.TwilightOwl {
+		return Aura{ID: MagicIDChainTO, Expires: 0}
+	}
 	return Aura{
 		ID:      MagicIDChainTO,
 		Expires: sim.currentTick + 30*60*TicksPerSecond,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			c.Crit += 0.02
+		},
+	}
+}
+
+func ActivateCycloneManaReduce(sim *Simulation) Aura {
+	return Aura{
+		ID:      MagicIDCyclone4pc,
+		Expires: math.MaxInt32,
+		OnSpellHit: func(sim *Simulation, c *Cast) {
+			if c.DidCrit && sim.rando.Float64() < 0.11 {
+				sim.addAura(Aura{
+					ID: MagicIDCycloneMana,
+					OnCast: func(sim *Simulation, c *Cast) {
+						// TODO: how to make sure this goes in before clearcasting?
+						c.ManaCost -= 270
+					},
+					OnCastComplete: func(sim *Simulation, c *Cast) {
+						sim.removeAuraByID(MagicIDCycloneMana)
+					},
+				})
+			}
 		},
 	}
 }

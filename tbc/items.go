@@ -2,7 +2,6 @@ package tbc
 
 import (
 	"fmt"
-	"math"
 )
 
 var Gems = []Gem{
@@ -533,7 +532,13 @@ var items = []Item{
 	{Slot: EquipTrinket, Name: "Shiffar's Nexus-Horn", SourceZone: "Arc - Harbinger Skyriss", SourceDrop: "", Stats: Stats{0, 0, 30, 0, 0, 0, 0}, Activate: ActivateNexusHorn, ActivateCD: -1},
 	{Slot: EquipTrinket, Name: "Darkmoon Card: Crusade", SourceZone: "Blessings Deck", SourceDrop: "", Activate: ActivateDCC, ActivateCD: -1},
 	{Slot: EquipTrinket, Name: "The Lightning Capacitor", SourceZone: "Kara", SourceDrop: "", Activate: ActivateTLC, ActivateCD: -1},
-	{Slot: EquipNeck, Name: "Eye of the Night", SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatStm: 0, StatInt: 0, StatSpellDmg: 0, StatHaste: 0, StatSpellCrit: 26, StatSpellHit: 16, StatMP5: 0, StatSpellPen: 15}, Activate: createSpellDmgActivate(MagicIDEyeOfTheNight, 34, 30*60), ActivateCD: 3600, CoolID: MagicIDEyeOfTheNightTrink},
+	{Slot: EquipNeck, Name: "Eye of the Night", SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatStm: 0, StatInt: 0, StatSpellDmg: 0, StatHaste: 0, StatSpellCrit: 26, StatSpellHit: 16, StatMP5: 0, StatSpellPen: 15}, Activate: func(sim *Simulation) Aura {
+		if sim.Options.Buffs.EyeOfNight {
+			return Aura{}
+		}
+		activate := createSpellDmgActivate(MagicIDEyeOfTheNight, 34, 30*60)
+		return activate(sim)
+	}, ActivateCD: 3600, CoolID: MagicIDEyeOfTheNightTrink},
 	{Slot: EquipNeck, Name: "Chain of the Twilight Owl", SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatStm: 0, StatInt: 19, StatSpellDmg: 21, StatHaste: 0, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 0}, Activate: ActivateChainTO, ActivateCD: 3600, CoolID: MagicIDChainTOTrink},
 
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
@@ -556,7 +561,7 @@ var sets = []ItemSet{
 		Items: map[string]bool{"Netherstrike Breastplate": true, "Netherstrike Bracers": true, "Netherstrike Belt": true},
 		Bonuses: map[int]ItemActivation{3: func(sim *Simulation) Aura {
 			sim.Buffs[StatSpellDmg] += 23
-			return Aura{ID: MagicIDNetherstrike, Expires: math.MaxInt32}
+			return Aura{ID: MagicIDNetherstrike, Expires: 0}
 		}},
 	},
 	{
@@ -564,15 +569,17 @@ var sets = []ItemSet{
 		Items: map[string]bool{"Charlotte's Ivy": true, "Lola's Eve": true},
 		Bonuses: map[int]ItemActivation{2: func(sim *Simulation) Aura {
 			sim.Buffs[StatSpellDmg] += 15
-			return Aura{ID: MagicIDNetherstrike, Expires: math.MaxInt32}
+			return Aura{ID: MagicIDNetherstrike, Expires: 0}
 		}},
 	},
 	{
 		Name:  "Tidefury",
 		Items: map[string]bool{"Tidefury Helm": true, "Tidefury Shoulderguards": true, "Tidefury Chestpiece": true, "Tidefury Kilt": true},
 		Bonuses: map[int]ItemActivation{4: func(sim *Simulation) Aura {
-			sim.Buffs[StatMP5] += 3 // TODO: check if water shield is actually up.
-			return Aura{ID: MagicIDNetherstrike, Expires: math.MaxInt32}
+			if sim.Options.Buffs.WaterShield {
+				sim.Buffs[StatMP5] += 3
+			}
+			return Aura{ID: MagicIDNetherstrike, Expires: 0}
 		}},
 	},
 	{
@@ -585,7 +592,17 @@ var sets = []ItemSet{
 		Items: map[string]bool{"Mana-Etched Crown": true, "Mana-Etched Spaulders": true, "Mana-Etched Vestments": true, "Mana-Etched Gloves": true, "Mana-Etched Pantaloons": true},
 		Bonuses: map[int]ItemActivation{4: ActivateManaEtched, 2: func(sim *Simulation) Aura {
 			sim.Buffs[StatSpellHit] += 35
-			return Aura{ID: MagicIDManaEtchedHit, Expires: math.MaxInt32}
+			return Aura{ID: MagicIDManaEtchedHit, Expires: 0}
+		}},
+	},
+	{
+		Name:  "Cyclone Regalia",
+		Items: map[string]bool{"Cyclone Faceguard (Tier 4)": true, "Cyclone Shoulderguards (Tier 4)": true, "Cyclone Chestguard (Tier 4)": true, "Cyclone Handguards (Tier 4)": true, "Cyclone Legguards (Tier 4)": true},
+		Bonuses: map[int]ItemActivation{4: ActivateCycloneManaReduce, 2: func(sim *Simulation) Aura {
+			if !sim.Options.Totems.Cyclone2PC && sim.Options.Totems.WrathOfAir {
+				sim.Buffs[StatSpellDmg] += 20 // only activate if we don't already have it from party/
+			}
+			return Aura{ID: MagicIDCyclone2pc, Expires: 0}
 		}},
 	},
 }
