@@ -48,6 +48,12 @@ var Enchants = []Enchant{
 	{Name: "Greater Inscription of the Orb", Bonus: Stats{StatSpellDmg: 12, StatSpellCrit: 15}, Slot: EquipShoulder},
 	{Name: "Greater Inscription of Discipline", Bonus: Stats{StatSpellDmg: 18, StatSpellCrit: 10}, Slot: EquipShoulder},
 	{Name: "Power of the Scourge", Bonus: Stats{StatSpellDmg: 15, StatSpellCrit: 14}, Slot: EquipShoulder},
+	// Enchant Chest - Exceptional Stats +6 all stats
+	// Enchant Bracer - Spellpower 15sp
+	// Enchant Gloves - Major Spellpower - 20
+	// legs - Runic Spellthread +20sp
+	// Enchant Ring - Spellpower - 12sp
+	//  Enchant Weapon - Major Spellpower
 }
 
 var ItemLookup = map[string]Item{}
@@ -272,7 +278,7 @@ var items = []Item{
 	{Slot: EquipHead, Name: "Mask of Inner Fire", SourceZone: "BM - Chrono Lord Deja", SourceDrop: "", Stats: Stats{33, 30, 22, 0, 37, 0, 0}},
 	{Slot: EquipHead, Name: "Mooncrest Headdress", SourceZone: "Blast the Infernals! - SMV Quest", SourceDrop: "", Stats: Stats{16, 0, 21, 0, 44, 0, 0}},
 	{Slot: EquipNeck, Name: "Pendant of Dominance", SourceZone: "15,300 Honor & 10 EotS Marks", SourceDrop: "", Stats: Stats{12, 31, 16, 0, 26, 0, 0}, GemSlots: []GemColor{0x4}},
-	{Slot: EquipNeck, Name: "Brooch of Heightened Potential", SourceZone: "SLabs - Blackheart the Inciter", SourceDrop: "", Stats: Stats{12, 15, 14, 9, 22, 0, 0}},
+	{Slot: EquipNeck, Name: "Brooch of Heightened Potential", SourceZone: "SLabs - Blackheart the Inciter", SourceDrop: "", Stats: Stats{14, 15, 14, 9, 22, 0, 0}},
 	{Slot: EquipNeck, Name: "Torc of the Sethekk Prophet", SourceZone: "Brother Against Brother - Auchindoun ", SourceDrop: "", Stats: Stats{18, 0, 21, 0, 19, 0, 0}},
 	{Slot: EquipNeck, Name: "Natasha's Ember Necklace", SourceZone: "The Hound-Master - BEM Quest", SourceDrop: "", Stats: Stats{15, 0, 10, 0, 29, 0, 0}},
 	{Slot: EquipNeck, Name: "Warp Engineer's Prismatic Chain", SourceZone: "Mech - Mechano Lord Capacitus", SourceDrop: "", Stats: Stats{18, 17, 16, 0, 19, 0, 0}},

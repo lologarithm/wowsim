@@ -774,7 +774,6 @@ window.addEventListener("touchstart", (e)=>{
         outpanel = document.getElementById("calcdiv");
     }
     if (panediv.contains(e.target) || calcpane.contains(e.target)) {
-        console.log("now dragging...");
         panedrag = true;
         h = window.innerHeight;
         e.preventDefault();
@@ -791,7 +790,6 @@ window.addEventListener("mousedown", (e)=>{
         calcpane = document.getElementById("calctabs");
     }
     if (panediv.contains(e.target) || calcpane.contains(e.target)) {
-        console.log("now mouse dragging...");
         panedrag = true;
         h = window.innerHeight;
         e.preventDefault();
@@ -806,7 +804,6 @@ window.addEventListener("mouseup", (e)=>{
 
 window.addEventListener("touchmove", (e)=>{
     if (panedrag) {
-        console.log("dragging...", e)
         var percent = e.changedTouches[0].pageY / (h+60);
         inpanel.style.height = "calc(" + (percent*100).toString() + "% - 100px)";
         outpanel.style.height = "calc(" + (100-(percent*100)).toString() + "% - 100px)";
