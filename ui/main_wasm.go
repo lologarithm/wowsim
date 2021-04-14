@@ -307,6 +307,7 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		optNow.SpellOrder = spells
 		optNow.RSeed = rseed
 		for ns := 0; ns < numSims; ns++ {
+			optNow.RSeed++
 			sim := tbc.NewSim(stats, equip, optNow)
 			metrics := sim.Run(simsec)
 			pm(metrics)
