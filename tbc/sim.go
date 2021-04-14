@@ -151,10 +151,6 @@ func (sim *Simulation) reset() {
 		sim.addAura(AuraJudgementOfWisdom())
 	}
 
-	// if sim.Options.Buffs.Misery { // this is for now implemented directly in the spell cast function.
-	// 	sim.addAura(AuraJudgementOfWisdom())
-	// }
-
 	// Activate all permanent item effects.
 	for _, item := range sim.activeEquip {
 		if item.Activate != nil && item.ActivateCD == -1 {
@@ -307,7 +303,10 @@ func (sim *Simulation) Cast(cast *Cast) {
 				critBonus = cast.CritBonus
 			}
 			dmg *= (critBonus * 2) - 1 // if CSD equipped the cast crit bonus will be modified during 'onCastComplete.'
-			sim.addAura(AuraElementalFocus(sim.currentTick))
+			if cast.Spell.ID != MagicIDTLCLB {
+				// TLC does not proc focus.
+				sim.addAura(AuraElementalFocus(sim.currentTick))
+			}
 			if IsDebug {
 				dbgCast += " crit"
 			}

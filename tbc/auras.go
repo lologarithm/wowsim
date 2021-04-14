@@ -511,11 +511,11 @@ func ActivateTLC(sim *Simulation) Aura {
 			if !c.DidCrit {
 				return
 			}
-			lastActivation = sim.currentTick
 			charges++
 			sim.debug(" Lightning Capacitor Charges: %d\n", charges)
 			if charges >= 3 {
 				sim.debug(" Lightning Capacitor Triggered!\n")
+				lastActivation = sim.currentTick
 				clone := &Cast{
 					Spell: tlcspell,
 				}
