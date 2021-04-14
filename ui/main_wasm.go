@@ -188,6 +188,7 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 
 	// allcasts := []*tbc.Cast{}
 	for ns := 0; ns < numSims; ns++ {
+		opts.RSeed++
 		sim := tbc.NewSim(opts.StatTotal(gear), gear, opts)
 		metrics := sim.Run(seconds)
 		simdmg += metrics.TotalDamage
