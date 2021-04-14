@@ -43,6 +43,13 @@ var Gems = []Gem{
 	{Name: "Dazzling Talasite", Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatInt: 4}},
 }
 
+var Enchants = []Enchant{
+	{Name: "Glyph of Power", Bonus: Stats{StatSpellDmg: 22, StatSpellHit: 14}, Slot: EquipHead},
+	{Name: "Greater Inscription of the Orb", Bonus: Stats{StatSpellDmg: 12, StatSpellCrit: 15}, Slot: EquipShoulder},
+	{Name: "Greater Inscription of Discipline", Bonus: Stats{StatSpellDmg: 18, StatSpellCrit: 10}, Slot: EquipShoulder},
+	{Name: "Power of the Scourge", Bonus: Stats{StatSpellDmg: 15, StatSpellCrit: 14}, Slot: EquipShoulder},
+}
+
 var ItemLookup = map[string]Item{}
 var GemLookup = map[string]Gem{}
 
@@ -80,8 +87,11 @@ type Item struct {
 	Stats      Stats // Stats applied to wearer
 
 	GemSlots    []GemColor
-	Gems        []Gem
 	SocketBonus Stats
+
+	// Modified for each instance of the item.
+	Gems    []Gem
+	Enchant Enchant
 
 	// For simplicity all items that produce an aura are 'activatable'.
 	// Since we activate all items on CD, this works fine for stuff like Quags Eye.
@@ -89,6 +99,12 @@ type Item struct {
 	Activate   ItemActivation `json:"-"` // Activatable Ability, produces an aura
 	ActivateCD int            `json:"-"` // cooldown on activation, -1 means perm effect.
 	CoolID     int32          `json:"-"` // ID used for cooldown
+}
+
+type Enchant struct {
+	Name  string
+	Bonus Stats
+	Slot  byte // which slot does the enchant go on.
 }
 
 type Gem struct {

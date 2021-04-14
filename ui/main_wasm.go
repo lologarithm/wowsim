@@ -197,8 +197,6 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 // Simulate takes in number of iterations, duration, a gear list, and simulation options.
 // (iterations, duration, gearlist, options, <optional, custom rotation)
 func Simulate(this js.Value, args []js.Value) interface{} {
-	// TODO: Accept talents, buffs, and consumes as inputs.
-
 	if len(args) < 4 {
 		print("Expected 4 min arguments:  (#iterations, duration, gearlist, options)")
 		return `{"error": "invalid arguments supplied"}`

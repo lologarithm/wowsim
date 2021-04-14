@@ -36,8 +36,9 @@ func (o Options) StatTotal(e Equipment) Stats {
 	}
 
 	// Final calculations
-	stats[StatSpellCrit] += (stats[StatInt] / 80) / 100
+	stats[StatSpellCrit] += (stats[StatInt] / 80) / 100 * 22.08
 	stats[StatMana] += stats[StatInt] * 15
+	stats[StatMP5] += stats[StatInt] * (0.02 * float64(o.Talents.UnrelentingStorm))
 	// fmt.Printf("\fFinal MP5: %f", (stats[StatMP5] + (stats[StatInt] * 0.06)))
 
 	return stats
@@ -45,10 +46,11 @@ func (o Options) StatTotal(e Equipment) Stats {
 
 func (o Options) BaseStats() Stats {
 	stats := Stats{
-		StatInt:    104,  // Base
-		StatMana:   2958, // level 70 shaman
-		StatSpirit: 135,  // lvl 70 shaman
-		StatLen:    0,
+		StatInt:       104,    // Base int for troll
+		StatMana:      2678,   // level 70 shaman
+		StatSpirit:    135,    // lvl 70 shaman
+		StatSpellCrit: 48.576, // base crit for 70 sham
+		StatLen:       0,
 	}
 	return stats
 }
