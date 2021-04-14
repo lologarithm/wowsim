@@ -305,47 +305,44 @@ function runsim(currentGear) {
         var max = stats.dps + stats.dev;
         var labels = Object.keys(stats.dpsHist)
         var vals = [];
-        var devvals = [];
+        var colors = [];
 
         labels.forEach((k, i) => {
+            vals.push(stats.dpsHist[k]);
             var val = parseInt(k);
             if (val > min && val < max) {
-                devvals.push(stats.dpsHist[k]);
-                vals.push(0);
+                colors.push('#1E87F0');
             } else {
-                vals.push(stats.dpsHist[k]);
-                devvals.push(0);
+                colors.push('#FF6961');                
             }
-            labels[i] += " DPS";
         });
+
         var myChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: "DPS",
                     data: vals,
-                    backgroundColor: [
-                        '#1e87f0',
-                    ],
-                },
-                {
-                    label: "Expected DPS",
-                    data: devvals,
-                    backgroundColor: [
-                        '#FF6961',
-                    ],
+                    backgroundColor: colors,
                 }]
             },
             options: {
+                plugins: {
+                    legend: {
+                        display: false,
+                        labels: {}
+                    }
+                },
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        ticks: {
+                            display: false
+                        }
                     }
                 }
             }
         });
-
     });
 }
 
