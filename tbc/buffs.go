@@ -36,11 +36,10 @@ func (o Options) StatTotal(e Equipment) Stats {
 	}
 
 	// Final calculations
-	stats[StatSpellCrit] += (stats[StatInt] / 80) / 100 * 22.08
+	stats[StatSpellCrit] += (stats[StatInt] / 80) * 22.08
 	stats[StatMana] += stats[StatInt] * 15
 	stats[StatMP5] += stats[StatInt] * (0.02 * float64(o.Talents.UnrelentingStorm))
 	// fmt.Printf("\fFinal MP5: %f", (stats[StatMP5] + (stats[StatInt] * 0.06)))
-
 	return stats
 }
 
@@ -68,7 +67,6 @@ func (tt Totems) AddStats(s Stats) Stats {
 	if tt.WrathOfAir {
 		s[StatSpellDmg] += 101
 		if tt.Cyclone2PC {
-			print("Activating Cyclone 2PC")
 			s[StatSpellDmg] += 20
 		}
 	}

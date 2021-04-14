@@ -194,7 +194,6 @@ class SelectorComponent {
             });
             div.appendChild(itemdiv);
         });
-        console.log("Made Gem Selector:", color, div);
         return div;
     }
 

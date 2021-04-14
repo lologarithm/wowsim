@@ -63,7 +63,7 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 	}
 	if args[1].IsNull() {
 		gearStats := gear.Stats()
-		gearStats[tbc.StatSpellCrit] += (gearStats[tbc.StatInt] / 80) / 100
+		gearStats[tbc.StatSpellCrit] += (gearStats[tbc.StatInt] / 80) * 22.08
 		gearStats[tbc.StatMana] += gearStats[tbc.StatInt] * 15
 		return gearStats.Print(false)
 	}

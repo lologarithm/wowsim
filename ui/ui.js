@@ -227,7 +227,6 @@ function runsim(currentGear) {
 
     var iters = parseInt(document.getElementById("iters").value);
     var dur = parseInt(document.getElementById("dur").value);
-    console.log("Options: ", getOptions());
 
     var lbout = document.getElementById("simrotlb");
     var priout = document.getElementById("simrotpri");
@@ -249,7 +248,6 @@ function runsim(currentGear) {
         var stats = processSimResult(out);
         var max = stats.dps;
         if (stats.dpsAtOOM > max) {
-            console.log(`DPS: ${stats.dps}, OOM DPS: ${stats.dpsAtOOM}`);
             max = stats.dpsAtOOM;
         }
         if (max > veryMax) {
@@ -273,7 +271,6 @@ function runsim(currentGear) {
     secondOpts.doopt = true;
     simulate(iters, dur, currentGear, secondOpts, null, 0, (out) => { 
         var stats = processSimResult(out);
-        console.log("AI Casts: ", stats.casts);
         aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> +/- ${Math.round(stats.dev)} dps<br /></div>`
         
         var rotstats = document.getElementById("rotstats");
@@ -351,7 +348,6 @@ function runsim(currentGear) {
 
 // Populates the 'Hasted Rotations' tab in results pane.
 function hastedRotations(currentGear) {
-    console.log("Starting hasted rotations...");
     var opts = getOptions();
     opts.buffbl = 0;
     opts.buffdrum = 0;
@@ -491,7 +487,6 @@ function calcStatWeights(gear) {
             showGearRecommendations(weights);
         }
     };
-
 
     statweight(iters, dur, gear, opts, 4, 25, (res) => {sp_hitModDPS = res;onfinish();}); // sp
     statweight(iters, dur, gear, opts, 3, 25, (res) => {modDPS[3] = res;onfinish();}); // hit
@@ -654,7 +649,6 @@ function popgear(gearList) {
             glist = parsedGear;
         }
     }
-    console.log("Gear: ", glist);
     var currentGear = gearUI.updateEquipped(glist);
 
     gearUI.addChangeListener((item, slot)=>{
