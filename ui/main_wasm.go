@@ -183,12 +183,9 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	opts.UseAI = true // use AI optimal rotation.
 
 	simdmg := 0.0
-	fmt.Printf("StatWeight(%s, %0.0f) Stats: %s\n", tbc.Stat(stat).StatName(), statModVal, opts.StatTotal(gear).Print(false))
 	simmet := make([]tbc.SimMetrics, 0, numSims)
 
 	opts.RSeed = time.Now().Unix()
-	fmt.Printf("Random Seed: %d\n", opts.RSeed)
-	// allcasts := []*tbc.Cast{}
 
 	oomcount := 0
 	for ns := 0; ns < numSims; ns++ {
