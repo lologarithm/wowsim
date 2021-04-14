@@ -80,20 +80,20 @@ func main() {
 		NumBloodlust: 1,
 		NumDrums:     0,
 		Buffs: tbc.Buffs{
-			ArcaneInt:                true,
-			GiftOftheWild:            true,
-			BlessingOfKings:          true,
-			ImprovedBlessingOfWisdom: true,
-			JudgementOfWisdom:        true,
+			ArcaneInt:                false,
+			GiftOftheWild:            false,
+			BlessingOfKings:          false,
+			ImprovedBlessingOfWisdom: false,
+			JudgementOfWisdom:        false,
 			Moonkin:                  false,
-			SpriestDPS:               1000,
-			WaterShield:              true,
+			SpriestDPS:               0,
+			WaterShield:              false,
 		},
 		Consumes: tbc.Consumes{
 			BrilliantWizardOil: false,
 			MajorMageblood:     false,
 			BlackendBasilisk:   false,
-			SuperManaPotion:    true,
+			SuperManaPotion:    false,
 			DarkRune:           false,
 		},
 		Talents: tbc.Talents{
@@ -107,8 +107,8 @@ func main() {
 		},
 		Totems: tbc.Totems{
 			TotemOfWrath: 1,
-			WrathOfAir:   true,
-			ManaStream:   true,
+			WrathOfAir:   false,
+			ManaStream:   false,
 		},
 	}
 
@@ -121,7 +121,7 @@ func main() {
 		rotArray = strings.Split(*rotation, ",")
 	}
 
-	results := runTBCSim(gear, opt, 50, sims, rotArray, *noopt)
+	results := runTBCSim(gear, opt, 90, sims, rotArray, *noopt)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
@@ -135,8 +135,8 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 	spellOrders := [][]string{
 		// {"CL6", "LB12", "LB12", "LB12"},
 		// {"CL6", "LB12", "LB12", "LB12", "LB12"},
-		{"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
-		{"LB12"},               // only LB
+		// {"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
+		// {"LB12"},               // only LB
 	}
 	if len(customRotation) > 0 {
 		fmt.Printf("Using Custom Rotation: %v\n", customRotation)
@@ -191,8 +191,8 @@ func doSimMetrics(spo []string, stats tbc.Stats, equip tbc.Equipment, opt tbc.Op
 	rseed := time.Now().Unix()
 	opt.SpellOrder = spo
 	opt.RSeed = rseed
-	sim := tbc.NewSim(stats, equip, opt)
 	for ns := 0; ns < numSims; ns++ {
+		sim := tbc.NewSim(stats, equip, opt)
 		metrics := sim.Run(seconds)
 		simDmgs = append(simDmgs, metrics.TotalDamage)
 		simOOMs = append(simOOMs, metrics.OOMAt)
@@ -208,6 +208,7 @@ func doSimMetrics(spo []string, stats tbc.Stats, equip tbc.Equipment, opt tbc.Op
 			casts[cast.Spell.ID] += 1
 			manaSpent += cast.ManaCost
 		}
+
 		rv := int(math.Round(math.Round(metrics.TotalDamage/float64(seconds))/10) * 10)
 		histogram[rv] += 1
 	}

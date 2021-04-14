@@ -299,8 +299,10 @@ func (sim *Simulation) Cast(cast *Cast) {
 		crit := ((sim.Stats[StatSpellCrit] + sim.Buffs[StatSpellCrit]) / 2208.0) + cast.Crit // 22.08 crit == 1% crit
 		if sim.rando.Float64() < crit {
 			cast.DidCrit = true
-			// TODO: Make Elemental Fury talent check here.
-			critBonus := 1.5
+			critBonus := 1.0
+			if cast.Spell.ID == MagicIDCL6 || cast.Spell.ID == MagicIDLB12 {
+				critBonus = 1.5
+			}
 			if cast.CritBonus != 0 {
 				critBonus = cast.CritBonus
 			}

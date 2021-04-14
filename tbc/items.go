@@ -562,6 +562,8 @@ var items = []Item{
 		return activate(sim)
 	}, ActivateCD: 3600, CoolID: MagicIDEyeOfTheNightTrink},
 	{Slot: EquipNeck, Name: "Chain of the Twilight Owl", SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatStm: 0, StatInt: 19, StatSpellDmg: 21, StatHaste: 0, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 0}, Activate: ActivateChainTO, ActivateCD: 3600, CoolID: MagicIDChainTOTrink},
+	{Slot: EquipFinger, Name: "Evoker's Mark of the Redemption", SourceZone: "Quest SMV", SourceDrop: "Dissension Amongst the Ranks...", Stats: Stats{StatInt: 15, StatSpellDmg: 29, StatSpellCrit: 10}},
+	{Slot: EquipFinger, Name: "Dreamcrystal Band", SourceZone: "Blades Edge Moutains", SourceDrop: "50 Apexis Shards", Stats: Stats{StatInt: 10, StatSpellDmg: 38, StatSpellCrit: 15}},
 
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }

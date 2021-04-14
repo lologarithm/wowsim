@@ -424,7 +424,7 @@ function calcStatWeights(gear) {
     
     var baseDPS = 0.0;
     var sp_hitModDPS = 0.0
-    var modDPS = [0, 0, 0, 0, 0, 0];
+    var modDPS = [0, 0, 0, 0, 0, 0]; // SP, Int, Crit, Hit, Haste, MP5
     var weights = [0, 0, 0, 0, 0, 0, 0]; // Int, X, Crit, Hit, Dmg, Haste, MP5
     modDPS.forEach((v, i)=>{
         var cell = document.getElementById("w"+i.toString());
@@ -434,6 +434,7 @@ function calcStatWeights(gear) {
     // A base DPS without any modified stats.
     statweight(iters, dur, gear, opts, 0, 0, (res) => {
         baseDPS = res;
+        console.log("Base DPS: ", res);
     }); // base
 
 
@@ -484,18 +485,19 @@ function calcStatWeights(gear) {
         });
 
         if (done.length == 7) {
+            console.log("Mod DPS: ", modDPS);
             showGearRecommendations(weights);
         }
     };
 
-    statweight(iters, dur, gear, opts, 4, 25, (res) => {sp_hitModDPS = res;onfinish();}); // sp
-    statweight(iters, dur, gear, opts, 3, 25, (res) => {modDPS[3] = res;onfinish();}); // hit
+    statweight(iters, dur, gear, opts, 4, 20, (res) => {sp_hitModDPS = res;onfinish();}); // sp
+    statweight(iters, dur, gear, opts, 3, 20, (res) => {modDPS[3] = res;onfinish();}); // hit
 
-    statweight(iters, dur, gear, opts, 4, 100, (res) => {modDPS[0] = res;onfinish();}); // sp
-    statweight(iters, dur, gear, opts, 0, 100, (res) => {modDPS[1] = res;onfinish();}); // int
-    statweight(iters, dur, gear, opts, 2, 100, (res) => {modDPS[2] = res;onfinish();}); // crit
-    statweight(iters, dur, gear, opts, 5, 100, (res) => {modDPS[4] = res;onfinish();}); // haste
-    statweight(iters, dur, gear, opts, 6, 100, (res) => {modDPS[5] = res;onfinish();}); // mp5
+    statweight(iters, dur, gear, opts, 4, 20, (res) => {modDPS[0] = res;onfinish();}); // sp
+    statweight(iters, dur, gear, opts, 0, 20, (res) => {modDPS[1] = res;onfinish();}); // int
+    statweight(iters, dur, gear, opts, 2, 20, (res) => {modDPS[2] = res;onfinish();}); // crit
+    statweight(iters, dur, gear, opts, 5, 20, (res) => {modDPS[4] = res;onfinish();}); // haste
+    statweight(iters, dur, gear, opts, 6, 20, (res) => {modDPS[5] = res;onfinish();}); // mp5
 
 
 }

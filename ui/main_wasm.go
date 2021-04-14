@@ -183,9 +183,12 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	opts.UseAI = true // use AI optimal rotation.
 
 	simdmg := 0.0
-	sim := tbc.NewSim(opts.StatTotal(gear), gear, opts)
+	fmt.Printf("StatWeight(%d, %0.0f) Stats: %s\n", stat, statModVal, opts.StatTotal(gear).Print(false))
 	simmet := make([]tbc.SimMetrics, 0, numSims)
+
+	// allcasts := []*tbc.Cast{}
 	for ns := 0; ns < numSims; ns++ {
+		sim := tbc.NewSim(opts.StatTotal(gear), gear, opts)
 		metrics := sim.Run(seconds)
 		simdmg += metrics.TotalDamage
 		simmet = append(simmet, metrics)
@@ -303,8 +306,8 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		optNow := opts
 		optNow.SpellOrder = spells
 		optNow.RSeed = rseed
-		sim := tbc.NewSim(stats, equip, optNow)
 		for ns := 0; ns < numSims; ns++ {
+			sim := tbc.NewSim(stats, equip, optNow)
 			metrics := sim.Run(simsec)
 			pm(metrics)
 		}
