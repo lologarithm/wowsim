@@ -343,7 +343,7 @@ var items = []Item{
 	{Slot: 0x8, Name: "Girdle of Living Flame", SourceZone: "H UB - Hungarfen", SourceDrop: "", Stats: Stats{17, 15, 0, 16, 29, 0, 0}, GemSlots: []GemColor{0x4, 0x3}},
 	{Slot: 0x8, Name: "Wave-Song Girdle", SourceZone: "H AC - Exarch Maladaar", SourceDrop: "", Stats: Stats{25, 25, 23, 0, 32, 0, 0}},
 	{Slot: 0x8, Name: "A'dal's Gift", SourceZone: "How to Break Into the Arcatraz - Quest", SourceDrop: "", Stats: Stats{25, 0, 21, 0, 34, 0, 0}},
-	{Slot: 0x8, Name: "Netherstrike Belt", SourceZone: "Leatherworking BoP - Req. Dragonscale LW", SourceDrop: "", Stats: Stats{17, 10, 16, 0, 30, 0, 9}},
+	{Slot: 0x8, Name: "Netherstrike Belt", SourceZone: "Leatherworking BoP - Req. Dragonscale LW", SourceDrop: "", Stats: Stats{17, 10, 16, 0, 30, 0, 9}, GemSlots: []GemColor{GemColorBlue, GemColorYellow}},
 	{Slot: 0x8, Name: "General's Mail Girdle", SourceZone: "14,280 Honor & 40 AB Marks", SourceDrop: "", Stats: Stats{23, 34, 24, 0, 28, 0, 0}},
 	{Slot: 0x8, Name: "Sash of Arcane Visions", SourceZone: "H AC - Exarch Maladaar", SourceDrop: "", Stats: Stats{23, 18, 22, 0, 28, 0, 0}},
 	{Slot: 0x8, Name: "Belt of Depravity", SourceZone: "H Arc - Harbinger Skyriss", SourceDrop: "", Stats: Stats{27, 31, 0, 17, 34, 0, 0}},
