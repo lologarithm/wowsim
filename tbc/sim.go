@@ -92,7 +92,7 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		Equip:         equip,
 		rseed:         options.RSeed,
 		rando:         rand.New(rand.NewSource(options.RSeed)),
-		Debug:         func(a string, v ...interface{}) {},
+		Debug:         nil,
 		SpellChooser:  ChooseSpell,
 	}
 
@@ -119,15 +119,8 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 }
 
 func (sim *Simulation) reset() {
-	sim.rseed++
-	sim.rando.Seed(sim.rseed)
-
-	if sim.Options.UseAI {
-		// Reset a new AI
-		// TODO: Can we take learnings from the last AI to modulate this AIs behavior?
-		ai := NewAI(sim)
-		sim.SpellChooser = ai.ChooseSpell
-	}
+	// sim.rseed++
+	// sim.rando.Seed(sim.rseed)
 
 	sim.bloodlustCasts = 0
 	sim.CurrentTick = 0
@@ -138,8 +131,17 @@ func (sim *Simulation) reset() {
 	sim.Auras = []Aura{}
 	sim.metrics = SimMetrics{}
 
-	sim.Debug("SIM RESET\n")
-	sim.Debug("----------------------\n")
+	if sim.Options.UseAI {
+		// Reset a new AI
+		// TODO: Can we take learnings from the last AI to modulate this AIs behavior?
+		ai := NewAI(sim)
+		sim.SpellChooser = ai.ChooseSpell
+	}
+
+	if sim.Debug != nil {
+		sim.Debug("SIM RESET\n")
+		sim.Debug("----------------------\n")
+	}
 
 	// Activate all talents
 	if sim.Options.Talents.LightninOverload > 0 {
@@ -206,12 +208,16 @@ func (sim *Simulation) cleanAura(i int) {
 	sim.Auras[i].OnSpellHit = nil
 	sim.Auras[i].OnExpire = nil
 
-	sim.Debug(" -%s\n", AuraName(sim.Auras[i].ID))
+	if sim.Debug != nil {
+		sim.Debug(" -%s\n", AuraName(sim.Auras[i].ID))
+	}
 	sim.Auras = sim.Auras[:i+copy(sim.Auras[i:], sim.Auras[i+1:])]
 }
 
 func (sim *Simulation) addAura(a Aura) {
-	sim.Debug(" +%s\n", AuraName(a.ID))
+	if sim.Debug != nil {
+		sim.Debug(" +%s\n", AuraName(a.ID))
+	}
 	for i := range sim.Auras {
 		if sim.Auras[i].ID == a.ID {
 			sim.Auras[i] = a // replace
@@ -264,7 +270,9 @@ func ChooseSpell(sim *Simulation, didPot bool) int {
 			}
 			return cast.TicksUntilCast
 		} else {
-			sim.Debug("Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
+			if sim.Debug != nil {
+				sim.Debug("Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
+			}
 			if sim.metrics.OOMAt == 0 {
 				sim.metrics.OOMAt = sim.CurrentTick / TicksPerSecond
 				sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
@@ -286,7 +294,9 @@ func (sim *Simulation) Cast(cast *Cast) {
 		hit = 0.99 // can't get away from the 1% miss
 	}
 
-	sim.Debug("Completed Cast (%s)\n", cast.Spell.Name)
+	if sim.Debug != nil {
+		sim.Debug("Completed Cast (%s)\n", cast.Spell.Name)
+	}
 	dbgCast := cast.Spell.Name
 	if sim.rando.Float64() < hit {
 		sp := sim.Stats[StatSpellDmg] + sim.Buffs[StatSpellDmg] + cast.Spellpower
@@ -311,10 +321,10 @@ func (sim *Simulation) Cast(cast *Cast) {
 				// TLC does not proc focus.
 				sim.addAura(AuraElementalFocus(sim.CurrentTick))
 			}
-			if IsDebug {
+			if sim.Debug != nil {
 				dbgCast += " crit"
 			}
-		} else if IsDebug {
+		} else if sim.Debug != nil {
 			dbgCast += " hit"
 		}
 
@@ -332,7 +342,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 		// .... Using level 70 shows a 0.35% chance of resist instead of 2.5%... not sure what is correct.
 		if sim.rando.Float64() < 0.025 { // chance of 25% resist
 			dmg *= .75
-			if IsDebug {
+			if sim.Debug != nil {
 				dbgCast += " (partial resist)"
 			}
 		}
@@ -349,7 +359,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 		}
 		sim.metrics.TotalDamage += cast.DidDmg
 	} else {
-		if IsDebug {
+		if sim.Debug != nil {
 			dbgCast += " miss"
 		}
 		cast.DidDmg = 0
@@ -357,7 +367,9 @@ func (sim *Simulation) Cast(cast *Cast) {
 		cast.DidHit = false
 	}
 	sim.metrics.Casts = append(sim.metrics.Casts, cast)
-	sim.Debug("%s: %0.0f\n", dbgCast, cast.DidDmg)
+	if sim.Debug != nil {
+		sim.Debug("%s: %0.0f\n", dbgCast, cast.DidDmg)
+	}
 	sim.CurrentMana -= cast.ManaCost
 	sim.CastingSpell = nil
 	if cast.Spell.Cooldown > 0 {

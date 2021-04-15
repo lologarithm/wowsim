@@ -299,7 +299,9 @@ func NewAI(sim *Simulation) *EleAI {
 		LastMana: sim.CurrentMana,
 		NumCasts: 3,
 	}
-	sim.Debug("[AI] initialized\n")
+	if sim.Debug != nil {
+		sim.Debug("[AI] initialized\n")
+	}
 	return ai
 }
 
@@ -325,12 +327,16 @@ func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
 		totalManaDrain := rate * float64(timeRemaining)
 		buffer := ai.CL.Mana // mana buffer of 1 extra CL
 
-		sim.Debug("[AI] CL Ready: Mana/Tick: %0.1f, Est Mana Drain: %0.1f, CurrentMana: %0.1f\n", rate, totalManaDrain, sim.CurrentMana)
+		if sim.Debug != nil {
+			sim.Debug("[AI] CL Ready: Mana/Tick: %0.1f, Est Mana Drain: %0.1f, CurrentMana: %0.1f\n", rate, totalManaDrain, sim.CurrentMana)
+		}
 		// If we have enough mana to burn and CL is on CD, use it.
 		if totalManaDrain < sim.CurrentMana-buffer {
 			cast := NewCast(sim, ai.CL)
 			if sim.CurrentMana >= cast.ManaCost {
-				sim.Debug("[AI] Selected CL\n")
+				if sim.Debug != nil {
+					sim.Debug("[AI] Selected CL\n")
+				}
 				sim.CastingSpell = cast
 				return cast.TicksUntilCast
 			}
@@ -339,12 +345,16 @@ func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
 	cast := NewCast(sim, ai.LB)
 
 	if sim.CurrentMana >= cast.ManaCost {
-		sim.Debug("[AI] Selected LB\n")
+		if sim.Debug != nil {
+			sim.Debug("[AI] Selected LB\n")
+		}
 		sim.CastingSpell = cast
 		return cast.TicksUntilCast
 	}
 
-	sim.Debug("[AI] OOM Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
+	if sim.Debug != nil {
+		sim.Debug("[AI] OOM Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
+	}
 	if sim.metrics.OOMAt == 0 {
 		sim.metrics.OOMAt = sim.CurrentTick / TicksPerSecond
 		sim.metrics.DamageAtOOM = sim.metrics.TotalDamage

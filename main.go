@@ -7,6 +7,8 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"os"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"time"
@@ -18,15 +20,15 @@ import (
 
 func main() {
 
-	// f, err := os.Create("profile2.cpu")
-	// if err != nil {
-	// 	log.Fatal("could not create CPU profile: ", err)
-	// }
-	// defer f.Close() // error handling omitted for example
-	// if err := pprof.StartCPUProfile(f); err != nil {
-	// 	log.Fatal("could not start CPU profile: ", err)
-	// }
-	// defer pprof.StopCPUProfile()
+	f, err := os.Create("profile2.cpu")
+	if err != nil {
+		log.Fatal("could not create CPU profile: ", err)
+	}
+	defer f.Close() // error handling omitted for example
+	if err := pprof.StartCPUProfile(f); err != nil {
+		log.Fatal("could not start CPU profile: ", err)
+	}
+	defer pprof.StopCPUProfile()
 
 	var isDebug = flag.Bool("debug", false, "Include --debug to spew the entire simulation log.")
 	var noopt = flag.Bool("noopt", false, "If included it will disable optimization.")
@@ -191,8 +193,8 @@ func doSimMetrics(spo []string, stats tbc.Stats, equip tbc.Equipment, opt tbc.Op
 	rseed := time.Now().Unix()
 	opt.SpellOrder = spo
 	opt.RSeed = rseed
+	sim := tbc.NewSim(stats, equip, opt)
 	for ns := 0; ns < numSims; ns++ {
-		sim := tbc.NewSim(stats, equip, opt)
 		metrics := sim.Run(seconds)
 		simDmgs = append(simDmgs, metrics.TotalDamage)
 		simOOMs = append(simOOMs, metrics.OOMAt)

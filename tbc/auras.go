@@ -188,7 +188,9 @@ func AuraJudgementOfWisdom() Aura {
 		ID:      MagicIDJoW,
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
-			sim.Debug(" +Judgement Of Wisdom: 74 mana\n")
+			if sim.Debug != nil {
+				sim.Debug(" +Judgement Of Wisdom: 74 mana\n")
+			}
 			sim.CurrentMana += 74
 		},
 	}
@@ -218,7 +220,9 @@ func AuraLightningOverload(lvl int) Aura {
 				return // can't proc LO on LO
 			}
 			if sim.rando.Float64() < chance {
-				sim.Debug(" +Lightning Overload\n")
+				if sim.Debug != nil {
+					sim.Debug(" +Lightning Overload\n")
+				}
 				clone := &Cast{
 					IsLO:    true,
 					Spell:   c.Spell,
@@ -355,7 +359,9 @@ func AuraStatRemoval(tick int, seconds int, amount float64, stat Stat, id int32)
 		ID:      id,
 		Expires: tick + (seconds * TicksPerSecond),
 		OnExpire: func(sim *Simulation, c *Cast) {
-			sim.Debug(" -%0.0f %s from %s\n", amount, stat.StatName(), AuraName(id))
+			if sim.Debug != nil {
+				sim.Debug(" -%0.0f %s from %s\n", amount, stat.StatName(), AuraName(id))
+			}
 			sim.Buffs[stat] -= amount
 		},
 	}
@@ -380,7 +386,9 @@ func ActivateSkycall(sim *Simulation) Aura {
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			if c.Spell.ID == MagicIDLB12 && sim.rando.Float64() < 0.15 {
-				sim.Debug(" +Skycall Energized- \n")
+				if sim.Debug != nil {
+					sim.Debug(" +Skycall Energized- \n")
+				}
 				sim.Buffs[StatHaste] += hasteBonus
 				sim.addAura(AuraStatRemoval(sim.CurrentTick, 10, hasteBonus, StatHaste, MagicIDEnergized))
 			}
@@ -420,7 +428,9 @@ func ActivateIED(sim *Simulation) Aura {
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			if lastActivation+icd < sim.CurrentTick && sim.rando.Float64() < 0.04 {
 				lastActivation = sim.CurrentTick
-				sim.Debug(" *Insightful Earthstorm Mana Restore - 300\n")
+				if sim.Debug != nil {
+					sim.Debug(" *Insightful Earthstorm Mana Restore - 300\n")
+				}
 				sim.CurrentMana += 300
 			}
 		},
@@ -512,9 +522,13 @@ func ActivateTLC(sim *Simulation) Aura {
 				return
 			}
 			charges++
-			sim.Debug(" Lightning Capacitor Charges: %d\n", charges)
+			if sim.Debug != nil {
+				sim.Debug(" Lightning Capacitor Charges: %d\n", charges)
+			}
 			if charges >= 3 {
-				sim.Debug(" Lightning Capacitor Triggered!\n")
+				if sim.Debug != nil {
+					sim.Debug(" Lightning Capacitor Triggered!\n")
+				}
 				lastActivation = sim.CurrentTick
 				clone := &Cast{
 					Spell: tlcspell,

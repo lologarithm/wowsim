@@ -197,9 +197,8 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	opts.RSeed = time.Now().Unix()
 
 	oomcount := 0
+	sim := tbc.NewSim(opts.StatTotal(gear), gear, opts)
 	for ns := 0; ns < numSims; ns++ {
-		opts.RSeed++
-		sim := tbc.NewSim(opts.StatTotal(gear), gear, opts)
 		metrics := sim.Run(seconds)
 		simdmg += metrics.TotalDamage
 		simmet = append(simmet, metrics)
@@ -258,6 +257,20 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 	}
 	fmt.Printf("Took %s to json marshal response.\n", time.Now().Sub(st))
 	return string(output)
+}
+
+func jsonmarshal(results []SimResult) string {
+
+	val := "["
+	for i, v := range results {
+		js, _ := json.Marshal(v)
+		val += string(js)
+		if i != len(results)-1 {
+			val += ","
+		}
+	}
+	val += "]"
+	return val
 }
 
 type SimResult struct {
@@ -326,9 +339,8 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		optNow := opts
 		optNow.SpellOrder = spells
 		optNow.RSeed = rseed
+		sim := tbc.NewSim(stats, equip, optNow)
 		for ns := 0; ns < numSims; ns++ {
-			optNow.RSeed++
-			sim := tbc.NewSim(stats, equip, optNow)
 			if fullLogs {
 				sim.Debug = func(s string, vals ...interface{}) {
 					logsBuffer.WriteString(fmt.Sprintf("[%0.1f] "+s, append([]interface{}{(float64(sim.CurrentTick) / float64(tbc.TicksPerSecond))}, vals...)...))

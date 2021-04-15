@@ -625,4 +625,14 @@ var sets = []ItemSet{
 			return Aura{ID: MagicIDCyclone2pc, Expires: 0}
 		}},
 	},
+	{
+		Name:  "Windhawk",
+		Items: map[string]bool{"Windhawk Hauberk": true, "Windhawk Belt": true, "Windhawk Bracers": true},
+		Bonuses: map[int]ItemActivation{3: func(sim *Simulation) Aura {
+			if sim.Options.Buffs.WaterShield {
+				sim.Buffs[StatMP5] += 8
+			}
+			return Aura{ID: MagicIDNetherstrike, Expires: 0}
+		}},
+	},
 }

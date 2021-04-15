@@ -229,6 +229,16 @@ function processSimResult(output) {
 
 // Populates the 'Sim' tab in the results pane.
 function runsim(currentGear, fullLogs) {
+    if (fullLogs) {
+        var dur = parseInt(document.getElementById("logdur").value);
+        var firstOpts = getOptions();
+        firstOpts.useai = true;
+        simulate(1, dur, currentGear, firstOpts, null, null, true, (out) => { 
+            var logdiv = document.getElementById("simlogs");
+            logdiv.innerText = out[0].Logs;
+        });
+        return;
+    }
 
     var iters = parseInt(document.getElementById("iters").value);
     var dur = parseInt(document.getElementById("dur").value);
@@ -242,17 +252,6 @@ function runsim(currentGear, fullLogs) {
     lbout.innerHTML = metricHTML;
     priout.innerHTML = metricHTML;
     aiout.innerHTML = metricHTML;
-
-    if (fullLogs) {
-        var dur = parseInt(document.getElementById("logdur").value);
-        var firstOpts = getOptions();
-        firstOpts.useai = true;
-        simulate(1, dur, currentGear, firstOpts, null, null, true, (out) => { 
-            var logdiv = document.getElementById("simlogs");
-            logdiv.innerText = out[0].Logs;
-        });
-        return;
-    }
 
     var veryMax = 0.0;
 
