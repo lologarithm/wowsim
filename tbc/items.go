@@ -41,6 +41,7 @@ var Gems = []Gem{
 	{Name: "Infused Fire Opal", Color: GemColorOrange, Stats: Stats{StatInt: 4, StatSpellDmg: 6}},
 	{Name: "Rune Covered Chrysoprase", Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatSpellCrit: 5}},
 	{Name: "Dazzling Talasite", Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatInt: 4}},
+	{Name: "Glowing Nightseye", Color: GemColorPurple, Stats: Stats{StatSpellDmg: 5, StatStm: 6}},
 }
 
 var Enchants = []Enchant{
