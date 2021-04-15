@@ -344,7 +344,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 		// Using these stats:
 		//    13.6% chance of
 		resVal := sim.rando.Float64()
-		if resVal < 0.17 { // 12% chance for 25% resist, 4% for 50%, 1% for 75%
+		if resVal < 0.18 { // 13% chance for 25% resist, 4% for 50%, 1% for 75%
 			if sim.Debug != nil {
 				dbgCast += " (partial resist: "
 			}
