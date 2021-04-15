@@ -356,6 +356,9 @@ function colorIntersects(color, intersect) {
     if (color == intersect) {
         return true;
     }
+    if (color == 8 || intersect == 8) { // prismatic intersects everything.
+        return true;
+    }
 
     if (color == 1) {
         return false; // meta gems intersect nothing.

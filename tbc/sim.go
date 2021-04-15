@@ -163,6 +163,10 @@ func (sim *Simulation) reset() {
 		}
 	}
 
+	sim.ActivateSets()
+}
+
+func (sim *Simulation) ActivateSets() {
 	// Activate Set Bonuses
 	for _, set := range sets {
 		itemCount := 0

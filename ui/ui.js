@@ -192,20 +192,23 @@ function processSimResult(output) {
     }
 
     var castStats = {
-        1: 0, // TODO: expose these constants from the wasm somehow.
-        2: 0,
-        3: 0,
-        999: 0,
-        998: 0,
-    };
+        1: {count: 0, dmg: 0, crits: 0},
+        2: {count: 0, dmg: 0, crits: 0},
+        3: {count: 0, dmg: 0, crits: 0},
+        999: {count: 0, dmg: 0, crits: 0},
+        998: {count: 0, dmg: 0, crits: 0},
+    }
     out.Casts.forEach((casts)=>{
         casts.forEach((cast)=>{
-            if (!cast.IsLO)  {
-                castStats[cast.ID] += 1
-            } else {
-                castStats[1000-cast.ID] += 1
+            var id = cast.ID
+            if (cast.IsLO)  {
+                id = 1000-cast.ID;
             }
-            
+            castStats[id].count += 1;
+            castStats[id].dmg += cast.Dmg;
+            if (cast.Crit) {
+                castStats[id].crits += 1;
+            }
         });
     });
   
@@ -277,10 +280,11 @@ function runsim(currentGear) {
         var rotstats = document.getElementById("rotstats");
         rotstats.innerHTML = "";
         Object.entries(stats.casts).forEach((entry) => {
-            if (entry[1] == 0) {
+            if (entry[1].count == 0) {
                 return;
             }
-            rotstats.innerHTML += `<text>${castIDToName[entry[0]]}: ${Math.round(entry[1]/iters)}</text>`;
+            var cstat = entry[1];
+            rotstats.innerHTML += `<text style="cursor:pointer" title="Avg Dmg: ${Math.round(cstat.dmg/cstat.count)} Crit: ${Math.round(cstat.crits/cstat.count*100)}%">${castIDToName[entry[0]]}: ${Math.round(cstat.count/iters)}</text>`;
         });
         var percentoom = stats.numOOM/iters;
         if (percentoom > 0.02) {

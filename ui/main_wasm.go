@@ -69,6 +69,14 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 	}
 	opt := parseOptions(args[1])
 	stats := opt.StatTotal(gear)
+	opt.UseAI = true // stupid complaining sim...maybe I should just default AI on.
+	fakesim := tbc.NewSim(stats, gear, opt)
+	fakesim.ActivateSets()
+
+	finalStats := stats
+	for i, v := range fakesim.Buffs {
+		finalStats[i] += v
+	}
 	return stats.Print(false)
 }
 

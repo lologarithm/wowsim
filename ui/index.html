@@ -152,13 +152,13 @@
                     <li class="uk-active"><a href="#">Sim</a></li>
                     <li><a href="#">Hasted Rotations</a></li>
                     <li><a href="#">Gear & Stat Weights</a></li>
+                    <li><a href="#">Sim Logs</a></li>
                 </ul>
                 <ul id="calcs" class="uk-switcher uk-margin" style="height: 100%;overflow: auto;margin-bottom:0px">
                     <li style="height:100%">
                         <div style="text-align: right">
                             Iterations: <input id="iters" type="text" value="1000" style="width: 60px"></input>
                             Duration: <input id="dur" type="text" value="300" style="width: 60px"></input>
-                            <!-- Optimize: <input id="doopt" type="checkbox" class="uk-checkbox" checked></input> -->
                             <button id="simrunbut">Run Simulation</button>
                         </div>
                         <div id="simout" style="width: 99%;height: calc(100% - 40px);border:1px solid black;margin-top: 10px;">
@@ -223,6 +223,14 @@
                         </table>
                         <table id="upgrades" style="margin: 0px auto;">
                         </table>
+                    </li>
+                    <li style="height:100%">
+                        <div style="text-align: right">
+                            Duration: <input id="logdur" type="text" value="300" style="width: 60px"></input>
+                            <button id="simrunbut">Run Simulation</button>
+                        </div>
+                        <div id="simlogs" style="width: 99%;border:1px solid black;margin-top: 10px;">
+                        </div>
                     </li>
                 </ul>    
             </div>

@@ -42,6 +42,8 @@ var Gems = []Gem{
 	{Name: "Rune Covered Chrysoprase", Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatSpellCrit: 5}},
 	{Name: "Dazzling Talasite", Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatInt: 4}},
 	{Name: "Glowing Nightseye", Color: GemColorPurple, Stats: Stats{StatSpellDmg: 5, StatStm: 6}},
+	{Name: "Glowing Nightseye", Color: GemColorPurple, Stats: Stats{StatSpellDmg: 5, StatStm: 6}},
+	{Name: "Potent Fire Opal", Color: GemColorOrange, Stats: Stats{StatSpellDmg: 6, StatSpellCrit: 4}},
 }
 
 var Enchants = []Enchant{
@@ -133,10 +135,14 @@ const (
 	GemColorGreen
 	GemColorOrange
 	GemColorPurple
+	GemColorPrismatic
 )
 
 func (gm GemColor) Intersects(o GemColor) bool {
 	if gm == o {
+		return true
+	}
+	if gm == GemColorPrismatic || o == GemColorPrismatic {
 		return true
 	}
 	if gm == GemColorMeta {
@@ -552,7 +558,9 @@ var items = []Item{
 	{Slot: EquipNeck, Name: "Chain of the Twilight Owl", SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatStm: 0, StatInt: 19, StatSpellDmg: 21, StatHaste: 0, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 0}, Activate: ActivateChainTO, ActivateCD: 3600, CoolID: MagicIDChainTOTrink},
 	{Slot: EquipFinger, Name: "Evoker's Mark of the Redemption", SourceZone: "Quest SMV", SourceDrop: "Dissension Amongst the Ranks...", Stats: Stats{StatInt: 15, StatSpellDmg: 29, StatSpellCrit: 10}},
 	{Slot: EquipFinger, Name: "Dreamcrystal Band", SourceZone: "Blades Edge Moutains", SourceDrop: "50 Apexis Shards", Stats: Stats{StatInt: 10, StatSpellDmg: 38, StatSpellCrit: 15}},
-
+	{Slot: EquipChest, Name: "Windhawk Hauberk", SourceZone: "Leatherworking", SourceDrop: "", Stats: Stats{StatStm: 28, StatInt: 29, StatSpirit: 29, StatSpellDmg: 46, StatSpellCrit: 19}, GemSlots: []GemColor{GemColorBlue, GemColorYellow, GemColorBlue}, SocketBonus: Stats{StatSpellDmg: 5}},
+	{Slot: EquipWaist, Name: "Windhawk Belt", SourceZone: "Leatherworking", SourceDrop: "", Stats: Stats{StatStm: 17, StatInt: 19, StatSpirit: 20, StatSpellDmg: 37, StatSpellCrit: 12}, GemSlots: []GemColor{GemColorBlue, GemColorYellow}, SocketBonus: Stats{StatSpellDmg: 4}},
+	{Slot: EquipWrist, Name: "Windhawk Bracers", SourceZone: "Leatherworking", SourceDrop: "", Stats: Stats{StatStm: 22, StatInt: 17, StatSpirit: 7, StatSpellDmg: 27, StatSpellCrit: 16}, GemSlots: []GemColor{GemColorYellow}, SocketBonus: Stats{StatInt: 2}},
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }
 
