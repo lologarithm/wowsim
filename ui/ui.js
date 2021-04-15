@@ -186,7 +186,9 @@ function processSimResult(output) {
     var dpsAtOOM = 0;
     if (numOOM > 0) {
         out.DmgAtOOMs.forEach((v, i) => {
-            dpsAtOOM += v / out.OOMAt[i];
+            if (v > 0) {
+                dpsAtOOM += v / out.OOMAt[i];
+            }
         });
         dpsAtOOM /= numOOM;
     }
