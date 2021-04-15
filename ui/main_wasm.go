@@ -246,8 +246,8 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 	dur := args[1].Int()
 	fullLogs := false
 	if len(args) > 6 {
-		fmt.Printf("Building Full Log!\n")
 		fullLogs = args[6].Truthy()
+		fmt.Printf("Building Full Log:%v\n", fullLogs)
 	}
 
 	results := runTBCSim(opt, stats, gear, dur, simi, customRotation, fullLogs)
@@ -309,10 +309,7 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 				Time: float64(v.TicksUntilCast) / float64(tbc.TicksPerSecond),
 			})
 		}
-		if metrics.OOMAt > 0 {
-			// DmgAtOOMs
-			simMetrics.DmgAtOOMs = append(simMetrics.DmgAtOOMs, metrics.DamageAtOOM)
-		}
+		simMetrics.DmgAtOOMs = append(simMetrics.DmgAtOOMs, metrics.DamageAtOOM)
 		simMetrics.OOMAt = append(simMetrics.OOMAt, float64(metrics.OOMAt))
 		simMetrics.Casts = append(simMetrics.Casts, casts)
 		simMetrics.TotalDmgs = append(simMetrics.TotalDmgs, metrics.TotalDamage)
@@ -332,8 +329,10 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		for ns := 0; ns < numSims; ns++ {
 			optNow.RSeed++
 			sim := tbc.NewSim(stats, equip, optNow)
-			sim.Debug = func(s string, vals ...interface{}) {
-				logsBuffer.WriteString(fmt.Sprintf("[%0.1f] "+s, append([]interface{}{(float64(sim.CurrentTick) / float64(tbc.TicksPerSecond))}, vals...)...))
+			if fullLogs {
+				sim.Debug = func(s string, vals ...interface{}) {
+					logsBuffer.WriteString(fmt.Sprintf("[%0.1f] "+s, append([]interface{}{(float64(sim.CurrentTick) / float64(tbc.TicksPerSecond))}, vals...)...))
+				}
 			}
 			metrics := sim.Run(simsec)
 			pm(metrics)
