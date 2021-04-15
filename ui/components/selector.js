@@ -187,6 +187,7 @@ class SelectorComponent {
         }).forEach((gem) => {
             var name = gem[1].Name;
             var itemdiv = document.createElement("div");
+            itemdiv.style.color = getColorHex(gem[1].Color);
             itemdiv.innerText = name
             itemdiv.addEventListener("click", (e)=>{
                 // using global itemselector here feels weird...
@@ -349,6 +350,37 @@ class SelectorComponent {
         this.clearSearch();
     }
 
+}
+
+function getColorHex(gem) {
+    switch(gem) {
+        case 1: // meta
+            return "#A0A0A0";
+            break;
+        case 2: // red
+            return "#A6261b";
+            break;
+        case 3: // blue
+            return "#589BE1";
+            break;
+        case 4: // yellow
+            return "#ECDF60";
+            break;
+        case 5: // green
+            return "#436904";
+            break;
+        case 6: // orange
+            return "#B27300";
+            break;
+        case 7: // purple
+            return "#39224F"
+            break;
+        case 8: // prismatic
+            return "#FFFFFF"
+            break;
+                            
+        }
+    return "";
 }
 
 

@@ -23,27 +23,35 @@ var Gems = []Gem{
 	// {Name: "Eternal Earthstorm Diamond", Color: GemColorMeta, Stats: Stats{}},
 	// {Name: "Brutal Earthstorm Diamond", Color: GemColorMeta, Stats: Stats{}},
 	{Name: "Insightful Earthstorm Diamond", Color: GemColorMeta, Stats: Stats{StatInt: 12}, Activate: ActivateIED},
+
 	{Name: "Runed Blood Garnet", Color: GemColorRed, Stats: Stats{StatSpellDmg: 7}},
 	{Name: "Runed Living Ruby", Color: GemColorRed, Stats: Stats{StatSpellDmg: 9}},
 	{Name: "Runed Crimson Spinel", Color: GemColorRed, Stats: Stats{StatSpellDmg: 12}},
+
 	{Name: "Lustrous Azure Moonstone", Color: GemColorBlue, Stats: Stats{StatMP5: 2}},
 	{Name: "Lustrous Star of Elune", Color: GemColorBlue, Stats: Stats{StatMP5: 3}},
 	{Name: "Lustrous Empyrean Sapphire", Color: GemColorBlue, Stats: Stats{StatMP5: 4}},
+
 	{Name: "Brilliant Golden Draenite", Color: GemColorYellow, Stats: Stats{StatInt: 6}},
 	{Name: "Brilliant Dawnstone", Color: GemColorYellow, Stats: Stats{StatInt: 8}},
 	{Name: "Brilliant Lionseye", Color: GemColorYellow, Stats: Stats{StatInt: 10}},
 	{Name: "Gleaming Golden Draenite", Color: GemColorYellow, Stats: Stats{StatSpellCrit: 6}},
 	{Name: "Gleaming Dawnstone", Color: GemColorYellow, Stats: Stats{StatSpellCrit: 8}},
 	{Name: "Gleaming Lionseye", Color: GemColorYellow, Stats: Stats{StatSpellCrit: 10}},
+
+	{Name: "Infused Fire Opal", Color: GemColorOrange, Stats: Stats{StatInt: 4, StatSpellDmg: 6}},
 	{Name: "Potent Flame Spessarite", Color: GemColorOrange, Stats: Stats{StatSpellCrit: 3, StatSpellDmg: 4}},
 	{Name: "Potent Noble Topaz", Color: GemColorOrange, Stats: Stats{StatSpellCrit: 4, StatSpellDmg: 5}},
 	{Name: "Potent Pyrestone", Color: GemColorOrange, Stats: Stats{StatSpellCrit: 5, StatSpellDmg: 6}},
-	{Name: "Infused Fire Opal", Color: GemColorOrange, Stats: Stats{StatInt: 4, StatSpellDmg: 6}},
+	{Name: "Potent Fire Opal", Color: GemColorOrange, Stats: Stats{StatSpellDmg: 6, StatSpellCrit: 4}},
+	{Name: "Veiled Flame Spessarite", Color: GemColorOrange, Stats: Stats{StatSpellHit: 3, StatSpellDmg: 4}},
+	{Name: "Veiled Noble Topaz", Color: GemColorOrange, Stats: Stats{StatSpellHit: 4, StatSpellDmg: 5}},
+	{Name: "Veiled Pyrestone", Color: GemColorOrange, Stats: Stats{StatSpellHit: 5, StatSpellDmg: 6}},
+
 	{Name: "Rune Covered Chrysoprase", Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatSpellCrit: 5}},
 	{Name: "Dazzling Talasite", Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatInt: 4}},
+
 	{Name: "Glowing Nightseye", Color: GemColorPurple, Stats: Stats{StatSpellDmg: 5, StatStm: 6}},
-	{Name: "Glowing Nightseye", Color: GemColorPurple, Stats: Stats{StatSpellDmg: 5, StatStm: 6}},
-	{Name: "Potent Fire Opal", Color: GemColorOrange, Stats: Stats{StatSpellDmg: 6, StatSpellCrit: 4}},
 }
 
 var Enchants = []Enchant{
@@ -561,6 +569,7 @@ var items = []Item{
 	{Slot: EquipChest, Name: "Windhawk Hauberk", SourceZone: "Leatherworking", SourceDrop: "", Stats: Stats{StatStm: 28, StatInt: 29, StatSpirit: 29, StatSpellDmg: 46, StatSpellCrit: 19}, GemSlots: []GemColor{GemColorBlue, GemColorYellow, GemColorBlue}, SocketBonus: Stats{StatSpellDmg: 5}},
 	{Slot: EquipWaist, Name: "Windhawk Belt", SourceZone: "Leatherworking", SourceDrop: "", Stats: Stats{StatStm: 17, StatInt: 19, StatSpirit: 20, StatSpellDmg: 37, StatSpellCrit: 12}, GemSlots: []GemColor{GemColorBlue, GemColorYellow}, SocketBonus: Stats{StatSpellDmg: 4}},
 	{Slot: EquipWrist, Name: "Windhawk Bracers", SourceZone: "Leatherworking", SourceDrop: "", Stats: Stats{StatStm: 22, StatInt: 17, StatSpirit: 7, StatSpellDmg: 27, StatSpellCrit: 16}, GemSlots: []GemColor{GemColorYellow}, SocketBonus: Stats{StatInt: 2}},
+	{Slot: EquipHands, Name: "Tidefury Gauntlets", SourceZone: "", SourceDrop: "", Stats: Stats{StatStm: 22, StatInt: 26, StatSpellDmg: 29, StatMP5: 7}},
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }
 
@@ -594,7 +603,7 @@ var sets = []ItemSet{
 	},
 	{
 		Name:  "Tidefury",
-		Items: map[string]bool{"Tidefury Helm": true, "Tidefury Shoulderguards": true, "Tidefury Chestpiece": true, "Tidefury Kilt": true},
+		Items: map[string]bool{"Tidefury Helm": true, "Tidefury Shoulderguards": true, "Tidefury Chestpiece": true, "Tidefury Kilt": true, "Tidefury Gauntlets": true},
 		Bonuses: map[int]ItemActivation{4: func(sim *Simulation) Aura {
 			if sim.Options.Buffs.WaterShield {
 				sim.Buffs[StatMP5] += 3
