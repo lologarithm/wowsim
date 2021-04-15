@@ -2,7 +2,6 @@ package tbc
 
 import (
 	"fmt"
-	"log"
 )
 
 var Gems = []Gem{
@@ -67,7 +66,7 @@ func init() {
 	}
 	for _, v := range items {
 		if it, ok := ItemLookup[v.Name]; ok {
-			log.Printf("Found dup item: %s", v.Name)
+			fmt.Printf("Found dup item: %s\n", v.Name)
 			statsMatch := it.Slot == v.Slot
 			for i, v := range v.Stats {
 				if len(it.Stats) <= i {
@@ -335,7 +334,6 @@ var items = []Item{
 	{Slot: 0x7, Name: "Starlight Gauntlets", SourceZone: "N UB - Hungarfen", SourceDrop: "", Stats: Stats{21, 10, 0, 0, 25, 0, 0}, GemSlots: []GemColor{0x3, 0x3}},
 	{Slot: 0x7, Name: "Gloves of Oblivion", SourceZone: "SH - Kargath", SourceDrop: "", Stats: Stats{21, 33, 0, 20, 26, 0, 0}},
 	{Slot: 0x7, Name: "Harmony's Touch", SourceZone: "Building a Perimeter - Netherstorm Quest", SourceDrop: "", Stats: Stats{0, 18, 16, 0, 33, 0, 0}},
-	{Slot: 0x8, Name: "Girdle of Ruination", SourceZone: "Tailoring BoE", SourceDrop: "", Stats: Stats{13, 18, 20, 0, 39, 0, 0}, GemSlots: []GemColor{0x2, 0x4}},
 	{Slot: 0x8, Name: "Girdle of Living Flame", SourceZone: "H UB - Hungarfen", SourceDrop: "", Stats: Stats{17, 15, 0, 16, 29, 0, 0}, GemSlots: []GemColor{0x4, 0x3}},
 	{Slot: 0x8, Name: "Wave-Song Girdle", SourceZone: "H AC - Exarch Maladaar", SourceDrop: "", Stats: Stats{25, 25, 23, 0, 32, 0, 0}},
 	{Slot: 0x8, Name: "A'dal's Gift", SourceZone: "How to Break Into the Arcatraz - Quest", SourceDrop: "", Stats: Stats{25, 0, 21, 0, 34, 0, 0}},
@@ -374,7 +372,6 @@ var items = []Item{
 	{Slot: 0xa, Name: "Earthbreaker's Greaves", SourceZone: "Levixus the Soul Caller - Auchindoun Quest", SourceDrop: "", Stats: Stats{20, 27, 8, 0, 25, 0, 3}},
 	{Slot: 0xa, Name: "Boots of the Nexus Warden", SourceZone: "The Flesh Lies... - Netherstorm Quest", SourceDrop: "", Stats: Stats{17, 27, 0, 18, 21, 0, 0}},
 	{Slot: 0xb, Name: "Sparking Arcanite Ring", SourceZone: "H OHF - Epoch Hunter", SourceDrop: "", Stats: Stats{14, 13, 14, 10, 22, 0, 0}},
-	{Slot: 0xb, Name: "Ring of Cryptic Dreams", SourceZone: "25 Badge of Justice - G'eras", SourceDrop: "", Stats: Stats{17, 16, 20, 0, 23, 0, 0}},
 	{Slot: 0xb, Name: "Seer's Signit", SourceZone: "The Scryers - Exalted", SourceDrop: "", Stats: Stats{0, 24, 12, 0, 34, 0, 0}},
 	{Slot: 0xb, Name: "Ring of Conflict Survival", SourceZone: "H MT - Yor (Summoned Boss)", SourceDrop: "", Stats: Stats{0, 28, 20, 0, 23, 0, 0}},
 	{Slot: 0xb, Name: "Ryngo's Band of Ingenuity", SourceZone: "Arc - Wrath-Scryer Soccothrates", SourceDrop: "", Stats: Stats{14, 12, 14, 0, 25, 0, 0}},
@@ -391,7 +388,6 @@ var items = []Item{
 	{Slot: 0x13, Name: "Totem of Impact", SourceZone: "15 Mark of Thrallmar/ Honor Hold", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
 	{Slot: 0x13, Name: "Totem of Lightning", SourceZone: "Colossal Menace - HFP Quest", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
 	{Slot: 0x11, Name: "Gladiator's Spellblade / Gavel", SourceZone: "Arena Season 1 Reward", SourceDrop: "", Stats: Stats{18, 28, 0, 0, 199, 0, 0}},
-	{Slot: 0x11, Name: "Eternium Runed Blade", SourceZone: "Blacksmithing BoE", SourceDrop: "", Stats: Stats{19, 0, 21, 0, 168, 0, 0}},
 	{Slot: 0x11, Name: "Starlight Dagger", SourceZone: "H SP - Mennu the Betrayer", SourceDrop: "", Stats: Stats{15, 15, 0, 16, 121, 0, 0}},
 	{Slot: 0x11, Name: "Runesong Dagger", SourceZone: "SH - Warbringer O'mrogg", SourceDrop: "", Stats: Stats{11, 12, 20, 0, 121, 0, 0}},
 	{Slot: 0x11, Name: "Bleeding Hollow Warhammer", SourceZone: "H SP - Quagmirran", SourceDrop: "", Stats: Stats{17, 12, 16, 0, 121, 0, 0}},
