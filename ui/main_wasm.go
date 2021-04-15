@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"syscall/js"
 	"time"
 
@@ -233,7 +234,6 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 	}
 	gear := getGear(args[2])
 	opt := parseOptions(args[3])
-	doOptimize := args[3].Get("doopt").Truthy() || opt.UseAI
 	stats := opt.StatTotal(gear)
 	if customHaste != 0 {
 		stats[tbc.StatHaste] = customHaste
@@ -244,8 +244,13 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 		tbc.IsDebug = true
 	}
 	dur := args[1].Int()
+	fullLogs := false
+	if len(args) > 6 {
+		fmt.Printf("Building Full Log!\n")
+		fullLogs = args[6].Truthy()
+	}
 
-	results := runTBCSim(opt, stats, gear, dur, simi, customRotation, doOptimize)
+	results := runTBCSim(opt, stats, gear, dur, simi, customRotation, fullLogs)
 	st := time.Now()
 	output, err := json.Marshal(results)
 	if err != nil {
@@ -263,6 +268,7 @@ type SimResult struct {
 	Rotation     []string
 	SimSeconds   int
 	RealDuration float64
+	Logs         string
 }
 
 type CastMetric struct {
@@ -274,7 +280,7 @@ type CastMetric struct {
 	Time float64 // seconds it took to cast this spell
 }
 
-func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int, customRotation [][]string, doOptimize bool) []SimResult {
+func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int, customRotation [][]string, fullLogs bool) []SimResult {
 	print("\nSim Duration:", seconds)
 	print("\nNum Simulations: ", numSims)
 	print("\n")
@@ -312,6 +318,7 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		simMetrics.TotalDmgs = append(simMetrics.TotalDmgs, metrics.TotalDamage)
 	}
 
+	logsBuffer := &strings.Builder{}
 	dosim := func(spells []string, simsec int) {
 		simMetrics = SimResult{Rotation: spells}
 		if opts.UseAI {
@@ -325,16 +332,19 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		for ns := 0; ns < numSims; ns++ {
 			optNow.RSeed++
 			sim := tbc.NewSim(stats, equip, optNow)
+			sim.Debug = func(s string, vals ...interface{}) {
+				logsBuffer.WriteString(fmt.Sprintf("[%0.1f] "+s, append([]interface{}{(float64(sim.CurrentTick) / float64(tbc.TicksPerSecond))}, vals...)...))
+			}
 			metrics := sim.Run(simsec)
 			pm(metrics)
 		}
+		simMetrics.Logs = logsBuffer.String()
 		simMetrics.SimSeconds = simsec
 		simMetrics.RealDuration = time.Now().Sub(st).Seconds()
 		results = append(results, simMetrics)
 	}
 
-	if !doingCustom && doOptimize {
-		opts.UseAI = true
+	if !doingCustom && opts.UseAI {
 		dosim([]string{"AI Optimized"}, seconds) // Let AI determine best possible DPS
 	} else {
 		for _, spells := range spellOrders {

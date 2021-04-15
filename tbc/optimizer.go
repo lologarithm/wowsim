@@ -299,7 +299,7 @@ func NewAI(sim *Simulation) *EleAI {
 		LastMana: sim.CurrentMana,
 		NumCasts: 3,
 	}
-	sim.debug("[AI] initialized\n")
+	sim.Debug("[AI] initialized\n")
 	return ai
 }
 
@@ -311,26 +311,26 @@ func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
 	if didPot {
 		// Use Potion to reset the calculation... only early on in fight.
 		ai.LastMana = sim.CurrentMana
-		ai.LastCheck = sim.currentTick
+		ai.LastCheck = sim.CurrentTick
 		ai.NumCasts = 0
 	}
 	if sim.CDs[MagicIDCL6] < 1 && ai.NumCasts > 3 {
 		manaDrained := ai.LastMana - sim.CurrentMana
-		timePassed := sim.currentTick - ai.LastCheck
+		timePassed := sim.CurrentTick - ai.LastCheck
 		if timePassed == 0 {
 			timePassed = 1
 		}
 		rate := manaDrained / float64(timePassed)
-		timeRemaining := sim.endTick - sim.currentTick
+		timeRemaining := sim.endTick - sim.CurrentTick
 		totalManaDrain := rate * float64(timeRemaining)
 		buffer := ai.CL.Mana // mana buffer of 1 extra CL
 
-		sim.debug("[AI] CL Ready: Mana/Tick: %0.1f, Est Mana Drain: %0.1f, CurrentMana: %0.1f\n", rate, totalManaDrain, sim.CurrentMana)
+		sim.Debug("[AI] CL Ready: Mana/Tick: %0.1f, Est Mana Drain: %0.1f, CurrentMana: %0.1f\n", rate, totalManaDrain, sim.CurrentMana)
 		// If we have enough mana to burn and CL is on CD, use it.
 		if totalManaDrain < sim.CurrentMana-buffer {
 			cast := NewCast(sim, ai.CL)
 			if sim.CurrentMana >= cast.ManaCost {
-				sim.debug("[AI] Selected CL\n")
+				sim.Debug("[AI] Selected CL\n")
 				sim.CastingSpell = cast
 				return cast.TicksUntilCast
 			}
@@ -339,14 +339,14 @@ func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
 	cast := NewCast(sim, ai.LB)
 
 	if sim.CurrentMana >= cast.ManaCost {
-		sim.debug("[AI] Selected LB\n")
+		sim.Debug("[AI] Selected LB\n")
 		sim.CastingSpell = cast
 		return cast.TicksUntilCast
 	}
 
-	sim.debug("[AI] OOM Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
+	sim.Debug("[AI] OOM Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
 	if sim.metrics.OOMAt == 0 {
-		sim.metrics.OOMAt = sim.currentTick / TicksPerSecond
+		sim.metrics.OOMAt = sim.CurrentTick / TicksPerSecond
 		sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
 	}
 	return int(math.Ceil((cast.ManaCost - sim.CurrentMana) / sim.manaRegen()))
@@ -362,7 +362,7 @@ func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
 // 		}
 
 // 		// Reset checker
-// 		ai.LastCheck = sim.currentTick
+// 		ai.LastCheck = sim.CurrentTick
 // 		ai.LastMana = sim.CurrentMana
 // 		ai.rotations = 0
 // 	}

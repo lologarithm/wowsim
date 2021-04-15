@@ -57,7 +57,7 @@ simlib2.onmessage = (event) => {
 }
 
 var simrequests = {};
-function simulate(iters, dur, gearlist, opts, rots, haste, onComplete) {
+function simulate(iters, dur, gearlist, opts, rots, haste, fullLogs, onComplete) {
     var id = makeid();
     simrequests[id] = onComplete
     var worker = simlib;
@@ -67,7 +67,7 @@ function simulate(iters, dur, gearlist, opts, rots, haste, onComplete) {
         simlibBusy = true;
     }
     worker.postMessage({msg: "simulate", id: id, payload: {
-        iters: iters, dur: dur, gearlist: gearlist, opts: opts, rots: rots, haste: haste,
+        iters: iters, dur: dur, gearlist: gearlist, opts: opts, rots: rots, haste: haste, fullLogs: fullLogs
     }});
 }
 
@@ -226,7 +226,7 @@ function processSimResult(output) {
 }
 
 // Populates the 'Sim' tab in the results pane.
-function runsim(currentGear) {
+function runsim(currentGear, fullLogs) {
 
     var iters = parseInt(document.getElementById("iters").value);
     var dur = parseInt(document.getElementById("dur").value);
@@ -241,13 +241,23 @@ function runsim(currentGear) {
     priout.innerHTML = metricHTML;
     aiout.innerHTML = metricHTML;
 
+    if (fullLogs) {
+        var dur = parseInt(document.getElementById("logdur").value);
+        var firstOpts = getOptions();
+        firstOpts.useai = true;
+        simulate(1, dur, currentGear, firstOpts, null, null, true, (out) => { 
+            var logdiv = document.getElementById("simlogs");
+            logdiv.innerText = out[0].Logs;
+        });
+        return;
+    }
 
     var veryMax = 0.0;
 
     var firstOpts = getOptions();
     firstOpts.exitoom = true;
 
-    simulate(iters, 600, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, (out) => { 
+    simulate(iters, 600, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, false, (out) => { 
         var stats = processSimResult(out);
         var max = stats.dps;
         if (stats.dpsAtOOM > max) {
@@ -260,7 +270,7 @@ function runsim(currentGear) {
         }
         priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(max)}</text> dps<br /><text style="font-size:0.7em">${Math.round(stats.oomat)}s to oom at peak dps.</text></div>`
     });
-    simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0, (out) => {
+    simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0,false, (out) => {
         var stats = processSimResult(out);
         var ttoom = stats.oomat;
         if (ttoom == 0) {
@@ -271,8 +281,7 @@ function runsim(currentGear) {
 
     var secondOpts = getOptions();
     secondOpts.useai = true;
-    secondOpts.doopt = true;
-    simulate(iters, dur, currentGear, secondOpts, null, 0, (out) => { 
+    simulate(iters, dur, currentGear, secondOpts, null, 0, false, (out) => { 
         var stats = processSimResult(out);
         console.log("AI Stats: ", stats);
         aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> +/- ${Math.round(stats.dev)} dps<br /></div>`
@@ -384,7 +393,7 @@ function hastedRotations(currentGear) {
         row.children[1].innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
         row.children[2].innerText = "";
 
-        simulate(800, 40, currentGear, opts, rots, haste, (output) => {
+        simulate(800, 40, currentGear, opts, rots, haste, false, (output) => {
             var maxdmg = 0.0;
             var maxrot = {};
     
@@ -645,7 +654,7 @@ function showGearRecommendations(weights) {
                 var iters = parseInt(document.getElementById("switer").value);
                 var dur = parseInt(document.getElementById("swdur").value);
                 var opts = getOptions();
-                simulate(iters, dur, cleanGear(newgear), opts, null, null, (res)=>{
+                simulate(iters, dur, cleanGear(newgear), opts, null, null, false, (res)=>{
                     var statistics = processSimResult(res);
                     col4.innerText = Math.round(statistics.dps).toString() + " +/- " + Math.round(statistics.dev).toString();
                 });
@@ -695,6 +704,11 @@ function popgear(gearList) {
         updateGearStats(gearUI.currentGear);
     });
     updateGearStats(currentGear)
+
+    var simlogrun = document.getElementById("simlogrun");
+    simlogrun.addEventListener("click", (event)=>{
+        runsim(cleanGear(gearUI.currentGear), true);
+    });
 
     var simrunbut = document.getElementById("simrunbut");
     simrunbut.addEventListener("click", (event)=>{

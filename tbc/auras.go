@@ -188,7 +188,7 @@ func AuraJudgementOfWisdom() Aura {
 		ID:      MagicIDJoW,
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
-			sim.debug(" +Judgement Of Wisdom: 74 mana\n")
+			sim.Debug(" +Judgement Of Wisdom: 74 mana\n")
 			sim.CurrentMana += 74
 		},
 	}
@@ -218,7 +218,7 @@ func AuraLightningOverload(lvl int) Aura {
 				return // can't proc LO on LO
 			}
 			if sim.rando.Float64() < chance {
-				sim.debug(" +Lightning Overload\n")
+				sim.Debug(" +Lightning Overload\n")
 				clone := &Cast{
 					IsLO:    true,
 					Spell:   c.Spell,
@@ -281,7 +281,7 @@ func createSpellDmgActivate(id int32, sp float64, durSeconds int) ItemActivation
 	return func(sim *Simulation) Aura {
 		return Aura{
 			ID:      id,
-			Expires: sim.currentTick + durSeconds*TicksPerSecond,
+			Expires: sim.CurrentTick + durSeconds*TicksPerSecond,
 			OnCastComplete: func(sim *Simulation, c *Cast) {
 				c.Spellpower += sp
 			},
@@ -297,10 +297,10 @@ func ActivateQuagsEye(sim *Simulation) Aura {
 		ID:      MagicIDQuagsEye,
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
-			if lastActivation+internalCD < sim.currentTick && sim.rando.Float64() < 0.1 {
+			if lastActivation+internalCD < sim.CurrentTick && sim.rando.Float64() < 0.1 {
 				sim.Buffs[StatHaste] += hasteBonus
-				sim.addAura(AuraStatRemoval(sim.currentTick, 6.0, hasteBonus, StatHaste, MagicIDFungalFrenzy))
-				lastActivation = sim.currentTick
+				sim.addAura(AuraStatRemoval(sim.CurrentTick, 6.0, hasteBonus, StatHaste, MagicIDFungalFrenzy))
+				lastActivation = sim.CurrentTick
 			}
 		},
 	}
@@ -314,10 +314,10 @@ func ActivateNexusHorn(sim *Simulation) Aura {
 		ID:      MagicIDQuagsEye,
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
-			if lastActivation+internalCD < sim.currentTick && c.DidCrit && sim.rando.Float64() < 0.2 {
+			if lastActivation+internalCD < sim.CurrentTick && c.DidCrit && sim.rando.Float64() < 0.2 {
 				sim.Buffs[StatSpellDmg] += spellBonus
-				sim.addAura(AuraStatRemoval(sim.currentTick, 10.0, spellBonus, StatSpellDmg, MagicIDCallOfTheNexus))
-				lastActivation = sim.currentTick
+				sim.addAura(AuraStatRemoval(sim.CurrentTick, 10.0, spellBonus, StatSpellDmg, MagicIDCallOfTheNexus))
+				lastActivation = sim.CurrentTick
 			}
 		},
 	}
@@ -338,7 +338,7 @@ func ActivateDCC(sim *Simulation) Aura {
 			//  This will remove the old stack removal buff.
 			sim.addAura(Aura{
 				ID:      MagicIDDCCBonus,
-				Expires: sim.currentTick + (10 * TicksPerSecond),
+				Expires: sim.CurrentTick + (10 * TicksPerSecond),
 				OnExpire: func(sim *Simulation, c *Cast) {
 					sim.Buffs[StatSpellDmg] -= spellBonus * float64(stacks)
 					stacks = 0
@@ -355,7 +355,7 @@ func AuraStatRemoval(tick int, seconds int, amount float64, stat Stat, id int32)
 		ID:      id,
 		Expires: tick + (seconds * TicksPerSecond),
 		OnExpire: func(sim *Simulation, c *Cast) {
-			sim.debug(" -%0.0f %s from %s\n", amount, stat.StatName(), AuraName(id))
+			sim.Debug(" -%0.0f %s from %s\n", amount, stat.StatName(), AuraName(id))
 			sim.Buffs[stat] -= amount
 		},
 	}
@@ -364,13 +364,13 @@ func AuraStatRemoval(tick int, seconds int, amount float64, stat Stat, id int32)
 func ActivateDrums(sim *Simulation) Aura {
 	sim.Buffs[StatHaste] += 80
 	sim.CDs[MagicIDDrums] = 30 * TicksPerSecond
-	return AuraStatRemoval(sim.currentTick, 30, 80, StatHaste, MagicIDDrums)
+	return AuraStatRemoval(sim.CurrentTick, 30, 80, StatHaste, MagicIDDrums)
 }
 
 func ActivateBloodlust(sim *Simulation) Aura {
 	sim.Buffs[StatHaste] += 472.8
 	sim.CDs[MagicIDBloodlust] = 40 * TicksPerSecond // assumes that multiple BLs are different shaman.
-	return AuraStatRemoval(sim.currentTick, 40, 472.8, StatHaste, MagicIDBloodlust)
+	return AuraStatRemoval(sim.CurrentTick, 40, 472.8, StatHaste, MagicIDBloodlust)
 }
 
 func ActivateSkycall(sim *Simulation) Aura {
@@ -380,9 +380,9 @@ func ActivateSkycall(sim *Simulation) Aura {
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			if c.Spell.ID == MagicIDLB12 && sim.rando.Float64() < 0.15 {
-				sim.debug(" +Skycall Energized- \n")
+				sim.Debug(" +Skycall Energized- \n")
 				sim.Buffs[StatHaste] += hasteBonus
-				sim.addAura(AuraStatRemoval(sim.currentTick, 10, hasteBonus, StatHaste, MagicIDEnergized))
+				sim.addAura(AuraStatRemoval(sim.CurrentTick, 10, hasteBonus, StatHaste, MagicIDEnergized))
 			}
 		},
 	}
@@ -391,7 +391,7 @@ func ActivateSkycall(sim *Simulation) Aura {
 func ActivateNAC(sim *Simulation) Aura {
 	return Aura{
 		ID:      MagicIDNAC,
-		Expires: sim.currentTick + 300*TicksPerSecond,
+		Expires: sim.CurrentTick + 300*TicksPerSecond,
 		OnCast: func(sim *Simulation, c *Cast) {
 			c.ManaCost *= 1.2
 		},
@@ -418,9 +418,9 @@ func ActivateIED(sim *Simulation) Aura {
 		ID:      MagicIDInsightfulEarthstorm,
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
-			if lastActivation+icd < sim.currentTick && sim.rando.Float64() < 0.04 {
-				lastActivation = sim.currentTick
-				sim.debug(" *Insightful Earthstorm Mana Restore - 300\n")
+			if lastActivation+icd < sim.CurrentTick && sim.rando.Float64() < 0.04 {
+				lastActivation = sim.CurrentTick
+				sim.Debug(" *Insightful Earthstorm Mana Restore - 300\n")
 				sim.CurrentMana += 300
 			}
 		},
@@ -435,10 +435,10 @@ func ActivateMSD(sim *Simulation) Aura {
 		ID:      MagicIDMysticSkyfire,
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
-			if lastActivation+icd < sim.currentTick && sim.rando.Float64() < 0.15 {
+			if lastActivation+icd < sim.CurrentTick && sim.rando.Float64() < 0.15 {
 				sim.Buffs[StatHaste] += hasteBonus
-				sim.addAura(AuraStatRemoval(sim.currentTick, 4.0, hasteBonus, StatHaste, MagicIDMysticFocus))
-				lastActivation = sim.currentTick
+				sim.addAura(AuraStatRemoval(sim.CurrentTick, 4.0, hasteBonus, StatHaste, MagicIDMysticFocus))
+				lastActivation = sim.CurrentTick
 			}
 		},
 	}
@@ -462,7 +462,7 @@ func ActivateSpellstrike(sim *Simulation) Aura {
 			if sim.rando.Float64() < 0.05 { // TODO: validate
 				sim.addAura(Aura{
 					ID:      MagicIDSpellstrikeInfusion,
-					Expires: sim.currentTick + (duration * TicksPerSecond),
+					Expires: sim.CurrentTick + (duration * TicksPerSecond),
 					OnCastComplete: func(sim *Simulation, c *Cast) {
 						c.Spellpower += spellBonus
 					},
@@ -482,7 +482,7 @@ func ActivateManaEtched(sim *Simulation) Aura {
 			if sim.rando.Float64() < 0.02 { // TODO: validate
 				sim.addAura(Aura{
 					ID:      MagicIDManaEtchedInsight,
-					Expires: sim.currentTick + (duration * TicksPerSecond),
+					Expires: sim.CurrentTick + (duration * TicksPerSecond),
 					OnCastComplete: func(sim *Simulation, c *Cast) {
 						c.Spellpower += spellBonus
 					},
@@ -505,17 +505,17 @@ func ActivateTLC(sim *Simulation) Aura {
 		ID:      MagicIDManaEtched,
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
-			if lastActivation+icd >= sim.currentTick {
+			if lastActivation+icd >= sim.CurrentTick {
 				return
 			}
 			if !c.DidCrit {
 				return
 			}
 			charges++
-			sim.debug(" Lightning Capacitor Charges: %d\n", charges)
+			sim.Debug(" Lightning Capacitor Charges: %d\n", charges)
 			if charges >= 3 {
-				sim.debug(" Lightning Capacitor Triggered!\n")
-				lastActivation = sim.currentTick
+				sim.Debug(" Lightning Capacitor Triggered!\n")
+				lastActivation = sim.CurrentTick
 				clone := &Cast{
 					Spell: tlcspell,
 				}
@@ -532,7 +532,7 @@ func ActivateChainTO(sim *Simulation) Aura {
 	}
 	return Aura{
 		ID:      MagicIDChainTO,
-		Expires: sim.currentTick + 30*60*TicksPerSecond,
+		Expires: sim.CurrentTick + 30*60*TicksPerSecond,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			c.Crit += 0.02
 		},

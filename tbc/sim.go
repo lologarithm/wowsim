@@ -10,7 +10,7 @@ var IsDebug = false
 
 func debugFunc(sim *Simulation) func(string, ...interface{}) {
 	return func(s string, vals ...interface{}) {
-		fmt.Printf("[%0.1f] "+s, append([]interface{}{(float64(sim.currentTick) / float64(TicksPerSecond))}, vals...)...)
+		fmt.Printf("[%0.1f] "+s, append([]interface{}{(float64(sim.CurrentTick) / float64(TicksPerSecond))}, vals...)...)
 	}
 }
 
@@ -41,10 +41,10 @@ type Simulation struct {
 
 	rando       *rand.Rand
 	rseed       int64
-	currentTick int
+	CurrentTick int
 	endTick     int
 
-	debug func(string, ...interface{})
+	Debug func(string, ...interface{})
 }
 
 type SimMetrics struct {
@@ -92,7 +92,7 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		Equip:         equip,
 		rseed:         options.RSeed,
 		rando:         rand.New(rand.NewSource(options.RSeed)),
-		debug:         func(a string, v ...interface{}) {},
+		Debug:         func(a string, v ...interface{}) {},
 		SpellChooser:  ChooseSpell,
 	}
 
@@ -102,7 +102,7 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 	}
 
 	if IsDebug {
-		sim.debug = debugFunc(sim)
+		sim.Debug = debugFunc(sim)
 	}
 
 	for _, eq := range equip {
@@ -130,7 +130,7 @@ func (sim *Simulation) reset() {
 	}
 
 	sim.bloodlustCasts = 0
-	sim.currentTick = 0
+	sim.CurrentTick = 0
 	sim.CurrentMana = sim.Stats[StatMana]
 	sim.CastingSpell = nil
 	sim.Buffs = Stats{StatLen: 0}
@@ -138,8 +138,8 @@ func (sim *Simulation) reset() {
 	sim.Auras = []Aura{}
 	sim.metrics = SimMetrics{}
 
-	sim.debug("SIM RESET\n")
-	sim.debug("----------------------\n")
+	sim.Debug("SIM RESET\n")
+	sim.Debug("----------------------\n")
 
 	// Activate all talents
 	if sim.Options.Talents.LightninOverload > 0 {
@@ -206,12 +206,12 @@ func (sim *Simulation) cleanAura(i int) {
 	sim.Auras[i].OnSpellHit = nil
 	sim.Auras[i].OnExpire = nil
 
-	sim.debug(" -%s\n", AuraName(sim.Auras[i].ID))
+	sim.Debug(" -%s\n", AuraName(sim.Auras[i].ID))
 	sim.Auras = sim.Auras[:i+copy(sim.Auras[i:], sim.Auras[i+1:])]
 }
 
 func (sim *Simulation) addAura(a Aura) {
-	sim.debug(" +%s\n", AuraName(a.ID))
+	sim.Debug(" +%s\n", AuraName(a.ID))
 	for i := range sim.Auras {
 		if sim.Auras[i].ID == a.ID {
 			sim.Auras[i] = a // replace
@@ -246,7 +246,7 @@ func ChooseSpell(sim *Simulation, didPot bool) int {
 			}
 		}
 		if wasMana && sim.metrics.OOMAt == 0 { // loop only completes if no spell was found.
-			sim.metrics.OOMAt = sim.currentTick / TicksPerSecond
+			sim.metrics.OOMAt = sim.CurrentTick / TicksPerSecond
 			sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
 		}
 		return lowestWait
@@ -264,9 +264,9 @@ func ChooseSpell(sim *Simulation, didPot bool) int {
 			}
 			return cast.TicksUntilCast
 		} else {
-			sim.debug("Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
+			sim.Debug("Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
 			if sim.metrics.OOMAt == 0 {
-				sim.metrics.OOMAt = sim.currentTick / TicksPerSecond
+				sim.metrics.OOMAt = sim.CurrentTick / TicksPerSecond
 				sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
 			}
 			return int(math.Ceil((cast.ManaCost - sim.CurrentMana) / sim.manaRegen()))
@@ -286,7 +286,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 		hit = 0.99 // can't get away from the 1% miss
 	}
 
-	sim.debug("Completed Cast (%s)\n", cast.Spell.Name)
+	sim.Debug("Completed Cast (%s)\n", cast.Spell.Name)
 	dbgCast := cast.Spell.Name
 	if sim.rando.Float64() < hit {
 		sp := sim.Stats[StatSpellDmg] + sim.Buffs[StatSpellDmg] + cast.Spellpower
@@ -309,7 +309,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 			dmg *= (critBonus * 2) - 1 // if CSD equipped the cast crit bonus will be modified during 'onCastComplete.'
 			if cast.Spell.ID != MagicIDTLCLB {
 				// TLC does not proc focus.
-				sim.addAura(AuraElementalFocus(sim.currentTick))
+				sim.addAura(AuraElementalFocus(sim.CurrentTick))
 			}
 			if IsDebug {
 				dbgCast += " crit"
@@ -357,7 +357,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 		cast.DidHit = false
 	}
 	sim.metrics.Casts = append(sim.metrics.Casts, cast)
-	sim.debug("%s: %0.0f\n", dbgCast, cast.DidDmg)
+	sim.Debug("%s: %0.0f\n", dbgCast, cast.DidDmg)
 	sim.CurrentMana -= cast.ManaCost
 	sim.CastingSpell = nil
 	if cast.Spell.Cooldown > 0 {

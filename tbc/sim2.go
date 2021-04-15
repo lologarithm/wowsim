@@ -9,7 +9,7 @@ func (sim *Simulation) Run2(seconds int) SimMetrics {
 			panic("you should never have negative mana.")
 		}
 
-		sim.currentTick = i
+		sim.CurrentTick = i
 		advance := sim.Spellcasting(i)
 
 		if sim.Options.ExitOnOOM && sim.metrics.OOMAt > 0 {
@@ -67,14 +67,14 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 			sim.CurrentMana += 900 + (sim.rando.Float64() * 600)
 			sim.CDs[MagicIDRune] = 120 * TicksPerSecond
 			didPot = true
-			sim.debug("Used Dark Rune\n")
+			sim.Debug("Used Dark Rune\n")
 		}
 		if sim.Options.Consumes.SuperManaPotion && sim.Stats[StatMana]-sim.CurrentMana+totalRegen >= 3000 && sim.CDs[MagicIDPotion] < 1 {
 			// Restores 1800 to 3000 mana. (2 Min Cooldown)
 			sim.CurrentMana += 1800 + (sim.rando.Float64() * 1200)
 			sim.CDs[MagicIDPotion] = 120 * TicksPerSecond
 			didPot = true
-			sim.debug("Used Mana Potion\n")
+			sim.Debug("Used Mana Potion\n")
 		}
 
 		// Pop any on-use trinkets
@@ -98,7 +98,7 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 		// Choose next spell
 		ticks := sim.SpellChooser(sim, didPot)
 		if sim.CastingSpell != nil {
-			sim.debug("Start Casting %s Cast Time: %0.1fs\n", sim.CastingSpell.Spell.Name, float64(sim.CastingSpell.TicksUntilCast)/float64(TicksPerSecond))
+			sim.Debug("Start Casting %s Cast Time: %0.1fs\n", sim.CastingSpell.Spell.Name, float64(sim.CastingSpell.TicksUntilCast)/float64(TicksPerSecond))
 		}
 		return ticks
 	}
