@@ -115,6 +115,7 @@ type Buffs struct {
 	// Self Buffs
 	WaterShield    bool
 	WaterShieldPPM int // how many procs per minute does watershield get? Every 3 requires a recast.
+	Race           RaceBonusType
 
 	// Target Debuff
 	JudgementOfWisdom bool
@@ -123,6 +124,17 @@ type Buffs struct {
 	// Custom
 	Custom Stats
 }
+
+type RaceBonusType byte
+
+// These values are used directly in the dropdown in index.html
+const (
+	RaceBonusNone RaceBonusType = iota
+	RaceBonusDraenei
+	RaceBonusTroll10
+	RaceBonusTroll30
+	RaceBonusOrc
+)
 
 func (b Buffs) AddStats(s Stats) Stats {
 	if b.ArcaneInt {
@@ -148,6 +160,9 @@ func (b Buffs) AddStats(s Stats) Stats {
 	}
 	if b.WaterShield {
 		s[StatMP5] += 50
+	}
+	if b.Race == RaceBonusDraenei {
+		s[StatSpellHit] += 15.76 // 1% hit
 	}
 	s[StatMP5] += float64(b.SpriestDPS) * 0.25
 

@@ -24,6 +24,30 @@ func (sim *Simulation) Run2(seconds int) SimMetrics {
 	return sim.metrics
 }
 
+func (sim *Simulation) ActivateRacial() {
+	switch v := sim.Options.Buffs.Race; v {
+	case RaceBonusOrc:
+		const spBonus = 143
+		const dur = 15
+		if sim.CDs[MagicIDOrcBloodFury] < 1 {
+			sim.Buffs[StatSpellDmg] += spBonus
+			sim.addAura(AuraStatRemoval(sim.CurrentTick, dur, spBonus, StatSpellDmg, MagicIDOrcBloodFury))
+			sim.CDs[MagicIDOrcBloodFury] = 120 * TicksPerSecond
+		}
+	case RaceBonusTroll10, RaceBonusTroll30:
+		hasteBonus := 157.6 // 10% haste
+		const dur = 10
+		if v == RaceBonusTroll30 {
+			hasteBonus = 472.8 // 30% haste
+		}
+		if sim.CDs[MagicIDTrollBerserking] < 1 {
+			sim.Buffs[StatHaste] += hasteBonus
+			sim.addAura(AuraStatRemoval(sim.CurrentTick, dur, hasteBonus, StatHaste, MagicIDTrollBerserking))
+			sim.CDs[MagicIDTrollBerserking] = 180 * TicksPerSecond
+		}
+	}
+}
+
 // Spellcasting will cast spells and calculate a new spell to cast.
 //  Activates trinkets before spellcasting of off CD.
 //  It will pop mana potions if needed.
@@ -58,6 +82,8 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 			// Apply auras
 			sim.addAura(AuraEleMastery())
 		}
+
+		sim.ActivateRacial()
 
 		didPot := false
 		totalRegen := (sim.Stats[StatMP5] + sim.Buffs[StatMP5])

@@ -33,8 +33,8 @@ type Simulation struct {
 	CastingSpell *Cast
 
 	// timeToRegen := 0
-	CDs   map[int32]int
-	Auras []Aura // this is array instaed of map to speed up browser perf.
+	CDs   map[int32]int // Map of MagicID to ticks until CD is done. 'Advance' counts down these
+	Auras []Aura        // this is array instaed of map to speed up browser perf.
 
 	// Clears and regenerates on each Run call.
 	metrics SimMetrics
@@ -131,13 +131,6 @@ func (sim *Simulation) reset() {
 	sim.Auras = []Aura{}
 	sim.metrics = SimMetrics{}
 
-	if sim.Options.UseAI {
-		// Reset a new AI
-		// TODO: Can we take learnings from the last AI to modulate this AIs behavior?
-		ai := NewAI(sim)
-		sim.SpellChooser = ai.ChooseSpell
-	}
-
 	if sim.Debug != nil {
 		sim.Debug("SIM RESET\n")
 		sim.Debug("----------------------\n")
@@ -166,6 +159,13 @@ func (sim *Simulation) reset() {
 	}
 
 	sim.ActivateSets()
+
+	if sim.Options.UseAI {
+		// Reset a new AI
+		// TODO: Can we take learnings from the last AI to modulate this AIs behavior?
+		ai := NewAI(sim)
+		sim.SpellChooser = ai.ChooseSpell
+	}
 }
 
 func (sim *Simulation) ActivateSets() {
@@ -217,6 +217,9 @@ func (sim *Simulation) cleanAura(i int) {
 func (sim *Simulation) addAura(a Aura) {
 	if sim.Debug != nil {
 		sim.Debug(" +%s\n", AuraName(a.ID))
+	}
+	if a.Expires == 0 {
+		return // no need to waste time adding aura that doesn't last.
 	}
 	for i := range sim.Auras {
 		if sim.Auras[i].ID == a.ID {

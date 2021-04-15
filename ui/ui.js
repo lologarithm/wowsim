@@ -134,6 +134,7 @@ function getOptions() {
     options.buffspriest = parseInt(document.getElementById("buffspriest").value) || 0;
     options.totwr =  parseInt(document.getElementById("totwr").value) || 0;
     options.buffdrums = parseInt(document.getElementById("buffdrums").value) || 0;
+    options.sbufrace = parseInt(document.getElementById("sbufrace").value) || 0;
 
     return options;
 }
@@ -142,7 +143,7 @@ var castIDToName = {
     1: "LB",
     2: "CL",
     3: "TLC LB",
-    999: "LB Overload",
+    999: "LB Overload", // this is just 1000-ID of the spell cast.
     998: "CL Overload",
 }
 

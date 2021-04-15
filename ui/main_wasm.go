@@ -128,6 +128,7 @@ func parseOptions(val js.Value) tbc.Options {
 			WaterShield:              val.Get("sbufws").Truthy(),
 			EyeOfNight:               val.Get("buffeyenight").Truthy(),
 			TwilightOwl:              val.Get("bufftwilightowl").Truthy(),
+			Race:                     tbc.RaceBonusType(val.Get("sbufrace").Int()),
 		},
 		Consumes: tbc.Consumes{
 			FlaskOfBlindingLight:     val.Get("confbl").Truthy(),
