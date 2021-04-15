@@ -111,6 +111,24 @@ func AuraName(a int32) string {
 		return "Mana-EtchedHit"
 	case MagicIDManaEtchedInsight:
 		return "Mana-EtchedInsight"
+	case MagicIDWindhawk:
+		return "Windhawk Set Bonus"
+	case MagicIDOrcBloodFury:
+		return "Orc Blood Fury"
+	case MagicIDTrollBerserking:
+		return "Troll Berserking"
+	case MagicIDEyeOfTheNight:
+		return "EyeOfTheNight"
+	case MagicIDChainTO:
+		return "Chain of the Twilight Owl"
+	case MagicIDCyclone2pc:
+		return "Cyclone 2pc Bonus"
+	case MagicIDCyclone4pc:
+		return "Cyclone 4pc Bonus"
+	case MagicIDCycloneMana:
+		return "Cyclone Mana Cost Reduction"
+	case MagicIDTLC:
+		return "The Lightning Capacitor Aura"
 	}
 
 	return "<<TODO: Add Aura name to switch!!>>"
@@ -165,6 +183,10 @@ const (
 	MagicIDCyclone2pc
 	MagicIDCyclone4pc
 	MagicIDCycloneMana // proc from 4pc
+	MagicIDWindhawk
+	MagicIDOrcBloodFury    // orc racials
+	MagicIDTrollBerserking // troll racial
+	MagicIDTLC             // aura on equip of TLC, stores charges
 
 	//Items
 	MagicIDISCTrink
@@ -512,7 +534,7 @@ func ActivateTLC(sim *Simulation) Aura {
 	charges := 0
 	lastActivation := 0
 	return Aura{
-		ID:      MagicIDManaEtched,
+		ID:      MagicIDTLC,
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
 			if lastActivation+icd >= sim.CurrentTick {

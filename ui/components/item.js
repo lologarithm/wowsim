@@ -94,7 +94,7 @@ class ItemComponent {
                     if (v > 0) {
                         this.statpop.innerHTML +=  `<text style="font-size: 0.9em;">${statnames[i]}: ${v.toString()}</text><br />`;
                     }
-                });    
+                });
             }
             var source = newItem.SourceZone;
             if (newItem.SourceDrop != "") {

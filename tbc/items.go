@@ -632,7 +632,7 @@ var sets = []ItemSet{
 			if sim.Options.Buffs.WaterShield {
 				sim.Buffs[StatMP5] += 8
 			}
-			return Aura{ID: MagicIDNetherstrike, Expires: 0}
+			return Aura{ID: MagicIDWindhawk, Expires: 0}
 		}},
 	},
 }
