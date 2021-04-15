@@ -2,6 +2,7 @@ package tbc
 
 import (
 	"fmt"
+	"log"
 )
 
 var Gems = []Gem{
@@ -66,7 +67,7 @@ func init() {
 	}
 	for _, v := range items {
 		if it, ok := ItemLookup[v.Name]; ok {
-			// log.Printf("Found dup item: %s", v.Name)
+			log.Printf("Found dup item: %s", v.Name)
 			statsMatch := it.Slot == v.Slot
 			for i, v := range v.Stats {
 				if len(it.Stats) <= i {
@@ -262,7 +263,6 @@ func (e Equipment) Stats() Stats {
 
 var items = []Item{
 	// source: https://docs.google.com/spreadsheets/d/1X-XO9N1_MPIq-UIpTN13LrhXRoho9fe26YEEM48QmPk/edit#gid=2035379487
-	{Slot: EquipHead, Name: "Gadgetstorm Goggles", SourceZone: "Engineering BoP", SourceDrop: "", Stats: Stats{0, 28, 40, 12, 55, 0, 0}, GemSlots: []GemColor{0x1, 0x3}},
 	{Slot: EquipHead, Name: "Gladiator's Mail Helm", SourceZone: "Arena Season 1 Reward", SourceDrop: "", Stats: Stats{15, 54, 18, 0, 37, 0, 0}, GemSlots: []GemColor{0x1, 0x2}},
 	{Slot: EquipHead, Name: "Spellstrike Hood", SourceZone: "Tailoring BoE", SourceDrop: "", Stats: Stats{12, 16, 24, 16, 46, 0, 0}, GemSlots: []GemColor{0x2, 0x4, 0x3}},
 	{Slot: EquipHead, Name: "Incanter's Cowl", SourceZone: "Mech - Pathaleon the Calculator", SourceDrop: "", Stats: Stats{27, 15, 19, 0, 29, 0, 0}, GemSlots: []GemColor{0x1, 0x4}},
@@ -284,7 +284,6 @@ var items = []Item{
 	{Slot: EquipNeck, Name: "Natasha's Ember Necklace", SourceZone: "The Hound-Master - BEM Quest", SourceDrop: "", Stats: Stats{15, 0, 10, 0, 29, 0, 0}},
 	{Slot: EquipNeck, Name: "Warp Engineer's Prismatic Chain", SourceZone: "Mech - Mechano Lord Capacitus", SourceDrop: "", Stats: Stats{18, 17, 16, 0, 19, 0, 0}},
 	{Slot: EquipNeck, Name: "Hydra-fang Necklace", SourceZone: "H UB - Ghaz'an", SourceDrop: "", Stats: Stats{16, 17, 0, 16, 19, 0, 0}},
-	{Slot: EquipNeck, Name: "Manasurge Pendant", SourceZone: "25 Badge of Justice - G'eras", SourceDrop: "", Stats: Stats{22, 24, 0, 0, 28, 0, 0}},
 	{Slot: EquipNeck, Name: "Natasha's Arcane Filament", SourceZone: "The Hound-Master - BEM Quest", SourceDrop: "", Stats: Stats{10, 22, 0, 0, 29, 0, 0}},
 	{Slot: EquipNeck, Name: "Omor's Unyielding Will", SourceZone: "H Ramps - Omar the Unscarred", SourceDrop: "", Stats: Stats{19, 19, 0, 0, 25, 0, 0}},
 	{Slot: EquipNeck, Name: "Charlotte's Ivy", SourceZone: "BoE World Drop", SourceDrop: "", Stats: Stats{19, 18, 0, 0, 23, 0, 0}},
@@ -296,7 +295,6 @@ var items = []Item{
 	{Slot: EquipShoulder, Name: "Spaulders of Oblivion", SourceZone: "SLabs - Murmur", SourceDrop: "", Stats: Stats{17, 25, 0, 0, 29, 0, 0}, GemSlots: []GemColor{0x4, 0x3}},
 	{Slot: EquipShoulder, Name: "Tidefury Shoulderguards", SourceZone: "SH - O'mrogg", SourceDrop: "", Stats: Stats{23, 18, 0, 0, 19, 0, 6}, GemSlots: []GemColor{0x2, 0x3}},
 	{Slot: EquipShoulder, Name: "Mantle of Three Terrors", SourceZone: "BM - Chrono Lord Deja", SourceDrop: "", Stats: Stats{25, 29, 0, 12, 29, 0, 0}},
-	{Slot: EquipBack, Name: "Shawl of Shifting Probabilities", SourceZone: "25 Badge of Justice - G'eras", SourceDrop: "", Stats: Stats{16, 18, 22, 0, 21, 0, 0}},
 	{Slot: EquipBack, Name: "Ogre Slayer's Cover", SourceZone: "Cho'war the Pillager - Nagrand Quest", SourceDrop: "", Stats: Stats{18, 0, 16, 0, 20, 0, 0}},
 	{Slot: EquipBack, Name: "Baba's Cloak of Arcanistry", SourceZone: "Mech - Pathaleon the Calculator", SourceDrop: "", Stats: Stats{15, 15, 14, 0, 22, 0, 0}},
 	{Slot: EquipBack, Name: "Cloak of Woven Energy", SourceZone: "Hitting the Motherlode - Netherstorm Quest", SourceDrop: "", Stats: Stats{13, 6, 6, 0, 29, 0, 0}},
@@ -305,7 +303,6 @@ var items = []Item{
 	{Slot: EquipBack, Name: "Cloak of the Black Void", SourceZone: "Tailoring BoE", SourceDrop: "", Stats: Stats{11, 0, 0, 0, 35, 0, 0}},
 	{Slot: EquipBack, Name: "Cloak of Entropy", SourceZone: "BoE World Drop", SourceDrop: "", Stats: Stats{11, 0, 0, 10, 25, 0, 0}},
 	{Slot: EquipBack, Name: "Sergeant's Heavy Cape", SourceZone: "9,435 Honor & 20 AB Marks", SourceDrop: "", Stats: Stats{12, 33, 0, 0, 26, 0, 0}},
-	{Slot: EquipChest, Name: "Netherstrike Breastplate", SourceZone: "Leatherworking BoP - Req. Dragonscale LW", SourceDrop: "", Stats: Stats{23, 34, 32, 0, 37, 0, 8}, GemSlots: []GemColor{0x4, 0x3, 0x3}},
 	{Slot: EquipChest, Name: "Gladiator's Mail Armor", SourceZone: "Arena Season 1 Reward", SourceDrop: "", Stats: Stats{23, 42, 23, 0, 32, 0, 7}, GemSlots: []GemColor{0x2, 0x4, 0x4}},
 	{Slot: EquipChest, Name: "Will of Edward the Odd", SourceZone: "BoE World Drop", SourceDrop: "", Stats: Stats{30, 0, 30, 0, 53, 0, 0}},
 	{Slot: EquipChest, Name: "Anchorite's Robe", SourceZone: "The Aldor - Honored", SourceDrop: "", Stats: Stats{38, 16, 0, 0, 29, 0, 18}, GemSlots: []GemColor{0x4, 0x4, 0x3}},
@@ -318,7 +315,6 @@ var items = []Item{
 	{Slot: EquipChest, Name: "Incanter's Robe", SourceZone: "Bot - Warp Splinter", SourceDrop: "", Stats: Stats{22, 24, 8, 0, 29, 0, 0}, GemSlots: []GemColor{0x2, 0x4, 0x4}},
 	{Slot: EquipChest, Name: "Robe of the Great Dark Beyond", SourceZone: "MT - Tavarok", SourceDrop: "", Stats: Stats{30, 25, 23, 0, 39, 0, 0}},
 	{Slot: EquipChest, Name: "Worldfire Chestguard", SourceZone: "Arc - Dalliah the Doomsayer", SourceDrop: "", Stats: Stats{32, 33, 22, 0, 40, 0, 0}},
-	{Slot: 0x6, Name: "Netherstrike Bracers", SourceZone: "Leatherworking BoP - Req. Dragonscale LW", SourceDrop: "", Stats: Stats{13, 13, 17, 0, 20, 0, 6}, GemSlots: []GemColor{0x4}},
 	{Slot: 0x6, Name: "General's Mail Bracers", SourceZone: "7,548 Honor & 20 WSG Marks", SourceDrop: "", Stats: Stats{12, 22, 14, 0, 20, 0, 0}, GemSlots: []GemColor{0x4}},
 	{Slot: 0x6, Name: "World's End Bracers", SourceZone: "H BF - Keli'dan the Breaker", SourceDrop: "", Stats: Stats{19, 18, 17, 0, 22, 0, 0}},
 	{Slot: 0x6, Name: "Bracers of Havok", SourceZone: "Tailoring BoE", SourceDrop: "", Stats: Stats{12, 0, 0, 0, 30, 0, 0}, GemSlots: []GemColor{0x4}},
@@ -343,7 +339,6 @@ var items = []Item{
 	{Slot: 0x8, Name: "Girdle of Living Flame", SourceZone: "H UB - Hungarfen", SourceDrop: "", Stats: Stats{17, 15, 0, 16, 29, 0, 0}, GemSlots: []GemColor{0x4, 0x3}},
 	{Slot: 0x8, Name: "Wave-Song Girdle", SourceZone: "H AC - Exarch Maladaar", SourceDrop: "", Stats: Stats{25, 25, 23, 0, 32, 0, 0}},
 	{Slot: 0x8, Name: "A'dal's Gift", SourceZone: "How to Break Into the Arcatraz - Quest", SourceDrop: "", Stats: Stats{25, 0, 21, 0, 34, 0, 0}},
-	{Slot: 0x8, Name: "General's Mail Girdle", SourceZone: "14,280 Honor & 40 AB Marks", SourceDrop: "", Stats: Stats{23, 34, 24, 0, 28, 0, 0}},
 	{Slot: 0x8, Name: "Sash of Arcane Visions", SourceZone: "H AC - Exarch Maladaar", SourceDrop: "", Stats: Stats{23, 18, 22, 0, 28, 0, 0}},
 	{Slot: 0x8, Name: "Belt of Depravity", SourceZone: "H Arc - Harbinger Skyriss", SourceDrop: "", Stats: Stats{27, 31, 0, 17, 34, 0, 0}},
 	{Slot: 0x8, Name: "Moonrage Girdle", SourceZone: "SV - Hydromancer Thespia", SourceDrop: "", Stats: Stats{22, 0, 20, 0, 25, 0, 0}},
@@ -397,14 +392,11 @@ var items = []Item{
 	{Slot: 0x13, Name: "Totem of Lightning", SourceZone: "Colossal Menace - HFP Quest", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
 	{Slot: 0x11, Name: "Gladiator's Spellblade / Gavel", SourceZone: "Arena Season 1 Reward", SourceDrop: "", Stats: Stats{18, 28, 0, 0, 199, 0, 0}},
 	{Slot: 0x11, Name: "Eternium Runed Blade", SourceZone: "Blacksmithing BoE", SourceDrop: "", Stats: Stats{19, 0, 21, 0, 168, 0, 0}},
-	{Slot: 0x11, Name: "Gavel of Unearthed Secrets", SourceZone: "Lower City - Exalted", SourceDrop: "", Stats: Stats{16, 24, 15, 0, 159, 0, 0}},
 	{Slot: 0x11, Name: "Starlight Dagger", SourceZone: "H SP - Mennu the Betrayer", SourceDrop: "", Stats: Stats{15, 15, 0, 16, 121, 0, 0}},
 	{Slot: 0x11, Name: "Runesong Dagger", SourceZone: "SH - Warbringer O'mrogg", SourceDrop: "", Stats: Stats{11, 12, 20, 0, 121, 0, 0}},
 	{Slot: 0x11, Name: "Bleeding Hollow Warhammer", SourceZone: "H SP - Quagmirran", SourceDrop: "", Stats: Stats{17, 12, 16, 0, 121, 0, 0}},
 	{Slot: 0x11, Name: "Sky Breaker", SourceZone: "H AC - Avatar of the Martyred", SourceDrop: "", Stats: Stats{20, 13, 0, 0, 132, 0, 0}},
-	{Slot: 0x12, Name: "Mazthoril Honor Shield", SourceZone: "33 Badge of Justice - G'eras", SourceDrop: "", Stats: Stats{17, 16, 21, 0, 23, 0, 0}},
 	{Slot: 0x12, Name: "Lamp of Peaceful Raidiance", SourceZone: "Arc - Harbinger Skyriss", SourceDrop: "", Stats: Stats{14, 13, 13, 12, 21, 0, 0}},
-	{Slot: 0x12, Name: "Khadgar's Knapsack", SourceZone: "25 Badge of Justice - G'eras", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 49, 0, 0}},
 	{Slot: 0x12, Name: "Manual of the Nethermancer", SourceZone: "Mech - Nethermancer Sepethrea", SourceDrop: "", Stats: Stats{15, 12, 19, 0, 21, 0, 0}},
 	{Slot: 0x12, Name: "Draenei Honor Guard Shield", SourceZone: "BoE World Drop", SourceDrop: "", Stats: Stats{16, 0, 21, 0, 19, 0, 0}},
 	{Slot: 0x12, Name: "Star-Heart Lamp", SourceZone: "BM - Temporus", SourceDrop: "", Stats: Stats{18, 17, 0, 12, 22, 0, 0}},
@@ -521,7 +513,7 @@ var items = []Item{
 	{Slot: EquipFinger, Name: "Ring of Unrelenting Storms", SourceZone: "Kara", SourceDrop: "Trash", Stats: Stats{StatStm: 0, StatInt: 15, StatSpellDmg: 43, StatHaste: 0, StatSpellCrit: 19, StatSpellHit: 0, StatMP5: 0}},
 	{Slot: EquipFinger, Name: "Ring of Captured Storms", SourceZone: "BT", SourceDrop: "Najentus", Stats: Stats{StatStm: 0, StatInt: 0, StatSpellDmg: 42, StatHaste: 0, StatSpellCrit: 29, StatSpellHit: 19, StatMP5: 0}},
 	{Slot: EquipFinger, Name: "Ring of Ancient Knowledge", SourceZone: "BT", SourceDrop: "Trash", Stats: Stats{StatStm: 30, StatInt: 20, StatSpellDmg: 39, StatHaste: 31, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 0}},
-	{Slot: EquipWeapon, Name: "Gavel of Unearthed Secrets", SourceZone: "Shattrah", SourceDrop: "LowerCityExalted", Stats: Stats{StatStm: 24, StatInt: 16, StatSpellDmg: 159, StatHaste: 0, StatSpellCrit: 15, StatSpellHit: 0, StatMP5: 0}},
+	{Slot: EquipWeapon, Name: "Gavel of Unearthed Secrets", SourceZone: "Shattrah", SourceDrop: "LowerCity - Exalted", Stats: Stats{StatStm: 24, StatInt: 16, StatSpellDmg: 159, StatHaste: 0, StatSpellCrit: 15, StatSpellHit: 0, StatMP5: 0}},
 	{Slot: EquipWeapon, Name: "Eternium Runed Blade", SourceZone: "Crafted", SourceDrop: "Blacksmithing", Stats: Stats{StatStm: 0, StatInt: 19, StatSpellDmg: 168, StatHaste: 0, StatSpellCrit: 21, StatSpellHit: 0, StatMP5: 0}},
 	{Slot: EquipWeapon, Name: "Gladiator's Gavel / Gladiator's Spellblade", SourceZone: "PvP", SourceDrop: "PvP", Stats: Stats{StatStm: 28, StatInt: 18, StatSpellDmg: 199, StatHaste: 0, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 0}},
 	{Slot: EquipWeapon, Name: "Nathrezim Mindblade", SourceZone: "Kara", SourceDrop: "Prince", Stats: Stats{StatStm: 18, StatInt: 18, StatSpellDmg: 203, StatHaste: 0, StatSpellCrit: 23, StatSpellHit: 0, StatMP5: 0}},
