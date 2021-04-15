@@ -11,11 +11,13 @@ UI
         2p t4
         Chain of Twilight Owl
         Eye of the Night
+    Remove Gem button
 
 Items
     Gear Quality
     Validate gear stats - unsure if item data source is accurate.
     Enchants
+    More Gems - https://blizzardwatch.com/2021/04/07/burning-crusade-classic-gems/
 
 Engine
     Set Bonuses (missing t5/6)
@@ -26,4 +28,5 @@ Other
     Add armor type to allow for a 'mail-only' optimization
     'Gear Sets' both pre-made and let players save the setup. (optionally allow for saving of buffs as well)
     History - Make another results tab that holds the history of all sims. (probably just Peak DPS + Avg DPS)
-    
+    Versioning - Add a version notification that can do a quick check to see if new version exists. (maybe include a like VERSION file the client can poll on every few minutes)
+    Pull out advanced controls pane - 'Remove All Gear' 'Gem Everything' are first two thoughts for things that don't really have a spot.

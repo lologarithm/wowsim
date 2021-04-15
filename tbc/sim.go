@@ -341,12 +341,28 @@ func (sim *Simulation) Cast(cast *Cast) {
 
 		// Average Resistance (AR) = (Target's Resistance / (Caster's Level * 5)) * 0.75
 		// P(x) = 50% - 250%*|x - AR| <- where X is %resisted
-		// For now hardcode the 25% chance resist at 2.5% (this assumes bosses have 0 nature resist)
-		// .... Using level 70 shows a 0.35% chance of resist instead of 2.5%... not sure what is correct.
-		if sim.rando.Float64() < 0.025 { // chance of 25% resist
-			dmg *= .75
+		// Using these stats:
+		//    13.6% chance of
+		resVal := sim.rando.Float64()
+		if resVal < 0.17 { // 12% chance for 25% resist, 4% for 50%, 1% for 75%
 			if sim.Debug != nil {
-				dbgCast += " (partial resist)"
+				dbgCast += " (partial resist: "
+			}
+			if resVal < 0.01 {
+				dmg *= .25
+				if sim.Debug != nil {
+					dbgCast += "75%)"
+				}
+			} else if resVal < 0.05 {
+				dmg *= .5
+				if sim.Debug != nil {
+					dbgCast += "50%)"
+				}
+			} else {
+				dmg *= .75
+				if sim.Debug != nil {
+					dbgCast += "25%)"
+				}
 			}
 		}
 		cast.DidDmg = dmg
