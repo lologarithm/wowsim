@@ -138,6 +138,15 @@ function getOptions() {
     options.buffdrums = parseInt(document.getElementById("buffdrums").value) || 0;
     options.sbufrace = parseInt(document.getElementById("sbufrace").value) || 0;
 
+    options.custom = {};
+    options.custom.custint = parseInt(document.getElementById("custint").value) || 0;
+    options.custom.custsp = parseInt(document.getElementById("custsp").value) || 0;
+    options.custom.custsc = parseInt(document.getElementById("custsc").value) || 0;
+    options.custom.custsh = parseInt(document.getElementById("custsh").value) || 0;
+    options.custom.custha = parseInt(document.getElementById("custha").value) || 0;
+    options.custom.custmp5 = parseInt(document.getElementById("custmp5").value) || 0;
+    options.custom.custmana = parseInt(document.getElementById("custmana").value) || 0;
+    
     return options;
 }
 

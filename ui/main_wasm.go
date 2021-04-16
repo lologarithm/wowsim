@@ -81,7 +81,7 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 	for i, v := range fakesim.Buffs {
 		finalStats[i] += v
 	}
-	return stats.Print(false)
+	return finalStats.Print(false)
 }
 
 // getGear converts js string array to a list of equipment items.
@@ -115,6 +115,7 @@ func getGear(val js.Value) tbc.Equipment {
 }
 
 func parseOptions(val js.Value) tbc.Options {
+	var custom = val.Get("custom")
 	opt := tbc.Options{
 		ExitOnOOM:    val.Get("exitoom").Truthy(),
 		NumBloodlust: val.Get("buffbl").Int(),
@@ -136,6 +137,15 @@ func parseOptions(val js.Value) tbc.Options {
 			EyeOfNight:               val.Get("buffeyenight").Truthy(),
 			TwilightOwl:              val.Get("bufftwilightowl").Truthy(),
 			Race:                     tbc.RaceBonusType(val.Get("sbufrace").Int()),
+			Custom: tbc.Stats{
+				tbc.StatInt:       custom.Get("custint").Float(),
+				tbc.StatSpellCrit: custom.Get("custsc").Float(),
+				tbc.StatSpellHit:  custom.Get("custsh").Float(),
+				tbc.StatSpellDmg:  custom.Get("custsp").Float(),
+				tbc.StatHaste:     custom.Get("custha").Float(),
+				tbc.StatMP5:       custom.Get("custmp5").Float(),
+				tbc.StatMana:      custom.Get("custmana").Float(),
+			},
 		},
 		Consumes: tbc.Consumes{
 			FlaskOfBlindingLight:     val.Get("confbl").Truthy(),
