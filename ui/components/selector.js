@@ -175,7 +175,6 @@ class SelectorComponent {
             }
             // this.sockComp.
         } else if (tab == "enchant") {
-            console.log("focusing enchants...");
             this.tab3.classList.add("selactive");
             this.tab1.classList.remove("selactive");
             this.tab2.classList.remove("selactive");
