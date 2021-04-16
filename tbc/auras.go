@@ -354,7 +354,7 @@ func ActivateNexusHorn(sim *Simulation) Aura {
 }
 
 func ActivateDCC(sim *Simulation) Aura {
-	const spellBonus = 18.0
+	const spellBonus = 8.0
 	stacks := 0
 	return Aura{
 		ID:      MagicIDDCC,
