@@ -119,6 +119,7 @@ type Buffs struct {
 
 	// Target Debuff
 	JudgementOfWisdom bool
+	ImpSealofCrusader bool
 	Misery            bool
 
 	// Custom
@@ -166,6 +167,10 @@ func (b Buffs) AddStats(s Stats) Stats {
 	}
 	s[StatMP5] += float64(b.SpriestDPS) * 0.25
 
+	if b.ImpSealofCrusader {
+		s[StatSpellCrit] += 66.24 // 3% crit
+	}
+
 	for k, v := range b.Custom {
 		s[k] += v
 	}
@@ -179,6 +184,7 @@ type Consumes struct {
 	FlaskOfBlindingLight     bool
 	FlaskOfMightyRestoration bool
 	BlackendBasilisk         bool
+	DestructionPotion        bool
 
 	// Used in rotations
 	SuperManaPotion bool

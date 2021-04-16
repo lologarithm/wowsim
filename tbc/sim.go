@@ -24,10 +24,11 @@ type Simulation struct {
 	Equip       Equipment // Current Gear
 	activeEquip Equipment // cache of gear that can activate.
 
-	bloodlustCasts int
-	Options        Options
-	SpellRotation  []*Spell
-	RotationIdx    int
+	bloodlustCasts    int
+	destructionPotion bool
+	Options           Options
+	SpellRotation     []*Spell
+	RotationIdx       int
 
 	// ticks until cast is complete
 	CastingSpell *Cast

@@ -85,6 +85,14 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 
 		sim.ActivateRacial()
 
+		if sim.Options.Consumes.DestructionPotion && sim.CDs[MagicIDPotion] < 1 {
+			// Only use dest potion if not using mana or if we haven't used it once.
+			// If we are using mana, only use destruction potion on the pull.
+			if !sim.Options.Consumes.SuperManaPotion || !sim.destructionPotion {
+				sim.addAura(ActivateDestructionPotion(sim))
+			}
+		}
+
 		didPot := false
 		totalRegen := (sim.Stats[StatMP5] + sim.Buffs[StatMP5])
 		// Pop potion before next cast if we have less than the mana provided by the potion minues 1mp5 tick.

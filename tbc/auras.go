@@ -129,6 +129,8 @@ func AuraName(a int32) string {
 		return "Cyclone Mana Cost Reduction"
 	case MagicIDTLC:
 		return "The Lightning Capacitor Aura"
+	case MagicIDDestructionPotion:
+		return "Destruction Potion"
 	}
 
 	return "<<TODO: Add Aura name to switch!!>>"
@@ -187,6 +189,7 @@ const (
 	MagicIDOrcBloodFury    // orc racials
 	MagicIDTrollBerserking // troll racial
 	MagicIDTLC             // aura on equip of TLC, stores charges
+	MagicIDDestructionPotion
 
 	//Items
 	MagicIDISCTrink
@@ -592,6 +595,23 @@ func ActivateCycloneManaReduce(sim *Simulation) Aura {
 					},
 				})
 			}
+		},
+	}
+}
+
+func ActivateDestructionPotion(sim *Simulation) Aura {
+	sim.destructionPotion = true
+	sim.Buffs[StatSpellDmg] += 120
+	sim.Buffs[StatSpellCrit] += 44.16
+	sim.CDs[MagicIDPotion] = 120 * TicksPerSecond
+
+	const dur = 15 * TicksPerSecond
+	return Aura{
+		ID:      MagicIDDestructionPotion,
+		Expires: sim.CurrentTick + dur,
+		OnExpire: func(sim *Simulation, c *Cast) {
+			sim.Buffs[StatSpellDmg] -= 120
+			sim.Buffs[StatSpellCrit] -= 44.16
 		},
 	}
 }

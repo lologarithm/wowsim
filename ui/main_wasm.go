@@ -121,6 +121,7 @@ func parseOptions(val js.Value) tbc.Options {
 			ImprovedBlessingOfWisdom: val.Get("buffibow").Truthy(),
 			ImprovedDivineSpirit:     val.Get("buffids").Truthy(),
 			JudgementOfWisdom:        val.Get("debuffjow").Truthy(),
+			ImpSealofCrusader:        val.Get("debuffisoc").Truthy(),
 			Misery:                   val.Get("debuffmis").Truthy(),
 			Moonkin:                  val.Get("buffmoon").Truthy(),
 			MoonkinRavenGoddess:      val.Get("buffmoonrg").Truthy(),
@@ -136,6 +137,7 @@ func parseOptions(val js.Value) tbc.Options {
 			BrilliantWizardOil:       val.Get("conbwo").Truthy(),
 			MajorMageblood:           val.Get("conmm").Truthy(),
 			BlackendBasilisk:         val.Get("conbb").Truthy(),
+			DestructionPotion:        val.Get("condp").Truthy(),
 			SuperManaPotion:          val.Get("consmp").Truthy(),
 			DarkRune:                 val.Get("condr").Truthy(),
 		},
@@ -224,7 +226,7 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 
 	customRotation := [][]string{}
 	customHaste := 0.0
-	if len(args) == 6 {
+	if len(args) >= 6 {
 		if args[4].Truthy() {
 			customRotation = parseRotation(args[4])
 		}
@@ -299,10 +301,7 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 	print("\nNum Simulations: ", numSims)
 	print("\n")
 
-	spellOrders := [][]string{
-		{"LB12"},               // only LB
-		{"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
-	}
+	spellOrders := [][]string{}
 	doingCustom := false
 	if len(customRotation) > 0 {
 		doingCustom = true
