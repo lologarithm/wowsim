@@ -40,6 +40,7 @@ class GearUI {
         this.changeHandlers = [];
         this.allitems = {};
         this.allgems = {};
+        this.allenchants = {};
         this.itemComps = [];
         this.itemCompSlots = {};
         this.currentGear = {};
@@ -78,6 +79,9 @@ class GearUI {
                     }
                     this.currentGear[slot].Gems[change.gem.socket] = this.allgems[change.gem.name];
                     itemComp.updateEquipped(this.currentGear[slot]);
+                } else if (change.enchant != null) {
+                    this.currentGear[slot].Enchant = this.allenchants[change.enchant.name];
+                    itemComp.updateEquipped(this.currentGear[slot]);
                 }
 
                 this.changeHandlers.forEach((h)=>{
@@ -112,6 +116,9 @@ class GearUI {
         });
         gearList.Gems.forEach((gem)=>{
             this.allgems[gem.Name] = gem;
+        });
+        gearList.Enchants.forEach((enchant)=>{
+            this.allenchants[enchant.Name] = enchant;
         });
     
         this.compdiv = node;
@@ -169,6 +176,9 @@ class GearUI {
                     }
                     realItem.Gems.push(gem);
                 });
+            }
+            if (item.Enchant != null && item.Enchant != "") {
+                realItem.Enchant = this.allenchants[item.Enchant];
             }
             this.updateItemSlot(realItem, slotid)
         });

@@ -667,6 +667,7 @@ function showGearRecommendations(weights) {
                 var iters = parseInt(document.getElementById("switer").value);
                 var dur = parseInt(document.getElementById("swdur").value);
                 var opts = getOptions();
+                opts.useai = true;
                 simulate(iters, dur, cleanGear(newgear), opts, null, null, false, (res)=>{
                     var statistics = processSimResult(res);
                     col4.innerText = Math.round(statistics.dps).toString() + " +/- " + Math.round(statistics.dev).toString();
@@ -768,7 +769,7 @@ function cleanGear(gear) {
         var it = {
             Name: entry[1].Name,
             Gems: [],
-            // TODO: enchants
+            Enchant: "",
         }
         if (entry[1].Gems != null) {
             entry[1].Gems.forEach((g)=>{
@@ -778,6 +779,9 @@ function cleanGear(gear) {
                 }
                 it.Gems.push(g.Name);
             });    
+        }
+        if (entry[1].Enchant != null) {
+            it.Enchant = entry[1].Enchant.Name;
         }
         cleanedGear.push(it);
     });

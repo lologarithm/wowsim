@@ -34,8 +34,9 @@ func GearList(this js.Value, args []js.Value) interface{} {
 		slot = byte(args[0].Int())
 	}
 	gear := struct {
-		Items []tbc.Item
-		Gems  []tbc.Gem
+		Items    []tbc.Item
+		Gems     []tbc.Gem
+		Enchants []tbc.Enchant
 	}{
 		Items: make([]tbc.Item, 0, len(tbc.ItemLookup)),
 	}
@@ -46,6 +47,8 @@ func GearList(this js.Value, args []js.Value) interface{} {
 		gear.Items = append(gear.Items, v)
 	}
 	gear.Gems = tbc.Gems
+	gear.Enchants = tbc.Enchants
+
 	output, err := json.Marshal(gear)
 	if err != nil {
 		// fmt.Printf("Failed to marshal gear list: %s", err)
@@ -102,6 +105,9 @@ func getGear(val js.Value) tbc.Equipment {
 				}
 				ic.Gems[i] = gv
 			}
+		}
+		if !v.Get("Enchant").IsNull() && !v.Get("Enchant").IsUndefined() {
+			ic.Enchant = tbc.EnchantLookup[v.Get("Enchant").String()]
 		}
 		gearSet[i] = ic
 	}

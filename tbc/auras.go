@@ -249,9 +249,10 @@ func AuraLightningOverload(lvl int) Aura {
 					sim.Debug(" +Lightning Overload\n")
 				}
 				clone := &Cast{
-					IsLO:    true,
-					Spell:   c.Spell,
-					Effects: []AuraEffect{func(sim *Simulation, c *Cast) { c.DidDmg /= 2 }},
+					IsLO:      true,
+					Spell:     c.Spell,
+					CritBonus: 1.5, // LO gets Elemental Fury
+					Effects:   []AuraEffect{func(sim *Simulation, c *Cast) { c.DidDmg /= 2 }},
 				}
 				sim.Cast(clone)
 			}
@@ -556,7 +557,8 @@ func ActivateTLC(sim *Simulation) Aura {
 				}
 				lastActivation = sim.CurrentTick
 				clone := &Cast{
-					Spell: tlcspell,
+					Spell:     tlcspell,
+					CritBonus: 1.0, // TLC does not get elemental fury
 				}
 				sim.Cast(clone)
 				charges = 0
