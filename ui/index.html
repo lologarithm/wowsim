@@ -73,8 +73,8 @@
                             <label><input id="buffai" class="uk-checkbox" type="checkbox" checked>Arcane Int</label>
                             <label><input id="buffgotw" class="uk-checkbox" type="checkbox" checked>Gift of the Wild</label>
                             <label><input id="buffbk" class="uk-checkbox" type="checkbox" checked>Blessing of Kings</label>
-                            <label><input id="buffibow" class="uk-checkbox" type="checkbox" checked>Improved Blessing of Wisdom</label>
-                            <label><input id="buffids" class="uk-checkbox" type="checkbox">Improved Divine Spirit</label>
+                            <label><input id="buffibow" class="uk-checkbox" type="checkbox" checked>Imp Blessing of Wisdom</label>
+                            <label><input id="buffids" class="uk-checkbox" type="checkbox">Imp Divine Spirit</label>
                         </div>
                         <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid buffs dtl">
                                 <b style="width: 100%;text-align: right;font-size: 0.7em;color: #1e87f0;">Party Buffs</b>
@@ -113,6 +113,7 @@
                         <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid buffs dtl">
                             <b style="width: 100%;text-align: right;font-size: 0.7em;color: #1e87f0;">Target Debuffs</b>
                             <label><input id="debuffjow" class="uk-checkbox" type="checkbox" checked>Judgement of Wisdom</label>
+                            <label><input id="debuffisoc" class="uk-checkbox" type="checkbox">Imp Seal of the Crusader</label>
                             <label><input id="debuffmis" class="uk-checkbox" type="checkbox">Misery</label>
                         </div>
                         <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid buffs dtl">
@@ -122,14 +123,15 @@
                             <label><input id="conbwo" class="uk-checkbox" type="checkbox">Brilliant Wizard Oil</label>
                             <label><input id="conmm" class="uk-checkbox" type="checkbox">Major Mageblood</label>
                             <label><input id="conbb" class="uk-checkbox" type="checkbox">Blackened Basilisk</label>
-                            <label><input id="consmp" class="uk-checkbox" type="checkbox" checked>Super Mana Potion</label>
+                            <label title="If mana potion is also selected this will be used on pull with bloodlust."><input id="condp" class="uk-checkbox" type="checkbox" title="If mana potion is also selected this will be used on pull with bloodlust.">Destruction Potion</label>
+                            <label title="If used with Destruction Potion it will take 2min before the mana potion can be used."><input id="consmp" class="uk-checkbox" type="checkbox" title="If used with Destruction Potion it will take 2min before the mana potion can be used." checked>Super Mana Potion</label>
                             <label><input id="condr" class="uk-checkbox" type="checkbox">Dark Rune</label>        
                         </div>
                         <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid buffs dtl">
                             <b style="width: 100%;text-align: right;font-size: 0.7em;color: #1e87f0;">Totems</b>
                             <label><input id="totms" class="uk-checkbox" type="checkbox" checked>Mana Spring</label>
                             <label><input id="totwoa" class="uk-checkbox" type="checkbox" checked>Wrath of Air</label>
-                            <label><input id="totcycl2p" class="uk-checkbox" type="checkbox">Improved Wrath of Air (T4 2pc)</label>
+                            <label><input id="totcycl2p" class="uk-checkbox" type="checkbox">Imp Wrath of Air (T4 2pc)</label>
                             <label>Totem of Wrath: <select id="totwr" class="buffdrop" list="ttwv" style="width: 50px" value="1">
                                 <option class="buffdrop">0</option>
                                 <option class="buffdrop" selected>1</option>
@@ -144,9 +146,9 @@
                 <li id="notes" style="height: 100%;overflow: auto;">
                     <ul>
                         <li>All activatable abilities and items are activated on CD (usually at the start of fight).</li>
-                        <li>Unsure of exact spell pen. Using classic 2.5% chance for a 25% partial resist (this is probably wrong).</li>
                         <li>The 'Hasted Rotations' tab will calculate the max DPS rotation for the given gear set and at fixed haste levels.</li>
                         <li>Downranking is not implemented so in mana starvation simulations you will see a high ratio of OOM. This results in lower DPS than is possible if using downranked spells.</li>
+                        <li>If stat weights are fluctuating too much try increasing iterations. Usually 10,000 will remove variability but can take a while to run.</li>
                     </ul>
                 </li>
             </ul>
@@ -204,9 +206,11 @@
                         </div>
                     </li>
                     <li>
-                        <button id="calcstatweight" style="float: right">Calculate</button>
-                        <label style="float:right">Duration:<input id="swdur" type="text" value="300" style="width: 60px"></input></label>
-                        <label style="float:right">Iterations:<input id="switer" type="text" value="1000" style="width: 60px"></input></label>
+                        <div style="text-align: right">
+                            <label>Iterations:<input id="switer" type="text" value="1000" style="width: 60px"></input></label>
+                            <label>Duration:<input id="swdur" type="text" value="300" style="width: 60px"></input></label>
+                            <button id="calcstatweight">Calculate</button>
+                        </div>
                         <table id="statweights" style="width: 50%;margin: 0px auto;">
                             <tr style="font-size: 1.3em;font-weight: 700;text-align: center;">
                                 <th>Dmg</th>

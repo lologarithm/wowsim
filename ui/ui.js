@@ -116,6 +116,7 @@ function getOptions() {
     options.buffmoon =  document.getElementById("buffmoon").checked;
     options.sbufws =  document.getElementById("sbufws").checked;
     options.debuffjow =  document.getElementById("debuffjow").checked;
+    options.debuffisoc =  document.getElementById("debuffisoc").checked;
     options.debuffmis =  document.getElementById("debuffmis").checked;
     options.confbl =  document.getElementById("confbl").checked;
     options.confmr =  document.getElementById("confmr").checked;
@@ -123,6 +124,7 @@ function getOptions() {
     options.conmm =  document.getElementById("conmm").checked;
     options.conbb =  document.getElementById("conbb").checked;
     options.consmp =  document.getElementById("consmp").checked;
+    options.condp =  document.getElementById("condp").checked;
     options.condr =  document.getElementById("condr").checked;
     options.totms =  document.getElementById("totms").checked;
     options.totwoa =  document.getElementById("totwoa").checked;
@@ -153,7 +155,6 @@ function processSimResult(output) {
     var resultStats = {};
     var out = output[0];
     var maxDPS = 0;
-
     var dpsHist = {};
     var oomDPSHist = {};
 
@@ -182,7 +183,9 @@ function processSimResult(output) {
         }
         return sum;
     }, 0);
-    oomat /= (numOOM);
+    if (numOOM > 0) {
+        oomat /= (numOOM);
+    }
 
     var dpsAtOOM = 0;
     if (numOOM > 0) {
@@ -270,15 +273,23 @@ function runsim(currentGear, fullLogs) {
         } else {
             max = veryMax;
         }
-        priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(max)}</text> dps<br /><text style="font-size:0.7em">${Math.round(stats.oomat)}s to oom at peak dps.</text></div>`
+        var oomat = stats.oomat;
+        if (oomat == 0) {
+            oomat = ">600"
+        } else {
+            oomat = Math.round(oomat);
+        }
+        priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(max)}</text> dps<br /><text style="font-size:0.7em">${oomat}s to oom at peak dps.</text></div>`
     });
     simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0,false, (out) => {
         var stats = processSimResult(out);
         var ttoom = stats.oomat;
         if (ttoom == 0) {
-            ttoom = "Never";
+            ttoom = ">600";
+        } else {
+            ttoom = Math.round(ttoom);
         }
-        lbout.innerHTML = `<div><h3>Mana</h3><text class="simnums">${Math.round(ttoom)}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only</text></div>`
+        lbout.innerHTML = `<div><h3>Mana</h3><text class="simnums">${ttoom}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only</text></div>`
     });
 
     var secondOpts = getOptions();
@@ -544,11 +555,11 @@ function calcStatWeights(gear) {
     statweight(iters, dur, gear, opts, 4, 20, (res) => {sp_hitModDPS = res;onfinish();}); // sp
     statweight(iters, dur, gear, opts, 3, 20, (res) => {modDPS[3] = res;onfinish();}); // hit
 
-    statweight(iters, dur, gear, opts, 4, 20, (res) => {modDPS[0] = res;onfinish();}); // sp
-    statweight(iters, dur, gear, opts, 0, 20, (res) => {modDPS[1] = res;onfinish();}); // int
-    statweight(iters, dur, gear, opts, 2, 20, (res) => {modDPS[2] = res;onfinish();}); // crit
-    statweight(iters, dur, gear, opts, 5, 20, (res) => {modDPS[4] = res;onfinish();}); // haste
-    statweight(iters, dur, gear, opts, 6, 20, (res) => {modDPS[5] = res;onfinish();}); // mp5
+    statweight(iters, dur, gear, opts, 4, 50, (res) => {modDPS[0] = res;onfinish();}); // sp
+    statweight(iters, dur, gear, opts, 0, 50, (res) => {modDPS[1] = res;onfinish();}); // int
+    statweight(iters, dur, gear, opts, 2, 50, (res) => {modDPS[2] = res;onfinish();}); // crit
+    statweight(iters, dur, gear, opts, 5, 50, (res) => {modDPS[4] = res;onfinish();}); // haste
+    statweight(iters, dur, gear, opts, 6, 50, (res) => {modDPS[5] = res;onfinish();}); // mp5
 }
 
 function showGearRecommendations(weights) {
