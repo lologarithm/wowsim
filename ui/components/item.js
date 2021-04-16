@@ -14,17 +14,19 @@ class ItemComponent {
     selector;
     socketComp;
 
-    constructor(slot, allgems) {
+    constructor(slot, allgear) {
         this.slot = slot;
-        this.selector = new SelectorComponent(slot, allgems);
+        this.selector = new SelectorComponent(slot, allgear);
 
         var name = document.createElement("p");
         name.addEventListener("click", (e) => {this.showItemSelector(e)});
-        name.id = slot+"label";
         name.innerText = "None";
         
-        this.socketComp = new SocketsComponent(slot);
+        this.socketComp = new SocketsComponent(slot, allgear.Enchants);
         this.socketComp.addSelectListener((socket, e)=>{
+            if (socket == -1) {
+                this.showEnchantSelector(event);
+            }
             this.showGemSelector(e, socket); ///ya ya ya, reversed parameters, ill deal with it later.
         });
         this.socketComp.div.addEventListener("click", (e) => {});
@@ -36,7 +38,7 @@ class ItemComponent {
     
         this.statpop = document.createElement("div");
         this.statpop.classList.add("statpop");
-        if (theme == "dart") {
+        if (theme == "dark") {
             this.statpop.classList.add("dtm"); 
         } else {
             this.statpop.classList.add("ltm"); 
@@ -68,6 +70,12 @@ class ItemComponent {
         this.maindiv = maindiv;
     }
 
+    showEnchantSelector(event, socket) {
+        this.selector.show(event);
+        this.selector.focus("enchant");
+        moveSelector(this.selector.selectordiv, event.clientX, event.clientY);
+    }
+
     showGemSelector(event, socket) {
         this.selector.show(event);
         this.selector.focus("gem", socket);
@@ -92,9 +100,33 @@ class ItemComponent {
             if (newItem.Stats != null) {
                 newItem.Stats.forEach((v,i)=>{
                     if (v > 0) {
-                        this.statpop.innerHTML +=  `<text style="font-size: 0.9em;">${statnames[i]}: ${v.toString()}</text><br />`;
+                        this.statpop.innerHTML += `<text style="font-size: 0.9em;">${statnames[i]}: ${v.toString()}</text><br />`;
                     }
                 });
+                var sockBonusActive = false;
+                if (newItem.GemSlots != null) {
+                    if (newItem.Gems != null && newItem.GemSlots.length == newItem.Gems.length) {
+                        sockBonusActive = true;
+                        // Check if gemslots match gems
+                        newItem.GemSlots.forEach((gs,i)=>{
+                            sockBonusActive = sockBonusActive && colorIntersects(gs, newItem.Gems[i].Color)
+                        })
+                    }
+                    var sb = "Socket Bonus: ";
+                    newItem.SocketBonus.forEach((v,i)=>{
+                        if (v > 0) {
+                            sb += `${statnames[i]}: ${v.toString()}`;
+                        }
+                    });
+                    var socktText = document.createElement("text");
+                    socktText.innerText = sb;
+                    socktText.style.fontSize = "0.6em";
+                    if (sockBonusActive) {
+                        socktText.style.color = "green";
+                    }
+                    this.statpop.appendChild(socktText);
+                    this.statpop.appendChild(document.createElement("br"));
+                }
             }
             var source = newItem.SourceZone;
             if (newItem.SourceDrop != "") {
@@ -149,11 +181,16 @@ class SocketsComponent {
     gems; // currently socketed gems.
     selectedSocket;
     listeners;
+    slot; // Slot this selector is for
+    enchant; // enchant in the enchant socket
+    enchants; // list of all enchants
 
-    constructor() {
+    constructor(slot, enchants) {
+        this.enchants = enchants;
         this.div = document.createElement("div");
         this.div.style.height = "2.2em"; // so the text doesnt go right of the socket icons...
         
+        this.slot = slot;
         this.selectedSocket = 0;
         this.sockets = [];
         this.listeners = [];
@@ -189,12 +226,27 @@ class SocketsComponent {
                 if (gems[idx].Name != null) {
                     var img = document.createElement("img")
                     img.src = gemToIcon[gems[idx].Color]
+                    img.title = gems[idx].Name;
                     if (img.src != undefined) {
                         socketDiv.appendChild(img);
                     }
                 }
             }
             this.div.appendChild(socketDiv);
+        });
+
+        var addedEnc = false;
+        this.enchants.forEach((e)=>{
+            if (addedEnc) { return; }
+            if (slotToID[e.Slot] == this.slot) {
+                var enchdiv = document.createElement("div");
+                enchdiv.classList.add("enchslot");
+                enchdiv.addEventListener("click", (event)=>{
+                    this.listeners.forEach((h)=>{ h(-1, event) });
+                });
+                this.div.appendChild(enchdiv);
+                addedEnc = true;
+            }
         });
     }
 

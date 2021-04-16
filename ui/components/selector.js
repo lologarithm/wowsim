@@ -12,6 +12,7 @@ class SelectorComponent {
     tab3;
     gemseldiv;
     gemsList; // List of gems to select when socket is selected.
+    enchselector;
 
     // Main Div
     selectordiv;
@@ -32,11 +33,20 @@ class SelectorComponent {
         this.changeHandlers = [];
         this.items = [];
         this.slot = slot;
-        this.sockComp = new SocketsComponent(slot);
+        this.sockComp = new SocketsComponent(slot, []);
         this.gemsList = document.createElement("div");
         this.sockComp.addSelectListener((socket)=>{
+            if (socket == -1) {
+                // this.enchantSelected();
+                return;
+            }
             this.gemSelected(socket);
         });
+
+        var enchselector = document.createElement("div");
+        enchselector.style.display = "none";
+        var enchantlist = this.enchantList();
+        enchselector.appendChild(enchantlist);
 
         var gemseldiv = document.createElement("div");
         gemseldiv.style.display = "none";
@@ -76,6 +86,8 @@ class SelectorComponent {
         var tab3 = document.createElement("div");
         tab3.innerText = "Enchants";
         tab3.classList.add("selectortab");
+        tab3.addEventListener("click", ()=> { this.focus("enchant") });
+
         seltabs.appendChild(tab1);
         seltabs.appendChild(tab2);
         seltabs.appendChild(tab3);
@@ -93,6 +105,7 @@ class SelectorComponent {
         selectordiv.appendChild(seltabs);
         selectordiv.appendChild(gemseldiv);
         selectordiv.appendChild(itemselector);
+        selectordiv.appendChild(enchselector);
 
 
         this.gemseldiv = gemseldiv;
@@ -105,7 +118,7 @@ class SelectorComponent {
         this.tab2 = tab2;
         this.tab3 = tab3;
         this.selectordiv = selectordiv;
-
+        this.enchselector = enchselector;
     }
 
     changeHandlers;
@@ -145,12 +158,14 @@ class SelectorComponent {
         if (tab == "item") {
             this.tab1.classList.add("selactive");
             this.tab2.classList.remove("selactive");
+            this.tab3.classList.remove("selactive");
             this.gemseldiv.style.display = "none";
             this.itemselector.style.display = "block";
             this.search.focus();
         } else if (tab == "gem") {
             this.tab2.classList.add("selactive");
             this.tab1.classList.remove("selactive");
+            this.tab3.classList.remove("selactive");
             this.gemseldiv.style.display = "block";
             this.itemselector.style.display = "none";
             if (subitem != null) {
@@ -158,6 +173,13 @@ class SelectorComponent {
                 this.gemSelected(subitem);
             }
             // this.sockComp.
+        } else if (tab == "enchant") {
+            this.tab3.classList.add("selactive");
+            this.tab1.classList.remove("selactive");
+            this.tab2.classList.remove("selactive");
+            this.gemseldiv.style.display = "none";
+            this.itemselector.style.display = "none";
+            this.enchselector.style.display = "block";
         }
     }
     hide(e) {
@@ -353,6 +375,23 @@ class SelectorComponent {
         this.clearSearch();
     }
 
+    enchantList(enchants) {
+        var div = document.createElement("div");
+        div.classList.add("enchselectorlist")
+        Object.entries(this.allgear.Enchants).filter((v) => {
+            return this.slot == slotToID[v[1].Slot]
+        }).forEach((ench) => {
+            var name = ench[1].Name;
+            var itemdiv = document.createElement("div");
+            itemdiv.innerText = name
+            itemdiv.addEventListener("click", (e)=>{
+                // using global itemselector here feels weird...
+                this.notifyGemChange(name, this.sockComp.selectedSocket);
+            });
+            div.appendChild(itemdiv);
+        });
+        return div;
+    }
 }
 
 function getColorHex(gem) {
