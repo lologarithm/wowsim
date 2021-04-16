@@ -294,7 +294,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 		}
 	}
 	hit := 0.83 + ((sim.Stats[StatSpellHit] + sim.Buffs[StatSpellHit]) / 1260.0) + cast.Hit // 12.6 hit == 1% hit
-	if hit > 1.0 {
+	if hit > 0.99 {
 		hit = 0.99 // can't get away from the 1% miss
 	}
 
@@ -313,12 +313,11 @@ func (sim *Simulation) Cast(cast *Cast) {
 		crit := ((sim.Stats[StatSpellCrit] + sim.Buffs[StatSpellCrit]) / 2208.0) + cast.Crit // 22.08 crit == 1% crit
 		if sim.rando.Float64() < crit {
 			cast.DidCrit = true
-			critBonus := 1.0
-			if cast.Spell.ID == MagicIDCL6 || cast.Spell.ID == MagicIDLB12 {
-				critBonus = 1.5
-			}
+			critBonus := 1.0 // fall back crit damage
 			if cast.CritBonus != 0 {
-				critBonus = cast.CritBonus
+				critBonus = cast.CritBonus // This means we had pre-set the crit bonus when the spell was created. CSD will modify this.
+			} else if cast.Spell.ID == MagicIDCL6 || cast.Spell.ID == MagicIDLB12 {
+				critBonus = 1.5 // if we didn't pre-set the crit chance, this handles the 'Elemental Fury' talent which increases the crit bonus.
 			}
 			dmg *= (critBonus * 2) - 1 // if CSD equipped the cast crit bonus will be modified during 'onCastComplete.'
 			if cast.Spell.ID != MagicIDTLCLB {

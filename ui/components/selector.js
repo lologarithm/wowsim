@@ -37,8 +37,7 @@ class SelectorComponent {
         this.gemsList = document.createElement("div");
         this.sockComp.addSelectListener((socket)=>{
             if (socket == -1) {
-                // this.enchantSelected();
-                return;
+                return; // technically never happens because we dont give this comp an 'enchant socket'
             }
             this.gemSelected(socket);
         });
@@ -161,6 +160,7 @@ class SelectorComponent {
             this.tab3.classList.remove("selactive");
             this.gemseldiv.style.display = "none";
             this.itemselector.style.display = "block";
+            this.enchselector.style.display = "none";
             this.search.focus();
         } else if (tab == "gem") {
             this.tab2.classList.add("selactive");
@@ -168,12 +168,14 @@ class SelectorComponent {
             this.tab3.classList.remove("selactive");
             this.gemseldiv.style.display = "block";
             this.itemselector.style.display = "none";
+            this.enchselector.style.display = "none";
             if (subitem != null) {
                 // activate a specific gem
                 this.gemSelected(subitem);
             }
             // this.sockComp.
         } else if (tab == "enchant") {
+            console.log("focusing enchants...");
             this.tab3.classList.add("selactive");
             this.tab1.classList.remove("selactive");
             this.tab2.classList.remove("selactive");
@@ -194,6 +196,7 @@ class SelectorComponent {
             this.selectordiv.style.display = "none";
         }
     }
+
     gemSelected(socket) {
         var newList = this.gemSelector(this.sockComp.sockets[socket]); // get color of socket to filter new gems list.
         this.gemseldiv.replaceChild(newList, this.gemsList); // replace the list inside the gem selector
@@ -270,6 +273,12 @@ class SelectorComponent {
     notifyItemChange(value) {
         this.changeHandlers.forEach((h)=>{
             h({item: value});
+        });
+    }
+
+    notifyEnchantChange(name) {
+        this.changeHandlers.forEach((h)=>{
+            h({enchant: {name: name}});
         });
     }
 
@@ -383,10 +392,11 @@ class SelectorComponent {
         }).forEach((ench) => {
             var name = ench[1].Name;
             var itemdiv = document.createElement("div");
+            itemdiv.classList.add("equipselitem")
             itemdiv.innerText = name
             itemdiv.addEventListener("click", (e)=>{
                 // using global itemselector here feels weird...
-                this.notifyGemChange(name, this.sockComp.selectedSocket);
+                this.notifyEnchantChange(name);
             });
             div.appendChild(itemdiv);
         });

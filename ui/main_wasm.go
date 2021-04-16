@@ -106,6 +106,9 @@ func getGear(val js.Value) tbc.Equipment {
 				ic.Gems[i] = gv
 			}
 		}
+		if !v.Get("Enchant").IsNull() && !v.Get("Enchant").IsUndefined() {
+			ic.Enchant = tbc.EnchantLookup[v.Get("Enchant").String()]
+		}
 		gearSet[i] = ic
 	}
 	return tbc.Equipment(gearSet)

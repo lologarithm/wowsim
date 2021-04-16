@@ -26,6 +26,7 @@ class ItemComponent {
         this.socketComp.addSelectListener((socket, e)=>{
             if (socket == -1) {
                 this.showEnchantSelector(event);
+                return;
             }
             this.showGemSelector(e, socket); ///ya ya ya, reversed parameters, ill deal with it later.
         });
@@ -127,6 +128,14 @@ class ItemComponent {
                     this.statpop.appendChild(socktText);
                     this.statpop.appendChild(document.createElement("br"));
                 }
+                if (newItem.Enchant != null && newItem.Enchant.Name != "") {
+                    var enchText = document.createElement("text");
+                    enchText.innerText = newItem.Enchant.Name;
+                    enchText.style.fontSize = "0.6em";
+                    enchText.style.color = "green";
+                    this.statpop.appendChild(enchText);
+                    this.statpop.appendChild(document.createElement("br"));
+                }
             }
             var source = newItem.SourceZone;
             if (newItem.SourceDrop != "") {
@@ -200,40 +209,39 @@ class SocketsComponent {
         this.gems = gems;
         this.div.innerHTML = "";
         this.sockets = sockets;
-        if (sockets == null || sockets.length == 0) {
-            return;
-        }
-        sockets.forEach((socket, idx) => {
-            var color = "rgba(30, 30, 30";
-            if (socket == 2) {
-                color = "rgba(250, 30, 30";
-            } else if (socket == 3) {
-                color = "rgba(30, 30, 250";
-            } else if (socket == 4) {
-                color = "rgba(250, 250, 30";
-            }
-            var socketDiv = document.createElement("div");
-            socketDiv.classList.add("gemslot");
-            socketDiv.style.backgroundColor = color+",0.3)";
-            socketDiv.style.border = '1px solid ' + color+",0.8)";
-            
-            socketDiv.addEventListener("click", (event)=>{
-                this.listeners.forEach((h)=>{ h(idx, event) });
-            });
+        if (sockets != null) {
+            sockets.forEach((socket, idx) => {
+                var color = "rgba(30, 30, 30";
+                if (socket == 2) {
+                    color = "rgba(250, 30, 30";
+                } else if (socket == 3) {
+                    color = "rgba(30, 30, 250";
+                } else if (socket == 4) {
+                    color = "rgba(250, 250, 30";
+                }
+                var socketDiv = document.createElement("div");
+                socketDiv.classList.add("gemslot");
+                socketDiv.style.backgroundColor = color+",0.3)";
+                socketDiv.style.border = '1px solid ' + color+",0.8)";
+                
+                socketDiv.addEventListener("click", (event)=>{
+                    this.listeners.forEach((h)=>{ h(idx, event) });
+                });
 
-            // TODO: gotta be a cleaner way to do this... ill fix it later.
-            if (gems != null && gems != undefined) {
-                if (gems[idx].Name != null) {
-                    var img = document.createElement("img")
-                    img.src = gemToIcon[gems[idx].Color]
-                    img.title = gems[idx].Name;
-                    if (img.src != undefined) {
-                        socketDiv.appendChild(img);
+                // TODO: gotta be a cleaner way to do this... ill fix it later.
+                if (gems != null && gems != undefined) {
+                    if (gems[idx].Name != null) {
+                        var img = document.createElement("img")
+                        img.src = gemToIcon[gems[idx].Color]
+                        img.title = gems[idx].Name;
+                        if (img.src != undefined) {
+                            socketDiv.appendChild(img);
+                        }
                     }
                 }
-            }
-            this.div.appendChild(socketDiv);
-        });
+                this.div.appendChild(socketDiv);
+            });
+        }
 
         var addedEnc = false;
         this.enchants.forEach((e)=>{

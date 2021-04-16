@@ -69,8 +69,12 @@ var Enchants = []Enchant{
 
 var ItemLookup = map[string]Item{}
 var GemLookup = map[string]Gem{}
+var EnchantLookup = map[string]Enchant{}
 
 func init() {
+	for _, v := range Enchants {
+		EnchantLookup[v.Name] = v
+	}
 	for _, v := range Gems {
 		GemLookup[v.Name] = v
 	}
@@ -573,6 +577,8 @@ var items = []Item{
 	{Slot: EquipWaist, Name: "Windhawk Belt", SourceZone: "Leatherworking", SourceDrop: "", Stats: Stats{StatStm: 17, StatInt: 19, StatSpirit: 20, StatSpellDmg: 37, StatSpellCrit: 12}, GemSlots: []GemColor{GemColorBlue, GemColorYellow}, SocketBonus: Stats{StatSpellDmg: 4}},
 	{Slot: EquipWrist, Name: "Windhawk Bracers", SourceZone: "Leatherworking", SourceDrop: "", Stats: Stats{StatStm: 22, StatInt: 17, StatSpirit: 7, StatSpellDmg: 27, StatSpellCrit: 16}, GemSlots: []GemColor{GemColorYellow}, SocketBonus: Stats{StatInt: 2}},
 	{Slot: EquipHands, Name: "Tidefury Gauntlets", SourceZone: "", SourceDrop: "", Stats: Stats{StatStm: 22, StatInt: 26, StatSpellDmg: 29, StatMP5: 7}},
+	{Slot: EquipWaist, Name: "Eyestalk Waist Cord", SourceZone: "AQ40", SourceDrop: "C'thun", Stats: Stats{StatStm: 10, StatInt: 9, StatSpellDmg: 41, StatSpellCrit: 14}},
+
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }
 
