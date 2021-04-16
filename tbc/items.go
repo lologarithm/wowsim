@@ -27,6 +27,8 @@ var Gems = []Gem{
 	{Name: "Runed Blood Garnet", Color: GemColorRed, Stats: Stats{StatSpellDmg: 7}},
 	{Name: "Runed Living Ruby", Color: GemColorRed, Stats: Stats{StatSpellDmg: 9}},
 	{Name: "Runed Crimson Spinel", Color: GemColorRed, Stats: Stats{StatSpellDmg: 12}},
+	{Name: "Runed Ornate Ruby", Color: GemColorRed, Stats: Stats{StatSpellDmg: 12}},
+	{Name: "Don Julio's Heart", Color: GemColorRed, Stats: Stats{StatSpellDmg: 14}},
 
 	{Name: "Lustrous Azure Moonstone", Color: GemColorBlue, Stats: Stats{StatMP5: 2}},
 	{Name: "Lustrous Star of Elune", Color: GemColorBlue, Stats: Stats{StatMP5: 3}},
@@ -44,6 +46,7 @@ var Gems = []Gem{
 	{Name: "Potent Noble Topaz", Color: GemColorOrange, Stats: Stats{StatSpellCrit: 4, StatSpellDmg: 5}},
 	{Name: "Potent Pyrestone", Color: GemColorOrange, Stats: Stats{StatSpellCrit: 5, StatSpellDmg: 6}},
 	{Name: "Potent Fire Opal", Color: GemColorOrange, Stats: Stats{StatSpellDmg: 6, StatSpellCrit: 4}},
+	{Name: "Potent Ornate Topaz", Color: GemColorOrange, Stats: Stats{StatSpellDmg: 6, StatSpellCrit: 5}},
 	{Name: "Veiled Flame Spessarite", Color: GemColorOrange, Stats: Stats{StatSpellHit: 3, StatSpellDmg: 4}},
 	{Name: "Veiled Noble Topaz", Color: GemColorOrange, Stats: Stats{StatSpellHit: 4, StatSpellDmg: 5}},
 	{Name: "Veiled Pyrestone", Color: GemColorOrange, Stats: Stats{StatSpellHit: 5, StatSpellDmg: 6}},
@@ -52,6 +55,9 @@ var Gems = []Gem{
 	{Name: "Dazzling Talasite", Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatInt: 4}},
 
 	{Name: "Glowing Nightseye", Color: GemColorPurple, Stats: Stats{StatSpellDmg: 5, StatStm: 6}},
+	{Name: "Glowing Tanzanite", Color: GemColorPurple, Stats: Stats{StatSpellDmg: 6, StatStm: 6}},
+	{Name: "Infused Amethyst", Color: GemColorPurple, Stats: Stats{StatSpellDmg: 6, StatStm: 6}},
+	{Name: "Fluorescent Tanzanite", Color: GemColorPurple, Stats: Stats{StatSpellDmg: 6, StatSpirit: 4}},
 }
 
 var Enchants = []Enchant{

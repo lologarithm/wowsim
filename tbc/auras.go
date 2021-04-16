@@ -425,7 +425,7 @@ func ActivateSkycall(sim *Simulation) Aura {
 func ActivateNAC(sim *Simulation) Aura {
 	return Aura{
 		ID:      MagicIDNAC,
-		Expires: sim.CurrentTick + 300*TicksPerSecond,
+		Expires: sim.CurrentTick + 20*TicksPerSecond,
 		OnCast: func(sim *Simulation, c *Cast) {
 			c.ManaCost *= 1.2
 		},
