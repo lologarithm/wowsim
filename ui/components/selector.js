@@ -83,9 +83,9 @@ class SelectorComponent {
         var selectordiv = document.createElement("div");
         selectordiv.classList.add("equipselector");
         if (theme == "dark") {
-            selectordiv.classList.add("dtl");
+            selectordiv.classList.add("dtd");
         } else {
-            selectordiv.classList.add("ltl");
+            selectordiv.classList.add("ltd");
         }
         selectordiv.style.display = "none";
         selectordiv.appendChild(closebut);
@@ -183,11 +183,14 @@ class SelectorComponent {
         var div = document.createElement("div");
         div.classList.add("gemselectorlist")
         Object.entries(this.allgear.Gems).filter((v) => {
-            return true; //colorIntersects(color, v[1].Color);
+            if (color == 1) {
+                return v[1].Color == 1
+            }
+            return v[1].Color != 1; //colorIntersects(color, v[1].Color);
         }).forEach((gem) => {
             var name = gem[1].Name;
             var itemdiv = document.createElement("div");
-            itemdiv.style.color = getColorHex(gem[1].Color);
+            itemdiv.classList.add(`gemc${gem[1].Color}`)
             itemdiv.innerText = name
             itemdiv.addEventListener("click", (e)=>{
                 // using global itemselector here feels weird...
@@ -355,7 +358,7 @@ class SelectorComponent {
 function getColorHex(gem) {
     switch(gem) {
         case 1: // meta
-            return "#A0A0A0";
+            return "";
             break;
         case 2: // red
             return "#A6261b";
@@ -364,7 +367,7 @@ function getColorHex(gem) {
             return "#589BE1";
             break;
         case 4: // yellow
-            return "#ECDF60";
+            return "#D0C139";
             break;
         case 5: // green
             return "#436904";
@@ -373,7 +376,7 @@ function getColorHex(gem) {
             return "#B27300";
             break;
         case 7: // purple
-            return "#39224F"
+            return "#A3178A"
             break;
         case 8: // prismatic
             return "#FFFFFF"

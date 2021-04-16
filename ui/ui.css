@@ -81,7 +81,8 @@
 }
 .gemselectorlist > div:hover { 
     cursor: pointer;
-    color: orange;
+    color: #F0F0F0;
+    background-color: #606060;
 }
 .gemslot {
     margin-left: 0 !important;
@@ -119,6 +120,7 @@
 }
 .equipselitem:hover {
     color: orange;
+    background-color: #606060;
 }
 .equipselitem:active {
     color: orange;
@@ -179,11 +181,11 @@ h4 {
 }
 
 .lighttheme {
-    background-color: #FFFFFF;
+    background-color: #F0F0F0;
     color: #303030;
 }
 .ltl {
-    background-color: #F0F0F0;
+    background-color: #FFFFFF;
     color: #303030;
 }
 .ltm {
@@ -208,4 +210,26 @@ h4 {
 .dtd {
     color: #D0D0D0;
     background-color: #202020;
+}
+
+.gemc2 {
+    color: #A6261b;
+}
+.gemc3 {
+    color: #589BE1;
+}
+.gemc4 {
+    color: #D0C139;
+}
+.gemc5 {
+    color: #436904;
+}
+.gemc6 {
+    color: #B27300;
+}
+.gemc7 {
+    color: #A3178A;
+}
+.gemc8 {
+    color: #FFFFFF;
 }
