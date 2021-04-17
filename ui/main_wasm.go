@@ -199,6 +199,8 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	numSims := args[0].Int()
 	if numSims == 1 {
 		tbc.IsDebug = true
+	} else {
+		tbc.IsDebug = false
 	}
 	seconds := args[1].Int()
 	gear := getGear(args[2])
@@ -260,6 +262,8 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 	simi := args[0].Int()
 	if simi == 1 {
 		tbc.IsDebug = true
+	} else {
+		tbc.IsDebug = false
 	}
 	dur := args[1].Int()
 	fullLogs := false
