@@ -841,3 +841,19 @@ function toggleThemeClass(rm, rp) {
         e.classList.add(rp);
     }
 }
+
+var pulloutRight = -180;
+function pulloutToggle() {
+    var root = document.getElementById('root');
+    var po = document.getElementById('pullout');
+    
+    if (pulloutRight < 0) {
+        pulloutRight = 0;
+        root.style.width = "calc(100% - 180px)";
+    } else {
+        pulloutRight = -180;
+        root.style.width = "100%";
+    }
+    
+    po.style.right = pulloutRight.toString() + "px";
+}

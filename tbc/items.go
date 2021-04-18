@@ -570,8 +570,8 @@ var items = []Item{
 
 	// Hand Written
 	{Slot: EquipTrinket, Name: "Quagmirran's Eye", Phase: 1, Quality: ItemQualityRare, SourceZone: "The Slave Pens", SourceDrop: "Quagmirran", Stats: Stats{StatSpellDmg: 37}, Activate: ActivateQuagsEye, ActivateCD: -1}, // -1 will trigger an activation only once
-	{Slot: EquipTrinket, Name: "Icon of the Silver Crescent", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Shattrath", SourceDrop: "G'eras - 41 Badges", Stats: Stats{StatSpellDmg: 44}, Activate: createSpellDmgActivate(MagicIDBlessingSilverCrescent, 155, 20), ActivateCD: 120 * TicksPerSecond, CoolID: MagicIDISCTrink},
-	{Slot: EquipTrinket, Name: "Natural Alignment Crystal", Phase: 0, Quality: ItemQualityEpic, SourceZone: "BWL", SourceDrop: "", Stats: Stats{}, Activate: ActivateNAC, ActivateCD: 300 * TicksPerSecond, CoolID: MagicIDNACTrink},
+	{Slot: EquipTrinket, Name: "Icon of the Silver Crescent", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Shattrath", SourceDrop: "G'eras - 41 Badges", Stats: Stats{StatSpellDmg: 44}, Activate: createSpellDmgActivate(MagicIDBlessingSilverCrescent, 155, 20), ActivateCD: 120, CoolID: MagicIDISCTrink},
+	{Slot: EquipTrinket, Name: "Natural Alignment Crystal", Phase: 0, Quality: ItemQualityEpic, SourceZone: "BWL", SourceDrop: "", Stats: Stats{}, Activate: ActivateNAC, ActivateCD: 300, CoolID: MagicIDNACTrink},
 	{Slot: EquipTrinket, Name: "Neltharion's Tear", Phase: 0, Quality: ItemQualityEpic, SourceZone: "BWL", SourceDrop: "Nefarian", Stats: Stats{StatSpellDmg: 44, StatSpellHit: 16}},
 	{Slot: EquipTrinket, Name: "Mark of the Champion", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "KT", Stats: Stats{StatSpellDmg: 85}},
 	{Slot: EquipTrinket, Name: "Scryer's Bloodgem", Phase: 1, Quality: ItemQualityRare, SourceZone: "The Scryers - Revered", SourceDrop: "", Stats: Stats{0, 0, 0, 32, 0, 0, 0}, Activate: createSpellDmgActivate(MagicIDSpellPower, 150, 15), ActivateCD: 90, CoolID: MagicIDScryerTrink},
@@ -580,7 +580,12 @@ var items = []Item{
 	{Slot: EquipTrinket, Name: "Shiffar's Nexus-Horn", Phase: 1, Quality: ItemQualityRare, SourceZone: "Arc - Harbinger Skyriss", SourceDrop: "", Stats: Stats{0, 0, 30, 0, 0, 0, 0}, Activate: ActivateNexusHorn, ActivateCD: -1},
 	{Slot: EquipTrinket, Name: "Darkmoon Card: Crusade", Phase: 2, Quality: ItemQualityEpic, SourceZone: "Blessings Deck", SourceDrop: "", Activate: ActivateDCC, ActivateCD: -1},
 	{Slot: EquipTrinket, Name: "The Lightning Capacitor", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "", Activate: ActivateTLC, ActivateCD: -1},
-	{Slot: EquipNeck, Name: "Eye of the Night", Phase: 1, Quality: ItemQualityRare, SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatStm: 0, StatInt: 0, StatSpellDmg: 0, StatHaste: 0, StatSpellCrit: 26, StatSpellHit: 16, StatMP5: 0, StatSpellPen: 15}, Activate: func(sim *Simulation) Aura {
+	{Slot: EquipTrinket, Name: "Eye of Magtheridon", Phase: 1, Quality: ItemQualityRare, SourceZone: "", SourceDrop: "", Stats: Stats{0, 0, 0, 32, 0, 0, 0}, Activate: ActivateEyeOfMag, ActivateCD: -1},
+	{Slot: EquipTrinket, Name: "Sextant of Unstable Currents", Phase: 2, Quality: ItemQualityRare, SourceZone: "SSC", SourceDrop: "", Stats: Stats{StatSpellCrit: 40}, Activate: ActivateSextant, ActivateCD: -1},
+	{Slot: EquipTrinket, Name: "Shifting Naaru Silver", Phase: 5, Quality: ItemQualityRare, SourceZone: "Sunwell", SourceDrop: "", Stats: Stats{StatHaste: 54}, Activate: createSpellDmgActivate(MagicIDShiftingNaaru, 320, 15), ActivateCD: 90, CoolID: MagicIDShiftingNaaruTrink},
+	{Slot: EquipTrinket, Name: "The Skull of Gul'dan", Phase: 3, Quality: ItemQualityRare, SourceZone: "Black Temple", SourceDrop: "", Stats: Stats{StatSpellHit: 25, StatSpellDmg: 55}, Activate: createHasteActivate(MagicIDSkullGuldan, 175, 20), ActivateCD: 120, CoolID: MagicIDSkullGuldanTrink},
+	{Slot: EquipTrinket, Name: "Hex Shrunken Head", Phase: 4, Quality: ItemQualityRare, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatSpellDmg: 53}, Activate: createSpellDmgActivate(MagicIDHexShunkHead, 211, 20), ActivateCD: 120, CoolID: MagicIDHexTrink},
+	{Slot: EquipNeck, Name: "Eye of the Night", Phase: 1, Quality: ItemQualityRare, SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatSpellCrit: 26, StatSpellHit: 16, StatSpellPen: 15}, Activate: func(sim *Simulation) Aura {
 		if sim.Options.Buffs.EyeOfNight {
 			return Aura{}
 		}
