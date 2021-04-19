@@ -158,88 +158,6 @@ var castIDToName = {
     998: "CL Overload",
 }
 
-// processSimResult will take the output from a numer of sims
-// and process stuff like DPS and std dev.
-function processSimResult(output) {
-    var resultStats = {};
-    var out = output[0];
-    var maxDPS = 0;
-    var dpsHist = {};
-    var oomDPSHist = {};
-
-    var total = out.TotalDmgs.reduce(function(sum, value){
-        var dps = value/out.SimSeconds;
-        var dpsRounded = Math.round(dps/10) * 10;
-        if (dpsHist[dpsRounded] == null) {
-            dpsHist[dpsRounded] = 0;
-        }
-        dpsHist[dpsRounded] += 1;
-        if (dps > maxDPS) {
-            maxDPS = dps;
-        }
-        return sum + value;
-    }, 0);
-    var dps = total / out.SimSeconds / out.TotalDmgs.length;        
-    var values = out.TotalDmgs;
-    var avg = average(values);
-    var dev = standardDeviation(values, avg) / out.SimSeconds;
-    
-    var oomat = 0;
-    var numOOM = out.OOMAt.reduce(function(sum, value){
-        if (value > 0) {
-            oomat += value;
-            return sum + 1;
-        }
-        return sum;
-    }, 0);
-    if (numOOM > 0) {
-        oomat /= (numOOM);
-    }
-
-    var dpsAtOOM = 0;
-    if (numOOM > 0) {
-        out.DmgAtOOMs.forEach((v, i) => {
-            if (v > 0) {
-                dpsAtOOM += v / out.OOMAt[i];
-            }
-        });
-        dpsAtOOM /= numOOM;
-    }
-
-    var castStats = {
-        1: {count: 0, dmg: 0, crits: 0},
-        2: {count: 0, dmg: 0, crits: 0},
-        3: {count: 0, dmg: 0, crits: 0},
-        999: {count: 0, dmg: 0, crits: 0},
-        998: {count: 0, dmg: 0, crits: 0},
-    }
-    out.Casts.forEach((casts)=>{
-        casts.forEach((cast)=>{
-            var id = cast.ID
-            if (cast.IsLO)  {
-                id = 1000-cast.ID;
-            }
-            castStats[id].count += 1;
-            castStats[id].dmg += cast.Dmg;
-            if (cast.Crit) {
-                castStats[id].crits += 1;
-            }
-        });
-    });
-  
-    resultStats.total = total;
-    resultStats.maxDPS = maxDPS;
-    resultStats.dps = dps;
-    resultStats.dev = dev;
-    resultStats.oomat = oomat;
-    resultStats.numOOM = numOOM;
-    resultStats.dpsAtOOM = dpsAtOOM;
-    resultStats.casts = castStats;
-    resultStats.dpsHist = dpsHist;
-
-    return resultStats;
-}
-
 // Populates the 'Sim' tab in the results pane.
 function runsim(currentGear, fullLogs) {
     if (fullLogs) {
@@ -272,8 +190,9 @@ function runsim(currentGear, fullLogs) {
     firstOpts.exitoom = true;
 
     simulate(iters, 600, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, false, (out) => { 
-        var stats = processSimResult(out);
+        var stats = out[0];
         var max = stats.dps;
+        console.log("PRI Stats: ", stats);
         if (stats.dpsAtOOM > max) {
             max = stats.dpsAtOOM;
         }
@@ -291,7 +210,7 @@ function runsim(currentGear, fullLogs) {
         priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(max)}</text> dps<br /><text style="font-size:0.7em">${oomat}s to oom at peak dps.</text></div>`
     });
     simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0,false, (out) => {
-        var stats = processSimResult(out);
+        var stats = out[0];
         var ttoom = stats.oomat;
         if (ttoom == 0) {
             ttoom = ">600";
@@ -304,7 +223,7 @@ function runsim(currentGear, fullLogs) {
     var secondOpts = getOptions();
     secondOpts.useai = true;
     simulate(iters, dur, currentGear, secondOpts, null, 0, false, (out) => { 
-        var stats = processSimResult(out);
+        var stats = out[0];
         console.log("AI Stats: ", stats);
         aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> +/- ${Math.round(stats.dev)} dps<br /></div>`
         
@@ -405,6 +324,7 @@ function hastedRotations(currentGear) {
         ["CL6", "LB12", "LB12", "LB12", "LB12", "LB12", "LB12"]
     ];
 
+    // TODO: Fix this to match the new return values now that process is done in go WASM code.
 
     var hasteCounter = 0;
     var rows = document.getElementById("hasterots").firstElementChild.firstElementChild.children;
@@ -415,51 +335,24 @@ function hastedRotations(currentGear) {
         row.children[1].innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
         row.children[2].innerText = "";
 
-        simulate(800, 40, currentGear, opts, rots, haste, false, (output) => {
+        simulate(1000, 40, currentGear, opts, rots, haste, false, (output) => {
             var maxdmg = 0.0;
             var maxrot = {};
     
             output.forEach(out => {
-                var total = out.TotalDmgs.reduce(function(sum, value){
-                    return sum + value;
-                }, 0);
-                if (total > maxdmg) {
+                if (maxdmg < out.dps) {
+                    maxdmg = out.dps
                     maxrot = out;
-                    maxdmg = total;
                 }
             });
             
-            var values = maxrot.TotalDmgs;
-            var avg = average(values);
-            var dev = standardDeviation(values, avg);
             var simdur = maxrot.SimSeconds;
             var rotTitle = "CL / " + (maxrot.Rotation.length-1).toString() + "xLB";
             row.children[0].innerText = haste;
             row.children[1].innerText = rotTitle;
-            row.children[2].innerText = "" + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur);
+            row.children[2].innerText = "" + Math.round(maxrot.dps) + " +/- " + Math.round(maxrot.dev);
         });
     });
-}
-
-function standardDeviation(values, avg){
-    var squareDiffs = values.map(function(value){
-        var diff = value - avg;
-        var sqrDiff = diff * diff;
-        return sqrDiff;
-    });
-
-    var avgSquareDiff = average(squareDiffs);
-    var stdDev = Math.sqrt(avgSquareDiff);
-    return stdDev;
-}
-  
-function average(data){
-    var sum = data.reduce(function(sum, value){
-        return sum + value;
-    }, 0);
-
-    var avg = sum / data.length;
-    return avg;
 }
 
 // Populates the 'Gear & Stat Weights' tab in results pane.
@@ -941,4 +834,24 @@ function toggleThemeClass(rm, rp) {
         e.classList.remove(rm);
         e.classList.add(rp);
     }
+}
+
+var pulloutRight = -180;
+function pulloutToggle() {
+    var root = document.getElementById('root');
+    var po = document.getElementById('pullout');
+    
+    if (pulloutRight < 0) {
+        pulloutRight = 0;
+        root.style.width = "calc(100% - 180px)";
+    } else {
+        pulloutRight = -180;
+        root.style.width = "100%";
+    }
+    
+    po.style.right = pulloutRight.toString() + "px";
+}
+
+function removegear() {
+    gearUI.updateEquipped([]);
 }

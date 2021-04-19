@@ -13,6 +13,7 @@ type Aura struct {
 	OnSpellHit     AuraEffect
 	OnStruck       AuraEffect
 	OnExpire       AuraEffect
+	OnSpellMiss    AuraEffect
 }
 
 func AuraName(a int32) string {
@@ -131,6 +132,22 @@ func AuraName(a int32) string {
 		return "The Lightning Capacitor Aura"
 	case MagicIDDestructionPotion:
 		return "Destruction Potion"
+	case MagicIDHexShunkHead:
+		return "Hex Shunken Head"
+	case MagicIDShiftingNaaru:
+		return "Shifting Naaru Sliver"
+	case MagicIDSkullGuldan:
+		return "Skull of Guldan"
+	case MagicIDNexusHorn:
+		return "Nexus-Horn"
+	case MagicIDSextant:
+		return "Sextant of Unstable Currents"
+	case MagicIDUnstableCurrents:
+		return "Unstable Currents"
+	case MagicIDEyeOfMag:
+		return "Eye Of Mag"
+	case MagicIDRecurringPower:
+		return "Recurring Power"
 	}
 
 	return "<<TODO: Add Aura name to switch!!>>"
@@ -190,6 +207,14 @@ const (
 	MagicIDTrollBerserking // troll racial
 	MagicIDTLC             // aura on equip of TLC, stores charges
 	MagicIDDestructionPotion
+	MagicIDHexShunkHead
+	MagicIDShiftingNaaru
+	MagicIDSkullGuldan
+	MagicIDNexusHorn
+	MagicIDSextant          // Trinket Aura
+	MagicIDUnstableCurrents // Sextant Proc Aura
+	MagicIDEyeOfMag         // trinket aura
+	MagicIDRecurringPower   // eye of mag proc aura
 
 	//Items
 	MagicIDISCTrink
@@ -206,6 +231,9 @@ const (
 	MagicIDDrum4
 	MagicIDEyeOfTheNightTrink
 	MagicIDChainTOTrink
+	MagicIDHexTrink
+	MagicIDShiftingNaaruTrink
+	MagicIDSkullGuldanTrink
 )
 
 func AuraJudgementOfWisdom() Aura {
@@ -220,17 +248,6 @@ func AuraJudgementOfWisdom() Aura {
 		},
 	}
 }
-
-// Currently coded into the 'cast' function because we need something to change 'final' damage.
-// TODO: this could be coded as 'onspellhit'!
-// func AuraMisery() Aura {
-// 	return Aura{
-// 		ID:      MagicIDMisery,
-// 		Expires: math.MaxInt32,
-// 		OnCastComplete: func(sim *Simulation, c *Cast) {
-// 		},
-// 	}
-// }
 
 func AuraLightningOverload(lvl int) Aura {
 	chance := 0.04 * float64(lvl)
@@ -305,6 +322,20 @@ func AuraStormcaller(tick int) Aura {
 	}
 }
 
+func createHasteActivate(id int32, haste float64, durSeconds int) ItemActivation {
+	// Implemented haste activate as a buff so that the creation of a new cast gets the correct cast time
+	return func(sim *Simulation) Aura {
+		sim.Buffs[StatHaste] += haste
+		return Aura{
+			ID:      id,
+			Expires: sim.CurrentTick + durSeconds*TicksPerSecond,
+			OnExpire: func(sim *Simulation, c *Cast) {
+				sim.Buffs[StatHaste] -= haste
+			},
+		}
+	}
+}
+
 // createSpellDmgActivate creates a function for trinket activation that uses +spellpower
 //  This is so we don't need a separate function for every spell power trinket.
 func createSpellDmgActivate(id int32, sp float64, durSeconds int) ItemActivation {
@@ -341,7 +372,7 @@ func ActivateNexusHorn(sim *Simulation) Aura {
 	internalCD := 45 * TicksPerSecond
 	const spellBonus = 225.0
 	return Aura{
-		ID:      MagicIDQuagsEye,
+		ID:      MagicIDNexusHorn,
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
 			if lastActivation+internalCD < sim.CurrentTick && c.DidCrit && sim.rando.Float64() < 0.2 {
@@ -556,9 +587,12 @@ func ActivateTLC(sim *Simulation) Aura {
 					sim.Debug(" Lightning Capacitor Triggered!\n")
 				}
 				lastActivation = sim.CurrentTick
+
 				clone := &Cast{
 					Spell:     tlcspell,
 					CritBonus: 1.0, // TLC does not get elemental fury
+					// TLC does not get hit talents bonus, subtract them here. (since we dont conditionally apply them)
+					Hit: (-0.02 * float64(sim.Options.Talents.ElementalPrecision)) + (-0.01 * float64(sim.Options.Talents.NaturesGuidance)),
 				}
 				sim.Cast(clone)
 				charges = 0
@@ -614,6 +648,36 @@ func ActivateDestructionPotion(sim *Simulation) Aura {
 		OnExpire: func(sim *Simulation, c *Cast) {
 			sim.Buffs[StatSpellDmg] -= 120
 			sim.Buffs[StatSpellCrit] -= 44.16
+		},
+	}
+}
+
+func ActivateSextant(sim *Simulation) Aura {
+	lastActivation := math.MinInt32
+	internalCD := 45 * TicksPerSecond
+	const spellBonus = 190.0
+	const dur = 15.0
+	return Aura{
+		ID:      MagicIDSextant,
+		Expires: math.MaxInt32,
+		OnSpellHit: func(sim *Simulation, c *Cast) {
+			if lastActivation+internalCD < sim.CurrentTick && c.DidCrit && sim.rando.Float64() < 0.2 {
+				sim.Buffs[StatSpellDmg] += spellBonus
+				sim.addAura(AuraStatRemoval(sim.CurrentTick, dur, spellBonus, StatSpellDmg, MagicIDUnstableCurrents))
+				lastActivation = sim.CurrentTick
+			}
+		},
+	}
+}
+
+func ActivateEyeOfMag(sim *Simulation) Aura {
+	const spellBonus = 170.0
+	return Aura{
+		ID:      MagicIDEyeOfMag,
+		Expires: math.MaxInt32,
+		OnSpellMiss: func(sim *Simulation, c *Cast) {
+			sim.Buffs[StatSpellDmg] += spellBonus
+			sim.addAura(AuraStatRemoval(sim.CurrentTick, 10.0, spellBonus, StatSpellDmg, MagicIDRecurringPower))
 		},
 	}
 }

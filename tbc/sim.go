@@ -384,6 +384,11 @@ func (sim *Simulation) Cast(cast *Cast) {
 		cast.DidDmg = 0
 		cast.DidCrit = false
 		cast.DidHit = false
+		for _, aur := range sim.Auras {
+			if aur.OnSpellMiss != nil {
+				aur.OnSpellMiss(sim, cast)
+			}
+		}
 	}
 	sim.metrics.Casts = append(sim.metrics.Casts, cast)
 	if sim.Debug != nil {

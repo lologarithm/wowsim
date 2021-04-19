@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 	"syscall/js"
 	"time"
@@ -297,23 +298,24 @@ func jsonmarshal(results []SimResult) string {
 }
 
 type SimResult struct {
-	Casts        [][]CastMetric
-	TotalDmgs    []float64
-	DmgAtOOMs    []float64
-	OOMAt        []float64 // oom time totals
 	Rotation     []string
 	SimSeconds   int
 	RealDuration float64
 	Logs         string
+	DPSAvg       float64              `json:"dps"`
+	DPSDev       float64              `json:"dev"`
+	MaxDPS       float64              `json:"max"`
+	OOMAt        float64              `json:"oomat"`
+	NumOOM       int                  `json:"numOOM"`
+	DPSAtOOM     float64              `json:"dpsAtOOM"`
+	Casts        map[int32]CastMetric `json:"casts"`
+	DPSHist      map[int]int          `json:"dpsHist"` // rounded DPS to count
 }
 
 type CastMetric struct {
-	ID   int32
-	Hit  bool
-	Crit bool
-	IsLO bool
-	Dmg  float64
-	Time float64 // seconds it took to cast this spell
+	Count int     `json:"count"`
+	Dmg   float64 `json:"dmg"`
+	Crits int     `json:"crits"`
 }
 
 func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int, customRotation [][]string, fullLogs bool) []SimResult {
@@ -328,29 +330,14 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		spellOrders = customRotation
 	}
 	results := []SimResult{}
-	var simMetrics SimResult
-
-	pm := func(metrics tbc.SimMetrics) {
-		casts := make([]CastMetric, 0, len(metrics.Casts))
-		for _, v := range metrics.Casts {
-			casts = append(casts, CastMetric{
-				ID:   v.Spell.ID,
-				IsLO: v.IsLO,
-				Hit:  v.DidHit,
-				Crit: v.DidCrit,
-				Dmg:  v.DidDmg,
-				Time: float64(v.TicksUntilCast) / float64(tbc.TicksPerSecond),
-			})
-		}
-		simMetrics.DmgAtOOMs = append(simMetrics.DmgAtOOMs, metrics.DamageAtOOM)
-		simMetrics.OOMAt = append(simMetrics.OOMAt, float64(metrics.OOMAt))
-		simMetrics.Casts = append(simMetrics.Casts, casts)
-		simMetrics.TotalDmgs = append(simMetrics.TotalDmgs, metrics.TotalDamage)
-	}
-
 	logsBuffer := &strings.Builder{}
+
 	dosim := func(spells []string, simsec int) {
-		simMetrics = SimResult{Rotation: spells}
+		simMetrics := SimResult{
+			DPSHist:  map[int]int{},
+			Casts:    map[int32]CastMetric{},
+			Rotation: spells,
+		}
 		if opts.UseAI {
 			simMetrics.Rotation = []string{"AI Optimized"}
 		}
@@ -360,6 +347,8 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		optNow.SpellOrder = spells
 		optNow.RSeed = rseed
 		sim := tbc.NewSim(stats, equip, optNow)
+
+		var totalSq float64
 		for ns := 0; ns < numSims; ns++ {
 			if fullLogs {
 				sim.Debug = func(s string, vals ...interface{}) {
@@ -367,8 +356,46 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 				}
 			}
 			metrics := sim.Run(simsec)
-			pm(metrics)
+			dps := metrics.TotalDamage / float64(simsec)
+			totalSq += dps * dps
+			simMetrics.DPSAvg += dps
+			dpsRounded := int(math.Round(dps/10) * 10)
+			simMetrics.DPSHist[dpsRounded] += 1
+			if dps > simMetrics.MaxDPS {
+				simMetrics.MaxDPS = dps
+			}
+			if (metrics.OOMAt) > 0 {
+				simMetrics.OOMAt += float64(metrics.OOMAt)
+				simMetrics.DPSAtOOM += float64(metrics.DamageAtOOM) / float64(metrics.OOMAt)
+				simMetrics.NumOOM++
+			}
+			for _, cast := range metrics.Casts {
+				var id = cast.Spell.ID
+				if cast.IsLO {
+					id = 1000 - cast.Spell.ID
+				}
+				cm := simMetrics.Casts[id]
+				cm.Count++
+				cm.Dmg += cast.DidDmg
+				if cast.DidCrit {
+					cm.Crits++
+				}
+				simMetrics.Casts[id] = cm
+			}
+
 		}
+
+		meanSq := totalSq / float64(numSims)
+		mean := simMetrics.DPSAvg / float64(numSims)
+		stdev := math.Sqrt(meanSq - mean*mean)
+
+		simMetrics.DPSDev = stdev
+		simMetrics.DPSAvg /= float64(numSims)
+		if simMetrics.NumOOM > 0 {
+			simMetrics.OOMAt /= float64(simMetrics.NumOOM)
+			simMetrics.DPSAtOOM /= float64(simMetrics.NumOOM)
+		}
+
 		simMetrics.Logs = logsBuffer.String()
 		simMetrics.SimSeconds = simsec
 		simMetrics.RealDuration = time.Now().Sub(st).Seconds()
