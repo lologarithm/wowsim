@@ -362,8 +362,13 @@ function calcStatWeights(gear) {
     var opts = getOptions();
     
     var baseDPS = 0.0;
-    var sp_hitModDPS = 0.0
+    var baseConf = 0.0;
+
+    var sp_hitModDPS = 0.0;
+    var sp_hitModConf = 0.0;
+
     var modDPS = [0, 0, 0, 0, 0, 0]; // SP, Int, Crit, Hit, Haste, MP5
+    var modConf = [0, 0, 0, 0, 0, 0]
     var weights = [0, 0, 0, 0, 0, 0, 0]; // Int, X, Crit, Hit, Dmg, Haste, MP5
     modDPS.forEach((v, i)=>{
         var cell = document.getElementById("w"+i.toString());
@@ -372,7 +377,9 @@ function calcStatWeights(gear) {
 
     // A base DPS without any modified stats.
     statweight(iters, dur, gear, opts, 0, 0, (res) => {
-        baseDPS = res;
+        var resVals = res.split(",")
+        baseDPS = parseFloat(resVals[0]);
+        baseConf = parseFloat(resVals[2]);
         if (baseDPS < 1) {
             // we failed.
             modDPS.forEach((v, i)=>{
@@ -384,7 +391,7 @@ function calcStatWeights(gear) {
             nr.innerText = `Simulations went OOM and so weights will be incorrect as downranking is not yet implemented.`;
             uptab.appendChild(nr);
         }
-        console.log("Base DPS: ", res);
+        console.log(`Base DPS: ${baseDPS} +/- ${baseConf}`);
     }); // base
 
 
@@ -397,29 +404,44 @@ function calcStatWeights(gear) {
         if (modDPS[0] == 0) {
             return;
         }
-        var ddps = modDPS[0] - baseDPS;
+        var baseMax = baseDPS + baseConf
+        var baseMin = baseDPS - baseConf
+
+        var ddpsMax = (modDPS[0]+modConf[0]) - baseMin;
+        var ddpsMin = (modDPS[0]-modConf[0]) - baseMax;
 
         modDPS.forEach((v, i)=>{
             if (v == 0) {
                 return;
             }
             var cell = document.getElementById("w"+i.toString());
+            var cellConf = document.getElementById("wc"+i.toString());
             if (v == -1) {
                 cell.innerHTML = `<text style="color:#FF6961">OOM</text>`;
                 return;
             }
             // sphit uses different value;
             if (i == 3 && sp_hitModDPS != 0.0) {
-                var sphitdiff = sp_hitModDPS - baseDPS;
-                var weight = (v-baseDPS) / sphitdiff;
+                var sphitMax = sp_hitModDPS+sp_hitModConf - baseMin;
+                var sphitMin = sp_hitModDPS-sp_hitModConf - baseMax;
+                
+                var wmax  = (v + modConf[i] - baseMin) / sphitMax;
+                var wmin = (v - modConf[i] - baseMax) / sphitMin;
+                var weight = (wmax + wmin) / 2;
                 if (weight < 0.01) {
                     weight = 0.0;
                 }
+
                 weights[3] = weight;
                 cell.innerText = weight.toFixed(2);
+                cellConf.innerText = wmin.toFixed(2) + " - " + wmax.toFixed(2);
                 return; 
             }
-            var weight = (v-baseDPS) / ddps;
+            
+            var wmax  = (v + modConf[i] - baseMin) / ddpsMax;
+            var wmin = (v - modConf[i] - baseMax) / ddpsMin;
+
+            var weight = (wmax + wmin) / 2;
             if (weight < 0.01) {
                 weight = 0.0;
             }
@@ -436,6 +458,9 @@ function calcStatWeights(gear) {
                 weights[6] = weight;
             }
             cell.innerText = weight.toFixed(2);
+            if (wmax != wmin) {
+                cellConf.innerText = wmin.toFixed(2) + " - " + wmax.toFixed(2);
+            }
         });
 
         if (done.length == 7) {
@@ -454,14 +479,41 @@ function calcStatWeights(gear) {
         }
     };
 
-    statweight(iters, dur, gear, opts, 4, 20, (res) => {sp_hitModDPS = res;onfinish();}); // sp
-    statweight(iters, dur, gear, opts, 3, 20, (res) => {modDPS[3] = res;onfinish();}); // hit
-
-    statweight(iters, dur, gear, opts, 4, 50, (res) => {modDPS[0] = res;onfinish();}); // sp
-    statweight(iters, dur, gear, opts, 0, 50, (res) => {modDPS[1] = res;onfinish();}); // int
-    statweight(iters, dur, gear, opts, 2, 50, (res) => {modDPS[2] = res;onfinish();}); // crit
-    statweight(iters, dur, gear, opts, 5, 50, (res) => {modDPS[4] = res;onfinish();}); // haste
-    statweight(iters, dur, gear, opts, 6, 50, (res) => {modDPS[5] = res;onfinish();}); // mp5
+    statweight(iters, dur, gear, opts, 4, 20, (res) => {
+        var resVals = res.split(",");
+        sp_hitModDPS = parseFloat(resVals[0]);
+        sp_hitModConf = parseFloat(resVals[2]);
+        onfinish();}); // sp
+    statweight(iters, dur, gear, opts, 3, 20, (res) => {
+        var resVals = res.split(",");
+        modConf[3] = parseFloat(resVals[2])
+        modDPS[3] = parseFloat(resVals[0]);
+        onfinish();}); // hit
+    statweight(iters, dur, gear, opts, 4, 50, (res) => {
+        var resVals = res.split(",");
+        modConf[0] = parseFloat(resVals[2])
+        modDPS[0] = parseFloat(resVals[0]);
+        onfinish();}); // sp
+    statweight(iters, dur, gear, opts, 0, 50, (res) => {
+        var resVals = res.split(",");
+        modConf[1] = parseFloat(resVals[2])
+        modDPS[1] = parseFloat(resVals[0]);
+        onfinish();}); // int
+    statweight(iters, dur, gear, opts, 2, 50, (res) => {
+        var resVals = res.split(",");
+        modConf[2] = parseFloat(resVals[2])
+        modDPS[2] = parseFloat(resVals[0]);
+        onfinish();}); // crit
+    statweight(iters, dur, gear, opts, 5, 50, (res) => {
+        var resVals = res.split(",");
+        modConf[4] = parseFloat(resVals[2])
+        modDPS[4] = parseFloat(resVals[0]);
+        onfinish();}); // haste
+    statweight(iters, dur, gear, opts, 6, 50, (res) => {
+        var resVals = res.split(",");
+        modConf[5] = parseFloat(resVals[2])
+        modDPS[5] = parseFloat(resVals[0]);
+        onfinish();}); // mp5
 }
 
 function showGearRecommendations(weights) {

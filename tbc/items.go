@@ -607,7 +607,7 @@ var items = []Item{
 
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", Phase: 1, Quality: ItemQualityEpic, SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", Phase: 1, Quality: ItemQualityEpic, SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }
-
+	{Slot: EquipTotem, Name: "Totem of Ancestral Guidance", Phase: 3, Quality: ItemQualityRare, SourceZone: "BT", SourceDrop: "", Stats: Stats{StatSpellDmg: 85}},
 	{Slot: EquipTotem, Name: "Skycall Totem", Phase: 4, Quality: ItemQualityEpic, SourceZone: "Geras", SourceDrop: "20 Badges", Stats: Stats{}, Activate: ActivateSkycall, ActivateCD: -1}, // -1 will trigger an activation only once
 }
 

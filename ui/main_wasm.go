@@ -216,6 +216,7 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	opts.UseAI = true // use AI optimal rotation.
 
 	simdmg := 0.0
+	simdmgsq := 0.0
 	simmet := make([]tbc.SimMetrics, 0, numSims)
 
 	opts.RSeed = time.Now().Unix()
@@ -224,17 +225,26 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	sim := tbc.NewSim(opts.StatTotal(gear), gear, opts)
 	for ns := 0; ns < numSims; ns++ {
 		metrics := sim.Run(seconds)
-		simdmg += metrics.TotalDamage
+		dps := metrics.TotalDamage / float64(seconds)
+		simdmg += dps
+		simdmgsq += dps * dps
 		simmet = append(simmet, metrics)
 		if metrics.OOMAt > 0 && metrics.OOMAt < seconds-5 {
 			oomcount++
 		}
 	}
 
+	meanSq := simdmgsq / float64(numSims)
+	mean := simdmg / float64(numSims)
+	stdev := math.Sqrt(meanSq - mean*mean)
+	fmt.Printf("(Mod: %s) Mean: %0.1f, Stddev: %0.1f\n", tbc.Stat(stat).StatName(), mean, stdev)
+
 	if float64(oomcount)/float64(numSims) > 0.25 {
 		return -1
 	}
-	return simdmg / float64(numSims) / float64(seconds)
+
+	conf90 := 1.645 * stdev / math.Sqrt(float64(numSims))
+	return fmt.Sprintf("%0.2f,%0.2f,%0.2f", mean, stdev, conf90)
 }
 
 // Simulate takes in number of iterations, duration, a gear list, and simulation options.
