@@ -431,6 +431,9 @@ function calcStatWeights(gear) {
                 if (weight < 0.01) {
                     weight = 0.0;
                 }
+                if (currentFinalStats["StatSpellHit"] > 202) {
+                    weight = 0.0; // Just going to force 0 weight if you are hit capped.
+                }
 
                 weights[3] = weight;
                 cell.innerText = weight.toFixed(2);
