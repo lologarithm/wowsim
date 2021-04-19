@@ -362,7 +362,6 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 			dpsRounded := int(math.Round(dps/10) * 10)
 			simMetrics.DPSHist[dpsRounded] += 1
 			if dps > simMetrics.MaxDPS {
-				fmt.Printf("New max dps: %0.0f\n", dps)
 				simMetrics.MaxDPS = dps
 			}
 			if (metrics.OOMAt) > 0 {

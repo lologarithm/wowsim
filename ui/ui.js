@@ -335,28 +335,22 @@ function hastedRotations(currentGear) {
         row.children[1].innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
         row.children[2].innerText = "";
 
-        simulate(800, 40, currentGear, opts, rots, haste, false, (output) => {
+        simulate(1000, 40, currentGear, opts, rots, haste, false, (output) => {
             var maxdmg = 0.0;
             var maxrot = {};
     
             output.forEach(out => {
-                var total = out.TotalDmgs.reduce(function(sum, value){
-                    return sum + value;
-                }, 0);
-                if (total > maxdmg) {
+                if (maxdmg < out.dps) {
+                    maxdmg = out.dps
                     maxrot = out;
-                    maxdmg = total;
                 }
             });
             
-            var values = maxrot.TotalDmgs;
-            var avg = average(values);
-            var dev = standardDeviation(values, avg);
             var simdur = maxrot.SimSeconds;
             var rotTitle = "CL / " + (maxrot.Rotation.length-1).toString() + "xLB";
             row.children[0].innerText = haste;
             row.children[1].innerText = rotTitle;
-            row.children[2].innerText = "" + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur);
+            row.children[2].innerText = "" + Math.round(maxrot.dps) + " +/- " + Math.round(maxrot.dev);
         });
     });
 }
