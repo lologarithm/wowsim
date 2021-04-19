@@ -857,3 +857,7 @@ function pulloutToggle() {
     
     po.style.right = pulloutRight.toString() + "px";
 }
+
+function removegear() {
+    gearUI.updateEquipped([]);
+}

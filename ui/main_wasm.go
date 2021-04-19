@@ -313,9 +313,9 @@ type SimResult struct {
 }
 
 type CastMetric struct {
-	Count int
-	Dmg   float64
-	Crits int
+	Count int     `json:"count"`
+	Dmg   float64 `json:"dmg"`
+	Crits int     `json:"crits"`
 }
 
 func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int, customRotation [][]string, fullLogs bool) []SimResult {
@@ -370,6 +370,20 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 				simMetrics.DPSAtOOM += float64(metrics.DamageAtOOM) / float64(metrics.OOMAt)
 				simMetrics.NumOOM++
 			}
+			for _, cast := range metrics.Casts {
+				var id = cast.Spell.ID
+				if cast.IsLO {
+					id = 1000 - cast.Spell.ID
+				}
+				cm := simMetrics.Casts[id]
+				cm.Count++
+				cm.Dmg += cast.DidDmg
+				if cast.DidCrit {
+					cm.Crits++
+				}
+				simMetrics.Casts[id] = cm
+			}
+
 		}
 
 		meanSq := totalSq / float64(numSims)
@@ -398,24 +412,3 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 	}
 	return results
 }
-
-// var castStats = {
-// 	1: {count: 0, dmg: 0, crits: 0},
-// 	2: {count: 0, dmg: 0, crits: 0},
-// 	3: {count: 0, dmg: 0, crits: 0},
-// 	999: {count: 0, dmg: 0, crits: 0},
-// 	998: {count: 0, dmg: 0, crits: 0},
-// }
-// out.Casts.forEach((casts)=>{
-// 	casts.forEach((cast)=>{
-// 		var id = cast.ID
-// 		if (cast.IsLO)  {
-// 			id = 1000-cast.ID;
-// 		}
-// 		castStats[id].count += 1;
-// 		castStats[id].dmg += cast.Dmg;
-// 		if (cast.Crit) {
-// 			castStats[id].crits += 1;
-// 		}
-// 	});
-// });
