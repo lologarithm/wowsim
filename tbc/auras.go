@@ -438,16 +438,25 @@ func ActivateBloodlust(sim *Simulation) Aura {
 
 func ActivateSkycall(sim *Simulation) Aura {
 	const hasteBonus = 101
+	const dur = 10 * TicksPerSecond
+	active := false
 	return Aura{
 		ID:      MagicIDSkycall,
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			if c.Spell.ID == MagicIDLB12 && sim.rando.Float64() < 0.15 {
-				if sim.Debug != nil {
-					sim.Debug(" +Skycall Energized- \n")
+				if !active {
+					sim.Buffs[StatHaste] += hasteBonus
+					active = true
 				}
-				sim.Buffs[StatHaste] += hasteBonus
-				sim.addAura(AuraStatRemoval(sim.CurrentTick, 10, hasteBonus, StatHaste, MagicIDEnergized))
+				sim.addAura(Aura{
+					ID:      MagicIDEnergized,
+					Expires: sim.CurrentTick + dur,
+					OnExpire: func(sim *Simulation, c *Cast) {
+						sim.Buffs[StatHaste] -= hasteBonus
+						active = false
+					},
+				})
 			}
 		},
 	}
