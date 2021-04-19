@@ -571,7 +571,7 @@ function showGearRecommendations(weights) {
                 var opts = getOptions();
                 opts.useai = true;
                 simulate(iters, dur, cleanGear(newgear), opts, null, null, false, (res)=>{
-                    var statistics = processSimResult(res);
+                    var statistics = res[0];
                     col4.innerText = Math.round(statistics.dps).toString() + " +/- " + Math.round(statistics.dev).toString();
                 });
             });
