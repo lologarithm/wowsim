@@ -16,12 +16,12 @@ func main() {
 
 	simfunc := js.FuncOf(Simulate)
 	statfunc := js.FuncOf(StatWeight)
-	statsfunc := js.FuncOf(ComputeStats)
+	statComputefunc := js.FuncOf(ComputeStats)
 	gearlistfunc := js.FuncOf(GearList)
 
 	js.Global().Set("simulate", simfunc)
 	js.Global().Set("statweight", statfunc)
-	js.Global().Set("computestats", statsfunc)
+	js.Global().Set("computestats", statComputefunc)
 	js.Global().Set("gearlist", gearlistfunc)
 	js.Global().Call("wasmready")
 	<-c
@@ -209,7 +209,9 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	stat := args[4].Int()
 	statModVal := args[5].Float()
 
-	opts.Buffs.Custom = tbc.Stats{tbc.StatLen: 0}
+	if len(opts.Buffs.Custom) == 0 {
+		opts.Buffs.Custom = tbc.Stats{tbc.StatLen: 0}
+	}
 	opts.Buffs.Custom[tbc.Stat(stat)] += statModVal
 	opts.UseAI = true // use AI optimal rotation.
 
