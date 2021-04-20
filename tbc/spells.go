@@ -28,12 +28,7 @@ func NewCast(sim *Simulation, sp *Spell) *Cast {
 		Spell:      sp,
 		ManaCost:   float64(sp.Mana),
 		Spellpower: 0, // TODO: type specific bonuses...
-		CritBonus:  1.0,
-	}
-	if sp.ID == MagicIDCL6 || sp.ID == MagicIDLB12 {
-		// TODO: Talent check for bonus crit damage?
-		// The spell check here is to block TLC from getting bigger bonus.
-		cast.CritBonus = 1.5
+		CritBonus:  1.5,
 	}
 
 	castTime := sp.CastTime
