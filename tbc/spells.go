@@ -98,7 +98,7 @@ const (
 var spells = []Spell{
 	// {ID: MagicIDLB4, Name: "LB4", Coeff: 0.795, CastTime: 2.5, MinDmg: 88, MaxDmg: 100, Mana: 50, DamageType: DamageTypeNature},
 	// {ID: MagicIDLB10, Name: "LB10", Coeff: 0.795, CastTime: 2.5, MinDmg: 428, MaxDmg: 477, Mana: 265, DamageType: DamageTypeNature},
-	{ID: MagicIDLB12, Name: "LB12", Coeff: 0.795, CastTime: 2.5, MinDmg: 563, MaxDmg: 643, Mana: 300, DamageType: DamageTypeNature},
+	{ID: MagicIDLB12, Name: "LB12", Coeff: 0.795, CastTime: 2.5, MinDmg: 571, MaxDmg: 652, Mana: 300, DamageType: DamageTypeNature},
 	// {ID: MagicIDCL4, Name: "CL4", Coeff: 0.643, CastTime: 2, Cooldown: 6, MinDmg: 505, MaxDmg: 564, Mana: 605, DamageType: DamageTypeNature},
 	{ID: MagicIDCL6, Name: "CL6", Coeff: 0.643, CastTime: 2, Cooldown: 6, MinDmg: 734, MaxDmg: 838, Mana: 760, DamageType: DamageTypeNature},
 	// {ID: MagicIDES8, Name: "ES8", Coeff: 0.3858, CastTime: 1.5, Cooldown: 6, MinDmg: 658, MaxDmg: 692, Mana: 535, DamageType: DamageTypeNature},

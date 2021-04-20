@@ -304,7 +304,9 @@ func (sim *Simulation) Cast(cast *Cast) {
 	dbgCast := cast.Spell.Name
 	if sim.rando.Float64() < hit {
 		sp := sim.Stats[StatSpellDmg] + sim.Buffs[StatSpellDmg] + cast.Spellpower
-		dmg := (sim.rando.Float64() * (cast.Spell.MaxDmg - cast.Spell.MinDmg)) + cast.Spell.MinDmg + (sp * cast.Spell.Coeff)
+		dmg := (sim.rando.Float64() * (cast.Spell.MaxDmg - cast.Spell.MinDmg)) + cast.Spell.MinDmg
+		spbonus := (sp * cast.Spell.Coeff)
+		dmg += spbonus
 		if cast.DidDmg != 0 { // use the pre-set dmg
 			dmg = cast.DidDmg
 		}

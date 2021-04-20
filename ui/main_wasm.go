@@ -166,6 +166,8 @@ func parseOptions(val js.Value) tbc.Options {
 			ElementalMastery:   true,
 			UnrelentingStorm:   3,
 			CallOfThunder:      5,
+			Concussion:         5,
+			Convection:         5,
 		},
 		Totems: tbc.Totems{
 			TotemOfWrath: val.Get("totwr").Int(),
