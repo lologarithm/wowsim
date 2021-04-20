@@ -51,7 +51,7 @@ func NewCast(sim *Simulation, sp *Spell) *Cast {
 	cast.TicksUntilCast = int(castTime * float64(TicksPerSecond))
 
 	if isLB || isCL {
-		cast.ManaCost *= 1 - (0.2 * float64(sim.Options.Talents.Convection))
+		cast.ManaCost *= 1 - (0.01 * float64(sim.Options.Talents.Convection))
 	}
 
 	// Apply any on cast effects.
