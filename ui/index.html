@@ -20,10 +20,6 @@
     <body class="darktheme uk-light">
         <div id="root">
             <text>TBC Elemental Shaman Simulator</text>
-            <div id="themetoggle" style="float: right; height:20px; bottom: 10px; cursor: pointer;" onclick="toggletheme()">
-                <text>v0.0.1</text>
-                <img id="themebulb" style="height: 20px; width: 20px" src="../icons/light-bulb.svg"></img>
-            </div>
             <ul id="inputtabs" uk-tab="connect: #inputdata;swiping">
                 <li class="uk-active"><a href="#">Gear</a></li>
                 <li><a href="#">Talents</a></li>
@@ -222,8 +218,9 @@
                             <label>Duration:<input id="swdur" type="text" value="300" style="width: 60px"></input></label>
                             <button id="calcstatweight">Calculate</button>
                         </div>
-                        <table id="statweights" style="width: 50%;margin: 0px auto;">
+                        <table id="statweights" style="width: 60%;margin: 0px auto;">
                             <tr style="font-size: 1.3em;font-weight: 700;text-align: center;">
+                                <th></th>
                                 <th>Dmg</th>
                                 <th>Int</th>
                                 <th>Crit</th>
@@ -232,12 +229,22 @@
                                 <th>MP5</th>
                             </tr>
                             <tr style="font-size: 1.2em;text-align: center;">
+                                <td style="font-size: 1em;text-align:right;" id="">Mean Weight</td>
                                 <td id="w0">0</td>
                                 <td id="w1">0</td>
                                 <td id="w2">0</td>
                                 <td id="w3">0</td>
                                 <td id="w4">0</td>
                                 <td id="w5">0</td>
+                            </tr>
+                            <tr style="font-size: 1.2em;text-align: center;">
+                                <td style="font-size: 1em;text-align:right;" id="">90% Confidence Weight Range</td>
+                                <td id="wc0">-</td>
+                                <td id="wc1">0</td>
+                                <td id="wc2">0</td>
+                                <td id="wc3">0</td>
+                                <td id="wc4">0</td>
+                                <td id="wc5">0</td>
                             </tr>
                         </table>
                         <table id="upgrades" style="margin: 0px auto;">
@@ -252,6 +259,36 @@
                         </pre>
                     </li>
                 </ul>    
+            </div>
+        </div>
+        <div id="pullout">
+            <div onclick="pulloutToggle()" style="float:left;cursor: pointer">
+                <span uk-icon="icon:cog;ratio:2" ></span>
+            </div>
+            <div class="dtl" style="height:100%;float:right;width:160px; padding: 10px">
+                <div id="themetoggle" style="height:20px; bottom: 10px; cursor: pointer;" onclick="toggletheme()">
+                    <text>v0.1.5</text>
+                    <img id="themebulb" style="height: 20px; width: 20px" src="../icons/light-bulb.svg"></img>
+                </div>
+                Options are not functional at this time.
+                <div style="margin-top:10px">
+                    <label id="phasesel" style="margin-top:10px">Phase: <select value="1">
+                        <option class="buffdrop" selected>1</option>
+                        <option class="buffdrop">2</option>
+                        <option class="buffdrop">3</option>
+                        <option class="buffdrop">4</option>
+                        <option class="buffdrop">5</option>
+                    </select></label><br />
+                    <button onclick="removegear()" style="margin-top:10px">Remove Gear</button><br />
+                    <button style="margin-top:10px">Gem All Gear</button><br />
+                    <label>Stat Weight Mod:<input style="margin-top:10px;width: 80px" type="text" value="50"></input></label><br />
+                    <!-- <button style="margin-top:10px">70Upgrades</button> -->
+                    <label style="margin-top:10px">Hide Gear:<select>
+                        <option class="buffdrop">Common</option>
+                        <option class="buffdrop">Uncommon</option>
+                        <option class="buffdrop">Rare</option>
+                    </select></label>
+                </div>
             </div>
         </div>
     </body>

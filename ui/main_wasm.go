@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 	"syscall/js"
 	"time"
@@ -15,12 +16,12 @@ func main() {
 
 	simfunc := js.FuncOf(Simulate)
 	statfunc := js.FuncOf(StatWeight)
-	statsfunc := js.FuncOf(ComputeStats)
+	statComputefunc := js.FuncOf(ComputeStats)
 	gearlistfunc := js.FuncOf(GearList)
 
 	js.Global().Set("simulate", simfunc)
 	js.Global().Set("statweight", statfunc)
-	js.Global().Set("computestats", statsfunc)
+	js.Global().Set("computestats", statComputefunc)
 	js.Global().Set("gearlist", gearlistfunc)
 	js.Global().Call("wasmready")
 	<-c
@@ -165,6 +166,8 @@ func parseOptions(val js.Value) tbc.Options {
 			ElementalMastery:   true,
 			UnrelentingStorm:   3,
 			CallOfThunder:      5,
+			Concussion:         5,
+			Convection:         5,
 		},
 		Totems: tbc.Totems{
 			TotemOfWrath: val.Get("totwr").Int(),
@@ -208,11 +211,14 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	stat := args[4].Int()
 	statModVal := args[5].Float()
 
-	opts.Buffs.Custom = tbc.Stats{tbc.StatLen: 0}
+	if len(opts.Buffs.Custom) == 0 {
+		opts.Buffs.Custom = tbc.Stats{tbc.StatLen: 0}
+	}
 	opts.Buffs.Custom[tbc.Stat(stat)] += statModVal
 	opts.UseAI = true // use AI optimal rotation.
 
 	simdmg := 0.0
+	simdmgsq := 0.0
 	simmet := make([]tbc.SimMetrics, 0, numSims)
 
 	opts.RSeed = time.Now().Unix()
@@ -221,17 +227,26 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	sim := tbc.NewSim(opts.StatTotal(gear), gear, opts)
 	for ns := 0; ns < numSims; ns++ {
 		metrics := sim.Run(seconds)
-		simdmg += metrics.TotalDamage
+		dps := metrics.TotalDamage / float64(seconds)
+		simdmg += dps
+		simdmgsq += dps * dps
 		simmet = append(simmet, metrics)
 		if metrics.OOMAt > 0 && metrics.OOMAt < seconds-5 {
 			oomcount++
 		}
 	}
 
+	meanSq := simdmgsq / float64(numSims)
+	mean := simdmg / float64(numSims)
+	stdev := math.Sqrt(meanSq - mean*mean)
+	fmt.Printf("(Mod: %s) Mean: %0.1f, Stddev: %0.1f\n", tbc.Stat(stat).StatName(), mean, stdev)
+
 	if float64(oomcount)/float64(numSims) > 0.25 {
 		return -1
 	}
-	return simdmg / float64(numSims) / float64(seconds)
+
+	conf90 := 1.645 * stdev / math.Sqrt(float64(numSims))
+	return fmt.Sprintf("%0.2f,%0.2f,%0.2f", mean, stdev, conf90)
 }
 
 // Simulate takes in number of iterations, duration, a gear list, and simulation options.
@@ -297,23 +312,24 @@ func jsonmarshal(results []SimResult) string {
 }
 
 type SimResult struct {
-	Casts        [][]CastMetric
-	TotalDmgs    []float64
-	DmgAtOOMs    []float64
-	OOMAt        []float64 // oom time totals
 	Rotation     []string
 	SimSeconds   int
 	RealDuration float64
 	Logs         string
+	DPSAvg       float64              `json:"dps"`
+	DPSDev       float64              `json:"dev"`
+	MaxDPS       float64              `json:"max"`
+	OOMAt        float64              `json:"oomat"`
+	NumOOM       int                  `json:"numOOM"`
+	DPSAtOOM     float64              `json:"dpsAtOOM"`
+	Casts        map[int32]CastMetric `json:"casts"`
+	DPSHist      map[int]int          `json:"dpsHist"` // rounded DPS to count
 }
 
 type CastMetric struct {
-	ID   int32
-	Hit  bool
-	Crit bool
-	IsLO bool
-	Dmg  float64
-	Time float64 // seconds it took to cast this spell
+	Count int     `json:"count"`
+	Dmg   float64 `json:"dmg"`
+	Crits int     `json:"crits"`
 }
 
 func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int, customRotation [][]string, fullLogs bool) []SimResult {
@@ -328,29 +344,14 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		spellOrders = customRotation
 	}
 	results := []SimResult{}
-	var simMetrics SimResult
-
-	pm := func(metrics tbc.SimMetrics) {
-		casts := make([]CastMetric, 0, len(metrics.Casts))
-		for _, v := range metrics.Casts {
-			casts = append(casts, CastMetric{
-				ID:   v.Spell.ID,
-				IsLO: v.IsLO,
-				Hit:  v.DidHit,
-				Crit: v.DidCrit,
-				Dmg:  v.DidDmg,
-				Time: float64(v.TicksUntilCast) / float64(tbc.TicksPerSecond),
-			})
-		}
-		simMetrics.DmgAtOOMs = append(simMetrics.DmgAtOOMs, metrics.DamageAtOOM)
-		simMetrics.OOMAt = append(simMetrics.OOMAt, float64(metrics.OOMAt))
-		simMetrics.Casts = append(simMetrics.Casts, casts)
-		simMetrics.TotalDmgs = append(simMetrics.TotalDmgs, metrics.TotalDamage)
-	}
-
 	logsBuffer := &strings.Builder{}
+
 	dosim := func(spells []string, simsec int) {
-		simMetrics = SimResult{Rotation: spells}
+		simMetrics := SimResult{
+			DPSHist:  map[int]int{},
+			Casts:    map[int32]CastMetric{},
+			Rotation: spells,
+		}
 		if opts.UseAI {
 			simMetrics.Rotation = []string{"AI Optimized"}
 		}
@@ -360,6 +361,8 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		optNow.SpellOrder = spells
 		optNow.RSeed = rseed
 		sim := tbc.NewSim(stats, equip, optNow)
+
+		var totalSq float64
 		for ns := 0; ns < numSims; ns++ {
 			if fullLogs {
 				sim.Debug = func(s string, vals ...interface{}) {
@@ -367,8 +370,46 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 				}
 			}
 			metrics := sim.Run(simsec)
-			pm(metrics)
+			dps := metrics.TotalDamage / float64(simsec)
+			totalSq += dps * dps
+			simMetrics.DPSAvg += dps
+			dpsRounded := int(math.Round(dps/10) * 10)
+			simMetrics.DPSHist[dpsRounded] += 1
+			if dps > simMetrics.MaxDPS {
+				simMetrics.MaxDPS = dps
+			}
+			if (metrics.OOMAt) > 0 {
+				simMetrics.OOMAt += float64(metrics.OOMAt)
+				simMetrics.DPSAtOOM += float64(metrics.DamageAtOOM) / float64(metrics.OOMAt)
+				simMetrics.NumOOM++
+			}
+			for _, cast := range metrics.Casts {
+				var id = cast.Spell.ID
+				if cast.IsLO {
+					id = 1000 - cast.Spell.ID
+				}
+				cm := simMetrics.Casts[id]
+				cm.Count++
+				cm.Dmg += cast.DidDmg
+				if cast.DidCrit {
+					cm.Crits++
+				}
+				simMetrics.Casts[id] = cm
+			}
+
 		}
+
+		meanSq := totalSq / float64(numSims)
+		mean := simMetrics.DPSAvg / float64(numSims)
+		stdev := math.Sqrt(meanSq - mean*mean)
+
+		simMetrics.DPSDev = stdev
+		simMetrics.DPSAvg /= float64(numSims)
+		if simMetrics.NumOOM > 0 {
+			simMetrics.OOMAt /= float64(simMetrics.NumOOM)
+			simMetrics.DPSAtOOM /= float64(simMetrics.NumOOM)
+		}
+
 		simMetrics.Logs = logsBuffer.String()
 		simMetrics.SimSeconds = simsec
 		simMetrics.RealDuration = time.Now().Sub(st).Seconds()

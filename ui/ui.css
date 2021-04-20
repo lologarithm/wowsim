@@ -1,3 +1,10 @@
+#pullout {
+    height: 100%;
+    position: fixed;
+    width: 220px;
+    right: -180;
+    top: 0;
+}
 #rotstats text {
     border-right: 3px solid #1e87f0;
     border-left: 3px solid #1e87f0;

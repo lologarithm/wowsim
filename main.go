@@ -42,23 +42,23 @@ func main() {
 	}
 
 	gear := tbc.NewEquipmentSet(
-		"Spellstrike Hood",
-		"Charlotte's Ivy",
-		"Pauldrons of Wild Magic",
-		"Ogre Slayer's Cover",
-		"Tidefury Chestpiece",
-		"World's End Bracers",
-		"Earth Mantle Handwraps",
-		"Netherstrike Belt",
-		"Stormsong Kilt",
-		"Magma Plume Boots",
-		"Cobalt Band of Tyrigosa",
-		"Scintillating Coral Band",
-		"Mazthoril Honor Shield",
-		"Gavel of Unearthed Secrets",
-		"Natural Alignment Crystal",
-		"Icon of the Silver Crescent",
-		"Totem of the Void",
+	// 	"Spellstrike Hood",
+	// 	"Charlotte's Ivy",
+	// 	"Pauldrons of Wild Magic",
+	// 	"Ogre Slayer's Cover",
+	// 	"Tidefury Chestpiece",
+	// 	"World's End Bracers",
+	// 	"Earth Mantle Handwraps",
+	// 	"Netherstrike Belt",
+	// 	"Stormsong Kilt",
+	// 	"Magma Plume Boots",
+	// 	"Cobalt Band of Tyrigosa",
+	// 	"Scintillating Coral Band",
+	// 	"Mazthoril Honor Shield",
+	// 	"Gavel of Unearthed Secrets",
+	// 	"Natural Alignment Crystal",
+	// 	"Icon of the Silver Crescent",
+	// 	"Totem of the Void",
 	)
 	// gear[tbc.EquipHead].Gems[0] = tbc.GemLookup["Chaotic Skyfire Diamond"]
 	ruby := tbc.GemLookup["Runed Living Ruby"]
@@ -77,7 +77,7 @@ func main() {
 	fmt.Printf("Gear Stats:\n%s", gearStats.Print(true))
 
 	opt := tbc.Options{
-		NumBloodlust: 1,
+		NumBloodlust: 0,
 		NumDrums:     0,
 		Buffs: tbc.Buffs{
 			ArcaneInt:                false,
@@ -87,14 +87,22 @@ func main() {
 			JudgementOfWisdom:        false,
 			Moonkin:                  false,
 			SpriestDPS:               0,
-			WaterShield:              false,
+			WaterShield:              true,
+			// Race:                     tbc.RaceBonusOrc,
+			Custom: tbc.Stats{
+				tbc.StatInt:       290,
+				tbc.StatSpellDmg:  598 + 55,
+				tbc.StatSpellHit:  24,
+				tbc.StatSpellCrit: 120,
+			},
 		},
 		Consumes: tbc.Consumes{
-			BrilliantWizardOil: false,
-			MajorMageblood:     false,
-			BlackendBasilisk:   false,
-			SuperManaPotion:    false,
-			DarkRune:           false,
+			// FlaskOfBlindingLight: true,
+			// BrilliantWizardOil:   false,
+			// MajorMageblood:       false,
+			// BlackendBasilisk:     true,
+			// SuperManaPotion:      false,
+			// DarkRune:             false,
 		},
 		Talents: tbc.Talents{
 			LightninOverload:   5,
@@ -104,11 +112,13 @@ func main() {
 			ElementalMastery:   true,
 			UnrelentingStorm:   3,
 			CallOfThunder:      5,
+			Concussion:         5,
+			Convection:         5,
 		},
 		Totems: tbc.Totems{
 			TotemOfWrath: 1,
 			WrathOfAir:   false,
-			ManaStream:   false,
+			ManaStream:   true,
 		},
 	}
 
@@ -121,7 +131,7 @@ func main() {
 		rotArray = strings.Split(*rotation, ",")
 	}
 
-	results := runTBCSim(gear, opt, 90, sims, rotArray, *noopt)
+	results := runTBCSim(gear, opt, 66, sims, rotArray, *noopt)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}

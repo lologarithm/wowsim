@@ -158,88 +158,6 @@ var castIDToName = {
     998: "CL Overload",
 }
 
-// processSimResult will take the output from a numer of sims
-// and process stuff like DPS and std dev.
-function processSimResult(output) {
-    var resultStats = {};
-    var out = output[0];
-    var maxDPS = 0;
-    var dpsHist = {};
-    var oomDPSHist = {};
-
-    var total = out.TotalDmgs.reduce(function(sum, value){
-        var dps = value/out.SimSeconds;
-        var dpsRounded = Math.round(dps/10) * 10;
-        if (dpsHist[dpsRounded] == null) {
-            dpsHist[dpsRounded] = 0;
-        }
-        dpsHist[dpsRounded] += 1;
-        if (dps > maxDPS) {
-            maxDPS = dps;
-        }
-        return sum + value;
-    }, 0);
-    var dps = total / out.SimSeconds / out.TotalDmgs.length;        
-    var values = out.TotalDmgs;
-    var avg = average(values);
-    var dev = standardDeviation(values, avg) / out.SimSeconds;
-    
-    var oomat = 0;
-    var numOOM = out.OOMAt.reduce(function(sum, value){
-        if (value > 0) {
-            oomat += value;
-            return sum + 1;
-        }
-        return sum;
-    }, 0);
-    if (numOOM > 0) {
-        oomat /= (numOOM);
-    }
-
-    var dpsAtOOM = 0;
-    if (numOOM > 0) {
-        out.DmgAtOOMs.forEach((v, i) => {
-            if (v > 0) {
-                dpsAtOOM += v / out.OOMAt[i];
-            }
-        });
-        dpsAtOOM /= numOOM;
-    }
-
-    var castStats = {
-        1: {count: 0, dmg: 0, crits: 0},
-        2: {count: 0, dmg: 0, crits: 0},
-        3: {count: 0, dmg: 0, crits: 0},
-        999: {count: 0, dmg: 0, crits: 0},
-        998: {count: 0, dmg: 0, crits: 0},
-    }
-    out.Casts.forEach((casts)=>{
-        casts.forEach((cast)=>{
-            var id = cast.ID
-            if (cast.IsLO)  {
-                id = 1000-cast.ID;
-            }
-            castStats[id].count += 1;
-            castStats[id].dmg += cast.Dmg;
-            if (cast.Crit) {
-                castStats[id].crits += 1;
-            }
-        });
-    });
-  
-    resultStats.total = total;
-    resultStats.maxDPS = maxDPS;
-    resultStats.dps = dps;
-    resultStats.dev = dev;
-    resultStats.oomat = oomat;
-    resultStats.numOOM = numOOM;
-    resultStats.dpsAtOOM = dpsAtOOM;
-    resultStats.casts = castStats;
-    resultStats.dpsHist = dpsHist;
-
-    return resultStats;
-}
-
 // Populates the 'Sim' tab in the results pane.
 function runsim(currentGear, fullLogs) {
     if (fullLogs) {
@@ -272,8 +190,9 @@ function runsim(currentGear, fullLogs) {
     firstOpts.exitoom = true;
 
     simulate(iters, 600, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, false, (out) => { 
-        var stats = processSimResult(out);
+        var stats = out[0];
         var max = stats.dps;
+        console.log("PRI Stats: ", stats);
         if (stats.dpsAtOOM > max) {
             max = stats.dpsAtOOM;
         }
@@ -291,7 +210,7 @@ function runsim(currentGear, fullLogs) {
         priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(max)}</text> dps<br /><text style="font-size:0.7em">${oomat}s to oom at peak dps.</text></div>`
     });
     simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0,false, (out) => {
-        var stats = processSimResult(out);
+        var stats = out[0];
         var ttoom = stats.oomat;
         if (ttoom == 0) {
             ttoom = ">600";
@@ -304,7 +223,7 @@ function runsim(currentGear, fullLogs) {
     var secondOpts = getOptions();
     secondOpts.useai = true;
     simulate(iters, dur, currentGear, secondOpts, null, 0, false, (out) => { 
-        var stats = processSimResult(out);
+        var stats = out[0];
         console.log("AI Stats: ", stats);
         aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> +/- ${Math.round(stats.dev)} dps<br /></div>`
         
@@ -405,6 +324,7 @@ function hastedRotations(currentGear) {
         ["CL6", "LB12", "LB12", "LB12", "LB12", "LB12", "LB12"]
     ];
 
+    // TODO: Fix this to match the new return values now that process is done in go WASM code.
 
     var hasteCounter = 0;
     var rows = document.getElementById("hasterots").firstElementChild.firstElementChild.children;
@@ -415,51 +335,24 @@ function hastedRotations(currentGear) {
         row.children[1].innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
         row.children[2].innerText = "";
 
-        simulate(800, 40, currentGear, opts, rots, haste, false, (output) => {
+        simulate(1000, 40, currentGear, opts, rots, haste, false, (output) => {
             var maxdmg = 0.0;
             var maxrot = {};
     
             output.forEach(out => {
-                var total = out.TotalDmgs.reduce(function(sum, value){
-                    return sum + value;
-                }, 0);
-                if (total > maxdmg) {
+                if (maxdmg < out.dps) {
+                    maxdmg = out.dps
                     maxrot = out;
-                    maxdmg = total;
                 }
             });
             
-            var values = maxrot.TotalDmgs;
-            var avg = average(values);
-            var dev = standardDeviation(values, avg);
             var simdur = maxrot.SimSeconds;
             var rotTitle = "CL / " + (maxrot.Rotation.length-1).toString() + "xLB";
             row.children[0].innerText = haste;
             row.children[1].innerText = rotTitle;
-            row.children[2].innerText = "" + Math.round(avg/simdur) + " +/- " + Math.round(dev/simdur);
+            row.children[2].innerText = "" + Math.round(maxrot.dps) + " +/- " + Math.round(maxrot.dev);
         });
     });
-}
-
-function standardDeviation(values, avg){
-    var squareDiffs = values.map(function(value){
-        var diff = value - avg;
-        var sqrDiff = diff * diff;
-        return sqrDiff;
-    });
-
-    var avgSquareDiff = average(squareDiffs);
-    var stdDev = Math.sqrt(avgSquareDiff);
-    return stdDev;
-}
-  
-function average(data){
-    var sum = data.reduce(function(sum, value){
-        return sum + value;
-    }, 0);
-
-    var avg = sum / data.length;
-    return avg;
 }
 
 // Populates the 'Gear & Stat Weights' tab in results pane.
@@ -469,8 +362,13 @@ function calcStatWeights(gear) {
     var opts = getOptions();
     
     var baseDPS = 0.0;
-    var sp_hitModDPS = 0.0
+    var baseConf = 0.0;
+
+    var sp_hitModDPS = 0.0;
+    var sp_hitModConf = 0.0;
+
     var modDPS = [0, 0, 0, 0, 0, 0]; // SP, Int, Crit, Hit, Haste, MP5
+    var modConf = [0, 0, 0, 0, 0, 0]
     var weights = [0, 0, 0, 0, 0, 0, 0]; // Int, X, Crit, Hit, Dmg, Haste, MP5
     modDPS.forEach((v, i)=>{
         var cell = document.getElementById("w"+i.toString());
@@ -479,7 +377,9 @@ function calcStatWeights(gear) {
 
     // A base DPS without any modified stats.
     statweight(iters, dur, gear, opts, 0, 0, (res) => {
-        baseDPS = res;
+        var resVals = res.split(",")
+        baseDPS = parseFloat(resVals[0]);
+        baseConf = parseFloat(resVals[2]);
         if (baseDPS < 1) {
             // we failed.
             modDPS.forEach((v, i)=>{
@@ -491,7 +391,7 @@ function calcStatWeights(gear) {
             nr.innerText = `Simulations went OOM and so weights will be incorrect as downranking is not yet implemented.`;
             uptab.appendChild(nr);
         }
-        console.log("Base DPS: ", res);
+        console.log(`Base DPS: ${baseDPS} +/- ${baseConf}`);
     }); // base
 
 
@@ -504,29 +404,47 @@ function calcStatWeights(gear) {
         if (modDPS[0] == 0) {
             return;
         }
-        var ddps = modDPS[0] - baseDPS;
+        var baseMax = baseDPS + baseConf
+        var baseMin = baseDPS - baseConf
+
+        var ddpsMax = (modDPS[0]+modConf[0]) - baseMin;
+        var ddpsMin = (modDPS[0]-modConf[0]) - baseMax;
 
         modDPS.forEach((v, i)=>{
             if (v == 0) {
                 return;
             }
             var cell = document.getElementById("w"+i.toString());
+            var cellConf = document.getElementById("wc"+i.toString());
             if (v == -1) {
                 cell.innerHTML = `<text style="color:#FF6961">OOM</text>`;
                 return;
             }
             // sphit uses different value;
             if (i == 3 && sp_hitModDPS != 0.0) {
-                var sphitdiff = sp_hitModDPS - baseDPS;
-                var weight = (v-baseDPS) / sphitdiff;
+                var sphitMax = sp_hitModDPS+sp_hitModConf - baseMin;
+                var sphitMin = sp_hitModDPS-sp_hitModConf - baseMax;
+                
+                var wmax  = (v + modConf[i] - baseMin) / sphitMax;
+                var wmin = (v - modConf[i] - baseMax) / sphitMin;
+                var weight = (wmax + wmin) / 2;
                 if (weight < 0.01) {
                     weight = 0.0;
                 }
+                if (currentFinalStats["StatSpellHit"] > 202) {
+                    weight = 0.0; // Just going to force 0 weight if you are hit capped.
+                }
+
                 weights[3] = weight;
                 cell.innerText = weight.toFixed(2);
+                cellConf.innerText = wmin.toFixed(2) + " - " + wmax.toFixed(2);
                 return; 
             }
-            var weight = (v-baseDPS) / ddps;
+            
+            var wmax  = (v + modConf[i] - baseMin) / ddpsMax;
+            var wmin = (v - modConf[i] - baseMax) / ddpsMin;
+
+            var weight = (wmax + wmin) / 2;
             if (weight < 0.01) {
                 weight = 0.0;
             }
@@ -543,6 +461,9 @@ function calcStatWeights(gear) {
                 weights[6] = weight;
             }
             cell.innerText = weight.toFixed(2);
+            if (wmax != wmin) {
+                cellConf.innerText = wmin.toFixed(2) + " - " + wmax.toFixed(2);
+            }
         });
 
         if (done.length == 7) {
@@ -561,14 +482,41 @@ function calcStatWeights(gear) {
         }
     };
 
-    statweight(iters, dur, gear, opts, 4, 20, (res) => {sp_hitModDPS = res;onfinish();}); // sp
-    statweight(iters, dur, gear, opts, 3, 20, (res) => {modDPS[3] = res;onfinish();}); // hit
-
-    statweight(iters, dur, gear, opts, 4, 50, (res) => {modDPS[0] = res;onfinish();}); // sp
-    statweight(iters, dur, gear, opts, 0, 50, (res) => {modDPS[1] = res;onfinish();}); // int
-    statweight(iters, dur, gear, opts, 2, 50, (res) => {modDPS[2] = res;onfinish();}); // crit
-    statweight(iters, dur, gear, opts, 5, 50, (res) => {modDPS[4] = res;onfinish();}); // haste
-    statweight(iters, dur, gear, opts, 6, 50, (res) => {modDPS[5] = res;onfinish();}); // mp5
+    statweight(iters, dur, gear, opts, 4, 20, (res) => {
+        var resVals = res.split(",");
+        sp_hitModDPS = parseFloat(resVals[0]);
+        sp_hitModConf = parseFloat(resVals[2]);
+        onfinish();}); // sp
+    statweight(iters, dur, gear, opts, 3, 20, (res) => {
+        var resVals = res.split(",");
+        modConf[3] = parseFloat(resVals[2])
+        modDPS[3] = parseFloat(resVals[0]);
+        onfinish();}); // hit
+    statweight(iters, dur, gear, opts, 4, 50, (res) => {
+        var resVals = res.split(",");
+        modConf[0] = parseFloat(resVals[2])
+        modDPS[0] = parseFloat(resVals[0]);
+        onfinish();}); // sp
+    statweight(iters, dur, gear, opts, 0, 50, (res) => {
+        var resVals = res.split(",");
+        modConf[1] = parseFloat(resVals[2])
+        modDPS[1] = parseFloat(resVals[0]);
+        onfinish();}); // int
+    statweight(iters, dur, gear, opts, 2, 50, (res) => {
+        var resVals = res.split(",");
+        modConf[2] = parseFloat(resVals[2])
+        modDPS[2] = parseFloat(resVals[0]);
+        onfinish();}); // crit
+    statweight(iters, dur, gear, opts, 5, 50, (res) => {
+        var resVals = res.split(",");
+        modConf[4] = parseFloat(resVals[2])
+        modDPS[4] = parseFloat(resVals[0]);
+        onfinish();}); // haste
+    statweight(iters, dur, gear, opts, 6, 50, (res) => {
+        var resVals = res.split(",");
+        modConf[5] = parseFloat(resVals[2])
+        modDPS[5] = parseFloat(resVals[0]);
+        onfinish();}); // mp5
 }
 
 function showGearRecommendations(weights) {
@@ -678,7 +626,7 @@ function showGearRecommendations(weights) {
                 var opts = getOptions();
                 opts.useai = true;
                 simulate(iters, dur, cleanGear(newgear), opts, null, null, false, (res)=>{
-                    var statistics = processSimResult(res);
+                    var statistics = res[0];
                     col4.innerText = Math.round(statistics.dps).toString() + " +/- " + Math.round(statistics.dev).toString();
                 });
             });
@@ -941,4 +889,24 @@ function toggleThemeClass(rm, rp) {
         e.classList.remove(rm);
         e.classList.add(rp);
     }
+}
+
+var pulloutRight = -180;
+function pulloutToggle() {
+    var root = document.getElementById('root');
+    var po = document.getElementById('pullout');
+    
+    if (pulloutRight < 0) {
+        pulloutRight = 0;
+        root.style.width = "calc(100% - 180px)";
+    } else {
+        pulloutRight = -180;
+        root.style.width = "100%";
+    }
+    
+    po.style.right = pulloutRight.toString() + "px";
+}
+
+function removegear() {
+    gearUI.updateEquipped([]);
 }
