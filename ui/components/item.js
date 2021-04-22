@@ -2,7 +2,8 @@
 
 class ItemComponent {
     slot;
-    
+    filterLevel;
+
     // UI Elements
     name;
     innerdiv;
@@ -15,6 +16,7 @@ class ItemComponent {
     socketComp;
 
     constructor(slot, allgear) {
+        this.filterLevel = 0;
         this.slot = slot;
         this.selector = new SelectorComponent(slot, allgear);
 
@@ -97,6 +99,23 @@ class ItemComponent {
         console.log("New Item Equipped: ", newItem);
         if (newItem != null && newItem.Name != "") {
             this.name.innerText = newItem.Name;
+            switch (newItem.Quality) {
+                case 0:
+                    this.name.style.color = ""
+                    break;
+                case 1:
+                    this.name.style.color = "#436904"
+                    break;
+                case 2:
+                    this.name.style.color = "#589BE1"
+                    break;
+                case 3:
+                    this.name.style.color = "#A3178A"
+                    break;
+                case 4:
+                    this.name.style.color = "#B27300"
+                    break;
+            }
             this.statpop.innerText = "";
             if (newItem.Stats != null) {
                 newItem.Stats.forEach((v,i)=>{
@@ -181,6 +200,7 @@ function removeGear(event) {
 }
 
 
+// TODO: Filter gems by phase/quality too!
 class SocketsComponent {
     // UI
     div;

@@ -908,5 +908,17 @@ function pulloutToggle() {
 }
 
 function removegear() {
-    gearUI.updateEquipped([]);
+    gearUI.removeEquipped();
+}
+
+function changePhaseFilter(e) {
+    var filter = e.target.value;
+
+    gearUI.setPhase(parseInt(filter));
+}
+
+function changeQualityFilter(e) {
+    var filter = e.target.value;
+
+    gearUI.setFilter(parseInt(filter));
 }

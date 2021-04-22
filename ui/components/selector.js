@@ -19,7 +19,9 @@ class SelectorComponent {
     
     // State
     slot;
-    
+    filterLevel;
+    phase;
+
     highlighted; // currently highlighted item
     highText; // text of highlighted item
     items; // searchable items, mirrors selectorlist.children
@@ -29,6 +31,8 @@ class SelectorComponent {
 
     allgear;
     constructor(slot, allgear) {
+        this.phase = 1;
+        this.filterLevel = 0;
         this.allgear = allgear;
         this.changeHandlers = [];
         this.items = [];
@@ -147,7 +151,7 @@ class SelectorComponent {
         });
             
         this.selectorlist.appendChild(listItem);
-        this.items.push(item.Name);
+        this.items.push(item);
     }
 
     show() {
@@ -173,7 +177,6 @@ class SelectorComponent {
                 // activate a specific gem
                 this.gemSelected(subitem);
             }
-            // this.sockComp.
         } else if (tab == "enchant") {
             this.tab3.classList.add("selactive");
             this.tab1.classList.remove("selactive");
@@ -300,8 +303,8 @@ class SelectorComponent {
     }
     handleSearchDown(hndlr) {
         for (var i = this.highlighted+1; i < this.items.length; i++) {
-            if (hndlr(i, this.selectorlist, this.items[i])) {
-                this.highText = this.items[i];
+            if (hndlr(i, this.selectorlist, this.items[i].Name)) {
+                this.highText = this.items[i].Name;
                 this.highlighted = i;
                 return;
             }
@@ -309,13 +312,41 @@ class SelectorComponent {
     }
     handleSearchUp(hndlr) {
         for (var i = this.highlighted-1; i>=0; i--) {
-            if (hndlr(i, this.selectorlist, this.items[i])) {
-                this.highText = this.items[i];
+            if (hndlr(i, this.selectorlist, this.items[i].Name)) {
+                this.highText = this.items[i].Name;
                 this.highlighted = i;
                 return;
             }
         }
     }
+    setPhase(phase) {
+        this.phase = phase;
+
+        for (var i = 0; i < this.items.length; i++) {
+            var item = this.items[i];
+            var le = this.selectorlist.childNodes[i];
+            if (item.Phase > this.phase) {
+                le.style.display = "none";
+            } else {
+                le.style.display = "block";
+            }
+        }
+    }
+
+    setFilter(filterLevel) {
+        this.filterLevel = filterLevel;
+
+        for (var i = 0; i < this.items.length; i++) {
+            var item = this.items[i];
+            var le = this.selectorlist.childNodes[i];
+            if (item.Quality <= this.filterLevel) {
+                le.style.display = "none";
+            } else {
+                le.style.display = "block";
+            }
+        }
+    }
+
     // Uses text from element to find item slot list.
     // Ignores case and punctuation unless punctuation is included in the search.
     // Spaces in search are implicit 'and'
@@ -341,14 +372,19 @@ class SelectorComponent {
 
         var firstFound = false;
         for (var i = 0; i < this.items.length; i++) {
-            var found = this.find(search, this.items[i]);
+            var found = this.find(search, this.items[i].Name);
+            var item = this.items[i];
 
             // Show / Hide item
             var le = this.selectorlist.childNodes[i];
-            if (found) {
+            if (item.Quality <= this.filterLevel || item.Phase > this.phase) {
+                // kinda hacky.
+                var le = this.selectorlist.childNodes[i];
+                le.style.display = "none";
+            } else if (found) {
                 le.style.removeProperty("display");
                 if (!firstFound) {
-                    this.highText = this.items[i];
+                    this.highText = this.items[i].Name;
                     this.highlighted = i;
                     le.classList.add("lisearch");
                     firstFound = true;
