@@ -200,7 +200,6 @@ function removeGear(event) {
 }
 
 
-// TODO: Filter gems by phase/quality too!
 class SocketsComponent {
     // UI
     div;

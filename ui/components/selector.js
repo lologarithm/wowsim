@@ -211,7 +211,10 @@ class SelectorComponent {
         div.classList.add("gemselectorlist")
         Object.entries(this.allgear.Gems).filter((v) => {
             if (color == 1) {
-                return v[1].Color == 1
+                return v[1].Color == 1 // assumes meta gems will all be in at start.
+            }
+            if (v[1].Quality <= this.filterLevel || v[1].Phase > this.phase) {
+                return false;
             }
             return v[1].Color != 1; //colorIntersects(color, v[1].Color);
         }).forEach((gem) => {
@@ -220,7 +223,6 @@ class SelectorComponent {
             itemdiv.classList.add(`gemc${gem[1].Color}`)
             itemdiv.innerText = name
             itemdiv.addEventListener("click", (e)=>{
-                // using global itemselector here feels weird...
                 this.notifyGemChange(name, this.sockComp.selectedSocket);
             });
             div.appendChild(itemdiv);
