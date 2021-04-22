@@ -24,7 +24,8 @@
   - Versioning - Add a version notification that can do a quick check to see if new version exists. (maybe include a like VERSION file the client can poll on every few minutes)
   - Look into more efficient serialization between sim <-> JS (use same serialization for wasm and server if that is ever implemented)
     - This has been mostly mitigated by sending less data.
-  
+  - Write some tests already... so many small breaks from refactors that tests would have caught.
+
 ## Install
 
 The simulator and development server can be built and run with Docker.
