@@ -40,7 +40,7 @@ var Gems = []Gem{
 	{Name: "Gleaming Lionseye", Quality: ItemQualityEpic, Phase: 3, Color: GemColorYellow, Stats: Stats{StatSpellCrit: 10}},
 	{Name: "Infused Fire Opal", Quality: ItemQualityEpic, Phase: 1, Color: GemColorOrange, Stats: Stats{StatInt: 4, StatSpellDmg: 6}},
 	{Name: "Potent Flame Spessarite", Quality: ItemQualityUncommon, Phase: 1, Color: GemColorOrange, Stats: Stats{StatSpellCrit: 3, StatSpellDmg: 4}},
-	{Name: "Potent Noble Topaz", Quality: ItemQualityUncommon, Phase: 1, Color: GemColorOrange, Stats: Stats{StatSpellCrit: 4, StatSpellDmg: 5}},
+	{Name: "Potent Noble Topaz", Quality: ItemQualityRare, Phase: 1, Color: GemColorOrange, Stats: Stats{StatSpellCrit: 4, StatSpellDmg: 5}},
 	{Name: "Potent Pyrestone", Quality: ItemQualityEpic, Phase: 3, Color: GemColorOrange, Stats: Stats{StatSpellCrit: 5, StatSpellDmg: 6}},
 	{Name: "Potent Fire Opal", Quality: ItemQualityEpic, Phase: 1, Color: GemColorOrange, Stats: Stats{StatSpellDmg: 6, StatSpellCrit: 4}},
 	{Name: "Potent Ornate Topaz", Quality: ItemQualityEpic, Phase: 1, Color: GemColorOrange, Stats: Stats{StatSpellDmg: 6, StatSpellCrit: 5}},
