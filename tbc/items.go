@@ -129,11 +129,11 @@ type Item struct {
 type ItemQuality byte
 
 const (
-	ItemQualityJunk ItemQuality = iota // anything less than green
-	ItemQualityUncommon
-	ItemQualityRare
-	ItemQualityEpic
-	ItemQualityLegendary
+	ItemQualityJunk      ItemQuality = iota // anything less than green
+	ItemQualityUncommon                     // green
+	ItemQualityRare                         // blue
+	ItemQualityEpic                         // purple
+	ItemQualityLegendary                    // orange
 )
 
 type Enchant struct {

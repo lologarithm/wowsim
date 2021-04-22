@@ -135,6 +135,26 @@ class GearUI {
         this.itemCompSlots[slotid].updateEquipped(newItem);
     }
 
+    removeEquipped() {
+        var emptyItem = {Name: "None"};
+        Object.keys(this.currentGear).forEach((key) => {
+            // remove item.
+            this.currentGear[key] = emptyItem;
+            this.itemCompSlots[key].updateEquipped(null);
+        });
+    }
+
+    setPhase(filter) {
+        this.itemComps.forEach((comp)=>{
+            comp.selector.setPhase(filter);
+        });
+    }
+    setFilter(filter) {
+        this.itemComps.forEach((comp)=>{
+            comp.selector.setFilter(filter);
+        });
+    }
+
     // updateEquipped will update the gear UI elements (to redraw when new gear is selected)
     updateEquipped(newGear) {
         var finger1done = false;
