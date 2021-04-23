@@ -604,6 +604,8 @@ var items = []Item{
 	{Slot: EquipFinger, Name: "Ring of the Fallen God", Phase: 0, Quality: ItemQualityEpic, SourceZone: "AQ40", SourceDrop: "C'thun", Stats: Stats{StatStm: 5, StatInt: 6, StatSpellDmg: 37, StatSpellCrit: 8}},
 	{Slot: EquipFinger, Name: "Band of the Inevitable", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Noth", Stats: Stats{StatSpellDmg: 36, StatSpellHit: 8}},
 	{Slot: EquipFinger, Name: "Seal of the Damned", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Noth", Stats: Stats{StatStm: 17, StatSpellDmg: 21, StatSpellCrit: 14, StatSpellHit: 8}},
+	{Slot: EquipShoulder, Name: "Pauldrons of Elemental Fury", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Trash", Stats: Stats{StatStm: 19, StatInt: 21, StatSpellDmg: 26, StatSpellCrit: 14, StatSpellHit: 8}},
+	{Slot: EquipBack, Name: "Cloak of the Necropolis", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Sapp", Stats: Stats{StatStm: 12, StatInt: 11, StatSpellDmg: 26, StatSpellCrit: 14, StatSpellHit: 8}},
 
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", Phase: 1, Quality: ItemQualityEpic, SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", Phase: 1, Quality: ItemQualityEpic, SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }

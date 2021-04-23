@@ -528,7 +528,9 @@ function showGearRecommendations(weights) {
     Object.entries(gearUI.allitems).forEach((entry) => {
         var name = entry[0];
         var item = entry[1];
-
+        if (item.Quality <= qualityFilter || item.Phase > phaseFilter) {
+            return;
+        }
         var value = 0.0;
         if (item.Stats != null) {
             weights.forEach((w, i)=>{
@@ -891,16 +893,16 @@ function toggleThemeClass(rm, rp) {
     }
 }
 
-var pulloutRight = -180;
+var pulloutRight = -200;
 function pulloutToggle() {
     var root = document.getElementById('root');
     var po = document.getElementById('pullout');
     
     if (pulloutRight < 0) {
         pulloutRight = 0;
-        root.style.width = "calc(100% - 180px)";
+        root.style.width = "calc(100% - 200px)";
     } else {
-        pulloutRight = -180;
+        pulloutRight = -200;
         root.style.width = "100%";
     }
     
@@ -911,14 +913,16 @@ function removegear() {
     gearUI.removeEquipped();
 }
 
+var phaseFilter = 5;
 function changePhaseFilter(e) {
     var filter = e.target.value;
-
-    gearUI.setPhase(parseInt(filter));
+    phaseFilter = parseInt(filter);
+    gearUI.setPhase(phaseFilter);
 }
 
+var qualityFilter = 0;
 function changeQualityFilter(e) {
     var filter = e.target.value;
-
-    gearUI.setFilter(parseInt(filter));
+    qualityFilter = parseInt(filter);
+    gearUI.setFilter(qualityFilter);
 }
