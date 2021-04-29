@@ -619,6 +619,7 @@ function showGearRecommendations(weights) {
                                 }                                    
                             });    
                         }
+                        item.Enchant = entry[1].Enchant;
                     } else {
                         newgear[entry[0]] = entry[1];
                     }

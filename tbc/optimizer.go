@@ -29,12 +29,13 @@ func StatWeights(opts Options, equip Equipment, seconds int, numSims int) []floa
 		d   float64
 	}
 	results := make(chan res, 10)
-
 	base := 0.0
 
 	doStat := func(mod Stat, value float64) {
 		myopts := opts
-		myopts.Buffs.Custom = Stats{StatLen: 0}
+		optClone2 := Stats{StatLen: 0}
+		copy(optClone2, myopts.Buffs.Custom) // clone existing buff
+		myopts.Buffs.Custom = optClone2
 		myopts.Buffs.Custom[mod] += value
 		stats := myopts.StatTotal(equip)
 
@@ -57,7 +58,8 @@ func StatWeights(opts Options, equip Equipment, seconds int, numSims int) []floa
 
 	doStat(StatSpellDmg, 0)
 
-	statsToTest := []Stat{StatSpellDmg, StatSpellCrit, StatInt, StatSpellHit, StatMP5, StatHaste}
+	// order of these doesn't matter, we put them back in the right order in the next loop.
+	statsToTest := []Stat{StatInt, StatSpellDmg, StatSpellCrit, StatSpellHit, StatHaste, StatMP5}
 	for _, v := range statsToTest {
 		go doStat(v, 50)
 	}
@@ -74,7 +76,7 @@ func StatWeights(opts Options, equip Equipment, seconds int, numSims int) []floa
 		// printResult(res.m, seconds)
 	}
 
-	output := make([]float64, StatLen)
+	output := make([]float64, StatMP5+1) // one more than MP5
 	for _, v := range statsToTest {
 		output[v] = modded[v] / modded[StatSpellDmg]
 	}
@@ -95,7 +97,7 @@ func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) Optima
 	// dawnstone := GemLookup["Gleaming Dawnstone"] // yellow  +crit
 	nt := GemLookup["Potent Noble Topaz"] // orange  +sp/+crit
 	// fo := GemLookup["Infused Fire Opal"] // orange +sp/+int
-	chryo := GemLookup["Rune Covered Chrysoprase"] // green  crit/mp5
+	chryo := GemLookup["Glowing Nightseye"] // green  crit/mp5
 	// tanz := GemLookup["Glowing Tanzanite"] // purple  sp/stm
 	// tala := GemLookup["Dazzling Talasite"] // green  int/mp5
 
@@ -126,7 +128,7 @@ func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) Optima
 		}
 	}
 
-	fmt.Printf("Set1:\n%s\nSet2:\n%s\n", opts.StatTotal(set1).Print(false), opts.StatTotal(set2).Print(false))
+	fmt.Printf("All Red Gems Stats:\n%s\n\nMatched Sockets Stats:\n%s\n\n", opts.StatTotal(set1).Print(false), opts.StatTotal(set2).Print(false))
 
 	simdmg := 0.0
 	sim := NewSim(opts.StatTotal(set1), equip, opts)
@@ -136,7 +138,7 @@ func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) Optima
 		simdmg += metrics.TotalDamage
 		simmet = append(simmet, metrics)
 	}
-	fmt.Printf("Set1: %0.0f\n", simdmg/float64(numSims)/float64(seconds))
+	fmt.Printf("All Red Gems: %0.0f DPS\n", simdmg/float64(numSims)/float64(seconds))
 	output.Sims = append(output.Sims, EquipmentResult{Results: simmet, Equip: set1})
 
 	simdmg = 0.0
@@ -147,7 +149,7 @@ func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) Optima
 		simdmg += metrics.TotalDamage
 		simmet = append(simmet, metrics)
 	}
-	fmt.Printf("Set2: %0.0f\n", simdmg/float64(numSims)/float64(seconds))
+	fmt.Printf("Matched Sockets: %0.0f DPS\n", simdmg/float64(numSims)/float64(seconds))
 	output.Sims = append(output.Sims, EquipmentResult{Results: simmet, Equip: set2})
 
 	return output
