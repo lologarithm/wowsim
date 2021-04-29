@@ -1,0 +1,224 @@
+{
+    "Options": {
+        "RSeed": 0,
+        "ExitOnOOM": false,
+        "NumBloodlust": 1,
+        "NumDrums": 0,
+        "Buffs": {
+            "ArcaneInt": false,
+            "GiftOftheWild": false,
+            "BlessingOfKings": false,
+            "ImprovedBlessingOfWisdom": false,
+            "ImprovedDivineSpirit": false,
+            "Moonkin": false,
+            "MoonkinRavenGoddess": false,
+            "SpriestDPS": 0,
+            "EyeOfNight": false,
+            "TwilightOwl": false,
+            "WaterShield": true,
+            "WaterShieldPPM": 0,
+            "Race": 2,
+            "JudgementOfWisdom": true,
+            "ImpSealofCrusader": false,
+            "Misery": false,
+            "Custom": [
+                0,
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        "Consumes": {
+            "BrilliantWizardOil": false,
+            "MajorMageblood": false,
+            "FlaskOfBlindingLight": false,
+            "FlaskOfMightyRestoration": false,
+            "BlackendBasilisk": false,
+            "DestructionPotion": false,
+            "SuperManaPotion": true,
+            "DarkRune": false
+        },
+        "Talents": {
+            "LightninOverload": 5,
+            "ElementalPrecision": 3,
+            "NaturesGuidance": 3,
+            "TidalMastery": 5,
+            "ElementalMastery": true,
+            "UnrelentingStorm": 3,
+            "CallOfThunder": 5,
+            "Convection": 5,
+            "Concussion": 5
+        },
+        "Totems": {
+            "TotemOfWrath": 1,
+            "WrathOfAir": false,
+            "ManaStream": true,
+            "Cyclone2PC": false
+        },
+        "Debug": false
+    },
+    "Gear": [
+        {
+            "Slot": 1,
+            "Name": "Tidefury Helm",
+            "Gems": [
+                {
+                    "Name": "Chaotic Skyfire Diamond"
+                },
+                {
+                    "Name": "Runed Living Ruby"
+                }
+            ],
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 2,
+            "Name": "Charlotte's Ivy",
+            "Gems": [],
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 3,
+            "Name": "Pauldrons of Wild Magic",
+            "Gems": [],
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 4,
+            "Name": "Shawl of Shifting Probabilities",
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 5,
+            "Name": "Tidefury Chestpiece",
+            "Gems": [
+                {
+                    "Name": "Runed Living Ruby"
+                },
+                {
+                    "Name": "Runed Living Ruby"
+                },
+                {
+                    "Name": "Runed Living Ruby"
+                }
+            ],
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 6,
+            "Name": "World's End Bracers",
+            "Gems": [],
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 7,
+            "Name": "Earth Mantle Handwraps",
+            "Gems": [
+                {
+                    "Name": "Runed Living Ruby"
+                },
+                {
+                    "Name": "Runed Living Ruby"
+                }
+            ],
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 8,
+            "Name": "Netherstrike Belt",
+            "Gems": [
+                {
+                    "Name": "Runed Living Ruby"
+                },
+                {
+                    "Name": "Runed Living Ruby"
+                }
+            ],
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 9,
+            "Name": "Stormsong Kilt",
+            "Gems": [
+                {
+                    "Name": "Runed Living Ruby"
+                },
+                {
+                    "Name": "Runed Living Ruby"
+                },
+                {
+                    "Name": "Runed Living Ruby"
+                }
+            ],
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 10,
+            "Name": "Magma Plume Boots",
+            "Gems": [],
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 11,
+            "Name": "Cobalt Band of Tyrigosa",
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 11,
+            "Name": "Sparking Arcanite Ring",
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 14,
+            "Name": "Natural Alignment Crystal"
+        },
+        {
+            "Slot": 14,
+            "Name": "Icon of the Silver Crescent"
+        },
+        {
+            "Slot": 17,
+            "Name": "Gavel of Unearthed Secrets",
+            "Gems": [],
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 18,
+            "Name": "Mazthoril Honor Shield",
+            "Enchant": {
+                "Name": ""
+            }
+        },
+        {
+            "Slot": 19,
+            "Name": "Totem of the Void"
+        }
+    ]
+}

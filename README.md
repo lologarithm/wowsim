@@ -1,5 +1,30 @@
 # Classic TBC Elemental Shaman DPS Simulator
 
+## Usage
+
+Command line
+
+`go run main.go --config example_config.json`
+
+Important command line options:
+
+`--config`  Location of config file to load. This includes buffs, consumes, gear, gems, enchants, everything about the character
+
+`--rotation`  If you want to test a specific rotation instead of having an AI optimized rotation to maximize mana usage. 
+    
+  Standard Format:  CL6,LB12,LB12,LB12
+    
+  Optional 'Priority' casting:   pri,CL6,LB12    (this will cast CL6 anytime off CD, highly likely to go OOM unless fight is short)
+
+If not specified the AI will simply try to use exactly all the mana by casting as many CL as mana will allow.
+
+`--duration`  Number of seconds to run the simulation for. Defaults to 300.
+
+`--iter` Number of iterations to run the simulation for. Defaults to 10,000. Stat weight calculations are more accurate the more iterations run.
+
+`--noopt` No optimizations, disables running gem optimizer and stat weight calculations.
+
+
 ## TODO
 
 ### UI

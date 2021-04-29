@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -31,7 +32,11 @@ func main() {
 	var isDebug = flag.Bool("debug", false, "Include --debug to spew the entire simulation log.")
 	var noopt = flag.Bool("noopt", false, "If included it will disable optimization.")
 	var rotation = flag.String("rotation", "", "Custom comma separated rotation to simulate.\n\tFor Example: --rotation=CL6,LB12")
+	var duration = flag.Int("duration", 300, "Custom fight duration in seconds.")
+	var iterations = flag.Int("iter", 10000, "Custom number of iterations for the sim to run.")
 	var runWebUI = flag.Bool("web", false, "Use to run sim in web interface instead of in terminal")
+	var configFile = flag.String("config", "", "Specify an input configuration.")
+
 	flag.Parse()
 
 	// this is silly lol
@@ -42,23 +47,23 @@ func main() {
 	}
 
 	gear := tbc.NewEquipmentSet(
-	// 	"Spellstrike Hood",
-	// 	"Charlotte's Ivy",
-	// 	"Pauldrons of Wild Magic",
-	// 	"Ogre Slayer's Cover",
-	// 	"Tidefury Chestpiece",
-	// 	"World's End Bracers",
-	// 	"Earth Mantle Handwraps",
-	// 	"Netherstrike Belt",
-	// 	"Stormsong Kilt",
-	// 	"Magma Plume Boots",
-	// 	"Cobalt Band of Tyrigosa",
-	// 	"Scintillating Coral Band",
-	// 	"Mazthoril Honor Shield",
-	// 	"Gavel of Unearthed Secrets",
-	// 	"Natural Alignment Crystal",
-	// 	"Icon of the Silver Crescent",
-	// 	"Totem of the Void",
+		"Tidefury Helm",
+		"Charlotte's Ivy",
+		"Pauldrons of Wild Magic",
+		"Ogre Slayer's Cover",
+		"Tidefury Chestpiece",
+		"World's End Bracers",
+		"Earth Mantle Handwraps",
+		"Netherstrike Belt",
+		"Stormsong Kilt",
+		"Magma Plume Boots",
+		"Cobalt Band of Tyrigosa",
+		"Sparking Arcanite Ring",
+		"Mazthoril Honor Shield",
+		"Gavel of Unearthed Secrets",
+		"Natural Alignment Crystal",
+		"Icon of the Silver Crescent",
+		"Totem of the Void",
 	)
 	// gear[tbc.EquipHead].Gems[0] = tbc.GemLookup["Chaotic Skyfire Diamond"]
 	ruby := tbc.GemLookup["Runed Living Ruby"]
@@ -72,9 +77,6 @@ func main() {
 			}
 		}
 	}
-
-	gearStats := gear.Stats()
-	fmt.Printf("Gear Stats:\n%s", gearStats.Print(true))
 
 	opt := tbc.Options{
 		NumBloodlust: 0,
@@ -101,7 +103,7 @@ func main() {
 			// BrilliantWizardOil:   false,
 			// MajorMageblood:       false,
 			// BlackendBasilisk:     true,
-			// SuperManaPotion:      false,
+			SuperManaPotion: false,
 			// DarkRune:             false,
 		},
 		Talents: tbc.Talents{
@@ -122,19 +124,57 @@ func main() {
 		},
 	}
 
-	sims := 10000
+	if *configFile != "" {
+		data, err := ioutil.ReadFile(*configFile)
+		if err != nil {
+			log.Fatalf("Failed to open config file(%s): %s", *configFile, err)
+		}
+		gear, opt = getGear(data)
+	}
+
 	if *isDebug {
-		sims = 1
+		*iterations = 1
 	}
 	rotArray := []string{}
 	if rotation != nil && len(*rotation) > 0 {
 		rotArray = strings.Split(*rotation, ",")
 	}
 
-	results := runTBCSim(gear, opt, 66, sims, rotArray, *noopt)
+	results := runTBCSim(gear, opt, *duration, *iterations, rotArray, *noopt)
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
+}
+
+type input struct {
+	Options tbc.Options
+	Gear    []tbc.Item
+}
+
+func getGear(val []byte) (tbc.Equipment, tbc.Options) {
+	in := &input{}
+	err := json.Unmarshal(val, in)
+	if err != nil {
+		log.Fatalf("Failed to unmarshal JSON: %s", err)
+	}
+	gearSet := make([]tbc.Item, len(in.Gear))
+	for i, v := range in.Gear {
+		itemTemplate := tbc.ItemLookup[v.Name]
+		ic := itemTemplate
+		if len(v.Gems) > 0 {
+			ic.Gems = make([]tbc.Gem, len(ic.GemSlots))
+			for _, gem := range ic.Gems {
+				gv, ok := tbc.GemLookup[gem.Name]
+				if !ok {
+					continue // wasn't a valid gem
+				}
+				ic.Gems[i] = gv
+			}
+		}
+		ic.Enchant = tbc.EnchantLookup[v.Enchant.Name]
+		gearSet[i] = ic
+	}
+	return tbc.Equipment(gearSet), in.Options
 }
 
 func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, customRotation []string, noopt bool) []string {
@@ -167,6 +207,10 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 		results = append(results, <-statchan)
 	}
 
+	opt.UseAI = true
+	go doSimMetrics([]string{"AI"}, stats, equip, opt, seconds, numSims, statchan)
+	results = append(results, <-statchan)
+
 	if !noopt {
 		// fmt.Printf("\n------- OPTIMIZING -------\n")
 		// optResult, optimalRotation := tbc.OptimalRotation(stats, opt, equip, seconds, numSims)
@@ -174,14 +218,17 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 		// fmt.Printf("Ratio: 1CL : %dLB\n", len(optimalRotation)-1)
 		// tbc.PrintResult(optResult, seconds)
 
-		opt.UseAI = true
-		go doSimMetrics([]string{"AI"}, stats, equip, opt, seconds, numSims, statchan)
-		results = append(results, <-statchan)
-
-		// opt.SpellOrder = optimalRotation
-		// tbc.OptimalGems(opt, equip, seconds, numSims)
-
-		// tbc.StatWeights(opt, equip, seconds, numSims)
+		tbc.OptimalGems(opt, equip, seconds, numSims)
+		weights := tbc.StatWeights(opt, equip, seconds, numSims)
+		// fmt.Printf("Weights: [ SP: %0.2f,  Int: %0.2f,  Crit: %0.2f,  Hit: %0.2f,  Haste: %0.2f,  MP5: %0.2f ]\n", weights[0], weights[1], weights[2], weights[3], weights[4], weights[5])
+		fmt.Printf("Weights: [\n")
+		for i, v := range weights {
+			if tbc.Stat(i) == tbc.StatStm {
+				continue
+			}
+			fmt.Printf("%s: %0.2f\t", tbc.Stat(i).StatName(), v)
+		}
+		fmt.Printf("\n]\n")
 	}
 
 	return results
