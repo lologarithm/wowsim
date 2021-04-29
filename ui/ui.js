@@ -552,7 +552,11 @@ function showGearRecommendations(weights) {
             }
             value += (numGems * 9) * weights[4]; // just for measuring use 9 spell power gems in every slot.
         }
-        var curEquip = gearUI.currentGear[slotToID[item.Slot]];
+        var slotid = slotToID[item.Slot];
+        if (slotid == "equipfinger") {
+            slotid = "equipfinger1"
+        }
+        var curEquip = gearUI.currentGear[slotid];
         if (curEquip != null && curEquip.Name == item.Name) {
             curSlotWeights[item.Slot] = value;
         }
@@ -564,9 +568,8 @@ function showGearRecommendations(weights) {
     
     var curSlot = -1;
     Object.entries(itemWeightsBySlot).forEach((entry)=>{
-        if (entry[0] == 11 || entry[0] == 14) {
-            // Skip rings/trinkets for now. Trinkets will be separate and rings need 
-            // to check a finger1/2 instead of finger generically.
+        if (entry[0] == 14) {
+            // Skip trinkets for now. Trinkets will be separate
             return;
         }
         if (curSlot != entry[0]) {
@@ -605,8 +608,12 @@ function showGearRecommendations(weights) {
             simbut.addEventListener("click", (e)=>{
                 col4.innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
                 var newgear = {};
+                var slotID = slotToID[item.Slot];
+                if (slotID == "equipfinger") {
+                    slotID = "equipfinger1"; // hardcode finger 1 replacement.
+                }
                 Object.entries(gearUI.currentGear).forEach((entry)=>{
-                    if (entry[0] == slotToID[item.Slot]) {
+                    if (entry[0] == slotID) {
                         // replace
                         newgear[entry[0]] = item;
                         if (item.GemSlots != null) {
