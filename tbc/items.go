@@ -607,6 +607,10 @@ var items = []Item{
 	{Slot: EquipShoulder, Name: "Pauldrons of Elemental Fury", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Trash", Stats: Stats{StatStm: 19, StatInt: 21, StatSpellDmg: 26, StatSpellCrit: 14, StatSpellHit: 8}},
 	{Slot: EquipBack, Name: "Cloak of the Necropolis", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Sapp", Stats: Stats{StatStm: 12, StatInt: 11, StatSpellDmg: 26, StatSpellCrit: 14, StatSpellHit: 8}},
 
+	{Slot: EquipFeet, Name: "KaraBoots of Nature's Wrath", Phase: 1, Quality: ItemQualityRare, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 78}},
+	{Slot: EquipWaist, Name: "KaraBelt of Nature's Wrath", Phase: 1, Quality: ItemQualityRare, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 78}},
+	{Slot: EquipWrist, Name: "KaraBracer of Nature's Wrath", Phase: 1, Quality: ItemQualityRare, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 58}},
+
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", Phase: 1, Quality: ItemQualityEpic, SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", Phase: 1, Quality: ItemQualityEpic, SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }
 	{Slot: EquipTotem, Name: "Totem of Ancestral Guidance", Phase: 3, Quality: ItemQualityRare, SourceZone: "BT", SourceDrop: "", Stats: Stats{StatSpellDmg: 85}},
