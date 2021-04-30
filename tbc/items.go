@@ -580,7 +580,7 @@ var items = []Item{
 	{Slot: EquipTrinket, Name: "Shiffar's Nexus-Horn", Phase: 1, Quality: ItemQualityRare, SourceZone: "Arc - Harbinger Skyriss", SourceDrop: "", Stats: Stats{0, 0, 30, 0, 0, 0, 0}, Activate: ActivateNexusHorn, ActivateCD: -1},
 	{Slot: EquipTrinket, Name: "Darkmoon Card: Crusade", Phase: 2, Quality: ItemQualityEpic, SourceZone: "Blessings Deck", SourceDrop: "", Activate: ActivateDCC, ActivateCD: -1},
 	{Slot: EquipTrinket, Name: "The Lightning Capacitor", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "", Activate: ActivateTLC, ActivateCD: -1},
-	{Slot: EquipTrinket, Name: "Eye of Magtheridon", Phase: 1, Quality: ItemQualityRare, SourceZone: "", SourceDrop: "", Stats: Stats{0, 0, 0, 32, 0, 0, 0}, Activate: ActivateEyeOfMag, ActivateCD: -1},
+	{Slot: EquipTrinket, Name: "Eye of Magtheridon", Phase: 1, Quality: ItemQualityRare, SourceZone: "", SourceDrop: "", Stats: Stats{StatSpellDmg: 54}, Activate: ActivateEyeOfMag, ActivateCD: -1},
 	{Slot: EquipTrinket, Name: "Sextant of Unstable Currents", Phase: 2, Quality: ItemQualityRare, SourceZone: "SSC", SourceDrop: "", Stats: Stats{StatSpellCrit: 40}, Activate: ActivateSextant, ActivateCD: -1},
 	{Slot: EquipTrinket, Name: "Shifting Naaru Silver", Phase: 5, Quality: ItemQualityRare, SourceZone: "Sunwell", SourceDrop: "", Stats: Stats{StatHaste: 54}, Activate: createSpellDmgActivate(MagicIDShiftingNaaru, 320, 15), ActivateCD: 90, CoolID: MagicIDShiftingNaaruTrink},
 	{Slot: EquipTrinket, Name: "The Skull of Gul'dan", Phase: 3, Quality: ItemQualityRare, SourceZone: "Black Temple", SourceDrop: "", Stats: Stats{StatSpellHit: 25, StatSpellDmg: 55}, Activate: createHasteActivate(MagicIDSkullGuldan, 175, 20), ActivateCD: 120, CoolID: MagicIDSkullGuldanTrink},
