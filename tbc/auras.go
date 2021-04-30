@@ -708,12 +708,24 @@ func ActivateSextant(sim *Simulation) Aura {
 
 func ActivateEyeOfMag(sim *Simulation) Aura {
 	const spellBonus = 170.0
+	const dur = 10 * TicksPerSecond
+	active := false
 	return Aura{
 		ID:      MagicIDEyeOfMag,
 		Expires: math.MaxInt32,
 		OnSpellMiss: func(sim *Simulation, c *Cast) {
-			sim.Buffs[StatSpellDmg] += spellBonus
-			sim.addAura(AuraStatRemoval(sim.CurrentTick, 10.0, spellBonus, StatSpellDmg, MagicIDRecurringPower))
+			if !active {
+				sim.Buffs[StatSpellDmg] += spellBonus
+				active = true
+			}
+			sim.addAura(Aura{
+				ID:      MagicIDRecurringPower,
+				Expires: sim.CurrentTick + dur,
+				OnExpire: func(sim *Simulation, c *Cast) {
+					sim.Buffs[StatSpellDmg] -= spellBonus
+					active = false
+				},
+			})
 		},
 	}
 }
