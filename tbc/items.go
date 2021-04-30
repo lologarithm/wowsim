@@ -63,9 +63,11 @@ var Enchants = []Enchant{
 	{Name: "Chest - Exceptional Stats", Bonus: Stats{StatStm: 6, StatInt: 6, StatSpirit: 6}, Slot: EquipChest},
 	{Name: "Bracer - Spellpower", Bonus: Stats{StatSpellDmg: 15}, Slot: EquipWrist},
 	{Name: "Gloves - Major Spellpower", Bonus: Stats{StatSpellDmg: 20}, Slot: EquipHands},
-	{Name: "Runic Spellthread", Bonus: Stats{StatSpellDmg: 20}, Slot: EquipLegs},
+	{Name: "Runic Spellthread", Bonus: Stats{StatSpellDmg: 35, StatStm: 20}, Slot: EquipLegs},
+	{Name: "Mystic Spellthread", Bonus: Stats{StatSpellDmg: 25, StatStm: 15}, Slot: EquipLegs},
 	{Name: "Weapon - Major Spellpower", Bonus: Stats{StatSpellDmg: 40}, Slot: EquipWeapon},
 	{Name: "Ring - Spellpower", Bonus: Stats{StatSpellDmg: 12}, Slot: EquipFinger},
+	{Name: "Shield - Intellect", Bonus: Stats{StatInt: 12}, Slot: EquipOffhand},
 }
 
 var ItemLookup = map[string]Item{}
@@ -560,17 +562,17 @@ var items = []Item{
 	{Slot: EquipOffhand, Name: "Dragonheart Flameshield", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Nightbane", Stats: Stats{StatStm: 19, StatInt: 33, StatSpellDmg: 23, StatHaste: 0, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 7}},
 	{Slot: EquipOffhand, Name: "Illidari Runeshield", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Trash", Stats: Stats{StatStm: 45, StatInt: 39, StatSpellDmg: 34, StatHaste: 0, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 0}},
 	{Slot: EquipOffhand, Name: "Karaborian Talisman", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Magtheridon's Lair", SourceDrop: "Magtheridon", Stats: Stats{StatStm: 23, StatInt: 23, StatSpellDmg: 35, StatHaste: 0, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 0}},
-	{Slot: EquipOffhand, Name: "Mazthoril Honor Shield", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Shattrah", SourceDrop: "Badges", Stats: Stats{StatStm: 16, StatInt: 29, StatSpellDmg: 23, StatHaste: 0, StatSpellCrit: 21, StatSpellHit: 0, StatMP5: 0}},
-	{Slot: EquipOffhand, Name: "Talisman of Nightbane", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Nightbane", Stats: Stats{StatStm: 19, StatInt: 19, StatSpellDmg: 28, StatHaste: 0, StatSpellCrit: 17, StatSpellHit: 0, StatMP5: 0}},
-	{Slot: EquipOffhand, Name: "Blind-Seers Icon", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Akama", Stats: Stats{StatStm: 25, StatInt: 16, StatSpellDmg: 42, StatHaste: 0, StatSpellCrit: 0, StatSpellHit: 24, StatMP5: 0}},
-	{Slot: EquipOffhand, Name: "Khadgar's Knapsack", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Shattrah", SourceDrop: "Badges", Stats: Stats{StatStm: 0, StatInt: 0, StatSpellDmg: 49, StatHaste: 0, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 0}},
-	{Slot: EquipOffhand, Name: "FathomStone", Phase: 2, Quality: ItemQualityEpic, SourceZone: "SSC", SourceDrop: "Lurker", Stats: Stats{StatStm: 16, StatInt: 12, StatSpellDmg: 36, StatHaste: 0, StatSpellCrit: 23, StatSpellHit: 0, StatMP5: 0}},
-	{Slot: EquipOffhand, Name: "Antonidas's Aegis of Rapt Concentration", Phase: 3, Quality: ItemQualityEpic, SourceZone: "Hyjal", SourceDrop: "Archimonde", Stats: Stats{StatStm: 28, StatInt: 32, StatSpellDmg: 42, StatHaste: 0, StatSpellCrit: 20, StatSpellHit: 0, StatMP5: 0}},
-	{Slot: EquipOffhand, Name: "Chronicle of Dark Secrets", Phase: 3, Quality: ItemQualityEpic, SourceZone: "Hyjal", SourceDrop: "Winterchill", Stats: Stats{StatStm: 16, StatInt: 12, StatSpellDmg: 42, StatHaste: 0, StatSpellCrit: 23, StatSpellHit: 17, StatMP5: 0}},
+	{Slot: EquipOffhand, Name: "Mazthoril Honor Shield", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Shattrah", SourceDrop: "Badges", Stats: Stats{StatStm: 16, StatInt: 17, StatSpellDmg: 23, StatSpellCrit: 21}},
+	{Slot: EquipOffhand, Name: "Talisman of Nightbane", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Nightbane", Stats: Stats{StatStm: 19, StatInt: 19, StatSpellDmg: 28, StatSpellCrit: 17, StatMP5: 0}},
+	{Slot: EquipOffhand, Name: "Blind-Seers Icon", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Akama", Stats: Stats{StatStm: 25, StatInt: 16, StatSpellDmg: 42, StatSpellHit: 24, StatMP5: 0}},
+	{Slot: EquipOffhand, Name: "Khadgar's Knapsack", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Shattrah", SourceDrop: "Badges", Stats: Stats{StatSpellDmg: 49, StatMP5: 0}},
+	{Slot: EquipOffhand, Name: "FathomStone", Phase: 2, Quality: ItemQualityEpic, SourceZone: "SSC", SourceDrop: "Lurker", Stats: Stats{StatStm: 16, StatInt: 12, StatSpellDmg: 36, StatSpellCrit: 23, StatMP5: 0}},
+	{Slot: EquipOffhand, Name: "Antonidas's Aegis of Rapt Concentration", Phase: 3, Quality: ItemQualityEpic, SourceZone: "Hyjal", SourceDrop: "Archimonde", Stats: Stats{StatStm: 28, StatInt: 32, StatSpellDmg: 42, StatSpellCrit: 20, StatMP5: 0}},
+	{Slot: EquipOffhand, Name: "Chronicle of Dark Secrets", Phase: 3, Quality: ItemQualityEpic, SourceZone: "Hyjal", SourceDrop: "Winterchill", Stats: Stats{StatStm: 16, StatInt: 12, StatSpellDmg: 42, StatSpellCrit: 23, StatSpellHit: 17, StatMP5: 0}},
 
 	// Hand Written
 	{Slot: EquipTrinket, Name: "Quagmirran's Eye", Phase: 1, Quality: ItemQualityRare, SourceZone: "The Slave Pens", SourceDrop: "Quagmirran", Stats: Stats{StatSpellDmg: 37}, Activate: ActivateQuagsEye, ActivateCD: -1}, // -1 will trigger an activation only once
-	{Slot: EquipTrinket, Name: "Icon of the Silver Crescent", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Shattrath", SourceDrop: "G'eras - 41 Badges", Stats: Stats{StatSpellDmg: 44}, Activate: createSpellDmgActivate(MagicIDBlessingSilverCrescent, 155, 20), ActivateCD: 120, CoolID: MagicIDISCTrink},
+	{Slot: EquipTrinket, Name: "Icon of the Silver Crescent", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Shattrath", SourceDrop: "G'eras - 41 Badges", Stats: Stats{StatSpellDmg: 43}, Activate: createSpellDmgActivate(MagicIDBlessingSilverCrescent, 155, 20), ActivateCD: 120, CoolID: MagicIDISCTrink},
 	{Slot: EquipTrinket, Name: "Natural Alignment Crystal", Phase: 0, Quality: ItemQualityEpic, SourceZone: "BWL", SourceDrop: "", Stats: Stats{}, Activate: ActivateNAC, ActivateCD: 300, CoolID: MagicIDNACTrink},
 	{Slot: EquipTrinket, Name: "Neltharion's Tear", Phase: 0, Quality: ItemQualityEpic, SourceZone: "BWL", SourceDrop: "Nefarian", Stats: Stats{StatSpellDmg: 44, StatSpellHit: 16}},
 	{Slot: EquipTrinket, Name: "Mark of the Champion", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "KT", Stats: Stats{StatSpellDmg: 85}},
