@@ -4,7 +4,7 @@ import (
 	"strconv"
 )
 
-const TicksPerSecond = 30
+const TicksPerSecond = 60
 
 type Stats []float64
 

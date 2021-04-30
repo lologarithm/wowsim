@@ -35,15 +35,13 @@ func (sim *Simulation) ActivateRacial() {
 			sim.CDs[MagicIDOrcBloodFury] = 120 * TicksPerSecond
 		}
 	case RaceBonusTroll10, RaceBonusTroll30:
-		hasteBonus := 157.6 // 10% haste
+		hasteBonus := 1.1 // 10% haste
 		const dur = 10
 		if v == RaceBonusTroll30 {
-			hasteBonus = 472.8 // 30% haste
+			hasteBonus = 1.3 // 30% haste
 		}
 		if sim.CDs[MagicIDTrollBerserking] < 1 {
-			sim.Buffs[StatHaste] += hasteBonus
-			sim.addAura(AuraStatRemoval(sim.CurrentTick, dur, hasteBonus, StatHaste, MagicIDTrollBerserking))
-			sim.CDs[MagicIDTrollBerserking] = 180 * TicksPerSecond
+			sim.addAura(ActivateBerserking(sim, hasteBonus))
 		}
 	}
 }

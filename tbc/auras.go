@@ -431,9 +431,36 @@ func ActivateDrums(sim *Simulation) Aura {
 }
 
 func ActivateBloodlust(sim *Simulation) Aura {
-	sim.Buffs[StatHaste] += 472.8
-	sim.CDs[MagicIDBloodlust] = 40 * TicksPerSecond // assumes that multiple BLs are different shaman.
-	return AuraStatRemoval(sim.CurrentTick, 40, 472.8, StatHaste, MagicIDBloodlust)
+	const dur = 40 * TicksPerSecond
+	sim.CDs[MagicIDBloodlust] = dur // assumes that multiple BLs are different shaman.
+	return Aura{
+		ID:      MagicIDBloodlust,
+		Expires: sim.CurrentTick + dur,
+		OnCast: func(sim *Simulation, c *Cast) {
+			c.CastTime /= 1.3 // 30% faster.
+			if c.CastTime < 1.0 {
+				c.CastTime = 1.0 // can't cast faster than 1/sec even with max haste.
+			}
+			c.TicksUntilCast = int(c.CastTime*float64(TicksPerSecond)) + 1
+		},
+	}
+}
+
+func ActivateBerserking(sim *Simulation, hasteBonus float64) Aura {
+	const dur = 10 * TicksPerSecond
+	const cd = 180 * TicksPerSecond
+	sim.CDs[MagicIDTrollBerserking] = cd
+	return Aura{
+		ID:      MagicIDTrollBerserking,
+		Expires: sim.CurrentTick + dur,
+		OnCast: func(sim *Simulation, c *Cast) {
+			c.CastTime /= hasteBonus
+			if c.CastTime < 1.0 {
+				c.CastTime = 1.0 // can't cast faster than 1/sec even with max haste.
+			}
+			c.TicksUntilCast = int(c.CastTime*float64(TicksPerSecond)) + 1
+		},
+	}
 }
 
 func ActivateSkycall(sim *Simulation) Aura {
