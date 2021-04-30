@@ -7,6 +7,7 @@ type Cast struct {
 
 	// Pre-hit Mutatable State
 	TicksUntilCast int
+	CastTime       float64 // time in seconds to cast the spell
 	ManaCost       float64
 
 	Hit        float64 // Direct % bonus... 0.1 == 10%
@@ -43,7 +44,8 @@ func NewCast(sim *Simulation, sp *Spell) *Cast {
 	if castTime < 1.0 {
 		castTime = 1.0 // can't cast faster than 1/sec even with max haste.
 	}
-	cast.TicksUntilCast = int(castTime * float64(TicksPerSecond))
+	cast.CastTime = castTime
+	cast.TicksUntilCast = int(castTime*float64(TicksPerSecond)) + 1 // round up
 
 	if isLB || isCL {
 		cast.ManaCost *= 1 - (0.02 * float64(sim.Options.Talents.Convection))
