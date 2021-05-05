@@ -605,8 +605,11 @@ var items = []Item{
 	{Slot: EquipLegs, Name: "Leggings of Polarity", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Thaddius", Stats: Stats{StatStm: 20, StatInt: 14, StatSpellDmg: 44, StatSpellCrit: 28}},
 	{Slot: EquipFinger, Name: "Ring of the Fallen God", Phase: 0, Quality: ItemQualityEpic, SourceZone: "AQ40", SourceDrop: "C'thun", Stats: Stats{StatStm: 5, StatInt: 6, StatSpellDmg: 37, StatSpellCrit: 8}},
 	{Slot: EquipFinger, Name: "Band of the Inevitable", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Noth", Stats: Stats{StatSpellDmg: 36, StatSpellHit: 8}},
-	{Slot: EquipFinger, Name: "Seal of the Damned", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Noth", Stats: Stats{StatStm: 17, StatSpellDmg: 21, StatSpellCrit: 14, StatSpellHit: 8}},
+	{Slot: EquipFinger, Name: "Seal of the Damned", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "4H", Stats: Stats{StatStm: 17, StatSpellDmg: 21, StatSpellCrit: 14, StatSpellHit: 8}},
+	{Slot: EquipNeck, Name: "Gem of Trapped Innocents", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "KT", Stats: Stats{StatStm: 9, StatInt: 7, StatSpellDmg: 15, StatSpellCrit: 28}},
+	{Slot: EquipNeck, Name: "Amulet of Vek'nilash", Phase: 0, Quality: ItemQualityEpic, SourceZone: "AQ", SourceDrop: "Twin Emp", Stats: Stats{StatStm: 9, StatInt: 5, StatSpellDmg: 27, StatSpellCrit: 14}},
 	{Slot: EquipShoulder, Name: "Pauldrons of Elemental Fury", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Trash", Stats: Stats{StatStm: 19, StatInt: 21, StatSpellDmg: 26, StatSpellCrit: 14, StatSpellHit: 8}},
+	{Slot: EquipLegs, Name: "Leggings of Elemental Fury", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Trash", Stats: Stats{StatStm: 26, StatInt: 27, StatSpellDmg: 32, StatSpellCrit: 28}},
 	{Slot: EquipBack, Name: "Cloak of the Necropolis", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Sapp", Stats: Stats{StatStm: 12, StatInt: 11, StatSpellDmg: 26, StatSpellCrit: 14, StatSpellHit: 8}},
 
 	{Slot: EquipFeet, Name: "Glider's Sabatons of Nature's Wrath", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 78}},
@@ -615,6 +618,8 @@ var items = []Item{
 	{Slot: EquipFeet, Name: "Glider's Sabatons of the Invoker", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 33, StatSpellCrit: 28}},
 	{Slot: EquipWaist, Name: "Lurker's Belt of the Invoker", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 33, StatSpellCrit: 28}},
 	{Slot: EquipWrist, Name: "Ravager's Bands of the Invoker", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 25, StatSpellCrit: 21}},
+
+	{Slot: EquipHead, Name: "Big Bad Wolf's Head", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "The Big Bad Wolf", Stats: Stats{StatStm: 42, StatInt: 40, StatSpellDmg: 47, StatSpellCrit: 28}},
 
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", Phase: 1, Quality: ItemQualityEpic, SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", Phase: 1, Quality: ItemQualityEpic, SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }

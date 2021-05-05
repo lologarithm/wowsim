@@ -209,6 +209,8 @@
                                 <tr><td></td><td></td><td></td></tr>
                                 <tr><td></td><td></td><td></td></tr>
                                 <tr><td></td><td></td><td></td></tr>
+                                <tr><td></td><td></td><td></td></tr>
+                                <tr><td></td><td></td><td></td></tr>
                             </table>
                         </div>
                     </li>
@@ -275,8 +277,6 @@
                         <option class="buffdrop">4</option>
                         <option class="buffdrop" selected>5</option>
                     </select></label><br />
-                    <button onclick="removegear()" style="margin-top:10px">Remove Gear</button><br />
-                    <button disabled style="margin-top:10px">Gem All Gear</button><br />
                     <label>Stat Weight Mod:<input disabled style="margin-top:10px;width: 80px" type="text" value="50"></input></label><br />
                     <!-- <button style="margin-top:10px">70Upgrades</button> -->
                     <label style="margin-top:10px">Hide Gear:<select onchange="changeQualityFilter(event)">
@@ -284,6 +284,14 @@
                         <option class="buffdrop" value=1>Uncommon</option>
                         <option class="buffdrop" value=2>Rare</option>
                     </select></label>
+                    <div style="margin-top:10px">
+                        <select id="gearloader"></select><br>
+                        <button onclick="loadGearSet(event)">Load</button>
+                        <button onclick="deleteGearSet(event)">Delete</button><br>
+                        <label>Save Gear:<input id="gearname" style="margin-top:10px;width: 100%" type="text" value="My Gear Set"></input><button onclick="saveGearSet()">Save</button></label><br />
+                    </div>
+                    <button onclick="removegear()" style="margin-top:10px">Remove Gear</button><br />
+                    <button disabled style="margin-top:10px">Gem All Gear</button><br />
                 </div>
             </div>
         </div>

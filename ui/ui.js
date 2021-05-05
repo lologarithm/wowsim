@@ -317,7 +317,7 @@ function hastedRotations(currentGear) {
     opts.buffbl = 0;
     opts.buffdrum = 0;
 
-    var hastes = [100, 200, 300, 400, 500, 600, 700, 788];
+    var hastes = [0, 50, 100, 200, 300, 400, 500, 600, 700, 788];
     var rots = [
         ["CL6", "LB12", "LB12", "LB12", "LB12"],
         ["CL6", "LB12", "LB12", "LB12", "LB12", "LB12"],
@@ -721,6 +721,7 @@ function popgear(gearList) {
         })
     }
 
+    updateGearSetList();
 }
 
 // clearGear strips off all parts of gear that is non-changing. This lets us pass minimal data to sim and store in local storage.
@@ -933,4 +934,44 @@ function changeQualityFilter(e) {
     var filter = e.target.value;
     qualityFilter = parseInt(filter);
     gearUI.setFilter(qualityFilter);
+}
+
+function saveGearSet() {
+    var name = document.getElementById("gearname").value;
+    var cleanedGear = cleanGear(gearUI.currentGear); // converts to array with minimal data for serialization.
+    localStorage.setItem("stored."+name, JSON.stringify(cleanedGear));
+
+    updateGearSetList();
+}
+
+function updateGearSetList() {
+    var loadlist = document.getElementById("gearloader");
+    loadlist.innerHTML = "";
+    Object.keys(localStorage).forEach(k => {
+        if (k.indexOf('stored.') == 0) {
+            var name = k.split("stored.")[1];
+            var item = document.createElement("option")
+            item.innerText = name;
+            loadlist.appendChild(item);
+        }
+        return false;
+    })
+}
+
+function loadGearSet(event) {
+    var name = document.getElementById("gearloader").value;
+    var gearCache = localStorage.getItem("stored."+name);
+    if (gearCache && gearCache.length > 0) {
+        var parsedGear = JSON.parse(gearCache);
+        if (parsedGear.length > 0) {
+            var currentGear = gearUI.updateEquipped(parsedGear);
+            updateGearStats(currentGear);
+        }
+    }
+}
+
+function deleteGearSet() {
+    var name = document.getElementById("gearloader").value;
+    localStorage.removeItem("stored."+name);
+    updateGearSetList();
 }
