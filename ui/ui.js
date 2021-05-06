@@ -686,7 +686,7 @@ function popgear(gearList) {
     }
 
     var currentGear = gearUI.currentGear;
-    
+
     gearUI.addChangeListener((item, slot)=>{
         updateGearStats(gearUI.currentGear);
     });
@@ -992,12 +992,14 @@ function importGearHandler() {
 function importGear(inputVal) {
     var gearCache = inputVal;
     if (inputVal[0] != "[") { // that is opening brace for a gear list in JSON, but not valid base64
-        var binary = atob(inputVal);
-        var bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < bytes.length; i++) {
-          bytes[i] = binary.charCodeAt(i);
+        if (window.pako === undefined) {
+            loadPako(()=>{
+                importGear(inputVal); // try again
+            });
+            return;
+        } else {
+            gearCache = pakoInflate(inputVal);
         }
-        gearCache = pako.inflate(bytes, {to:'string'});    
     }
     if (gearCache && gearCache.length > 0) {
         var parsedGear = JSON.parse(gearCache);
@@ -1008,14 +1010,29 @@ function importGear(inputVal) {
     }
 }
 
+function pakoInflate(v) {
+    var binary = atob(v);
+    var bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return pako.inflate(bytes, {to:'string'});
+}
+
 function exportGear(compressed) {
     var cleanedGear = cleanGear(gearUI.currentGear); // converts to array with minimal data for serialization.
     var box = document.getElementById("importexport");
     var enc = JSON.stringify(cleanedGear);
     if (compressed) {
-        var val = pako.deflate(enc, { to: 'string' });
-        enc = btoa(String.fromCharCode(...new Uint8Array(val.buffer)));
-        console.log("JSON SIZE: ", JSON.stringify(cleanedGear).length, " ENC SIZE: ", enc.length);    
+        if (window.pako === undefined) {
+            loadPako(()=>{
+                exportGear(compressed); // try again
+            });
+            return;
+        } else {
+            var val = pako.deflate(enc, { to: 'string' });
+            enc = btoa(String.fromCharCode(...new Uint8Array(val.buffer)));
+        }
     }
     box.value = enc;
 }
@@ -1031,4 +1048,13 @@ function getQueryVariable(variable) {
     }
 
     return "";
+}
+
+function loadPako(onLoad) {
+    var script = document.createElement('script');
+    script.onload = onLoad
+    script.src = "pako.js";
+
+    var head = document.getElementsByTagName("head")[0];
+    head.appendChild(script);
 }
