@@ -157,6 +157,8 @@ class GearUI {
 
     // updateEquipped will update the gear UI elements (to redraw when new gear is selected)
     updateEquipped(newGear) {
+        this.removeEquipped();
+
         var finger1done = false;
         var trink1done = false;
 
