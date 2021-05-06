@@ -756,7 +756,7 @@ function cleanGear(gear) {
                 it.Gems.push(g.Name);
             });    
         }
-        if (entry[1].Enchant != null && entry[1].Enchant.length > 0) {
+        if (entry[1].Enchant != null && entry[1].Enchant.Name.length > 0) {
             it.Enchant = entry[1].Enchant.Name;
         }
         cleanedGear.push(it);
