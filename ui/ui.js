@@ -744,20 +744,20 @@ function cleanGear(gear) {
             return;
         }
         var it = {
-            Name: entry[1].Name,
+            ID: entry[1].ID
         }
         if (entry[1].Gems != null) {
-            it.Gems = [];
+            it.g = [];
             entry[1].Gems.forEach((g)=>{
                 if (g == null) {
-                    it.Gems.push("");
+                    it.g.push(0);
                     return;
                 }
-                it.Gems.push(g.Name);
+                it.g.push(g.ID);
             });    
         }
-        if (entry[1].Enchant != null && entry[1].Enchant.Name.length > 0) {
-            it.Enchant = entry[1].Enchant.Name;
+        if (entry[1].Enchant != null && entry[1].Enchant.ID > 0) {
+            it.e = entry[1].Enchant.ID;
         }
         cleanedGear.push(it);
     });
@@ -1011,12 +1011,7 @@ function importGear(inputVal) {
 }
 
 function pakoInflate(v) {
-    var binary = atob(v);
-    var bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < bytes.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return pako.inflate(bytes, {to:'string'});
+    return pako.inflate(base2048.decode(v), {to:'string'});
 }
 
 function exportGear(compressed) {
@@ -1031,7 +1026,8 @@ function exportGear(compressed) {
             return;
         } else {
             var val = pako.deflate(enc, { to: 'string' });
-            enc = btoa(String.fromCharCode(...new Uint8Array(val.buffer)));
+            enc = base2048.encode(val);
+            console.log(`JSON Size: ${enc.length}, Bin Size: ${val.length}, b2048: ${enc.length}`);
         }
     }
     box.value = enc;
@@ -1054,7 +1050,5 @@ function loadPako(onLoad) {
     var script = document.createElement('script');
     script.onload = onLoad
     script.src = "pako.js";
-
-    var head = document.getElementsByTagName("head")[0];
-    head.appendChild(script);
+    document.head.appendChild(script);
 }

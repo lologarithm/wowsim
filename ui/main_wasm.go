@@ -39,9 +39,9 @@ func GearList(this js.Value, args []js.Value) interface{} {
 		Gems     []tbc.Gem
 		Enchants []tbc.Enchant
 	}{
-		Items: make([]tbc.Item, 0, len(tbc.ItemLookup)),
+		Items: make([]tbc.Item, 0, len(tbc.ItemsByID)),
 	}
-	for _, v := range tbc.ItemLookup {
+	for _, v := range tbc.ItemsByID {
 		if slot != 128 && v.Slot != slot {
 			continue
 		}
@@ -91,7 +91,14 @@ func getGear(val js.Value) tbc.Equipment {
 	gearSet := make([]tbc.Item, numGear)
 	for i := range gearSet {
 		v := val.Index(i)
-		ic := tbc.ItemLookup[v.Get("Name").String()]
+		name := v.Get("Name")
+		id := v.Get("ID")
+		var ic tbc.Item
+		if !name.IsUndefined() {
+			ic = tbc.ItemsByName[name.String()]
+		} else if !id.IsUndefined() {
+			ic = tbc.ItemsByID[int32(id.Int())]
+		}
 		gems := v.Get("Gems")
 		if !(gems.IsUndefined() || gems.IsNull()) && gems.Length() > 0 {
 			ic.Gems = make([]tbc.Gem, len(ic.GemSlots))
