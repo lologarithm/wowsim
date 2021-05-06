@@ -1,4 +1,3 @@
-
 // Globals
 var defaultGear = [
     {Name:"Shamanistic Helmet of Second Sight"},
@@ -670,17 +669,24 @@ var gearUI;
 function popgear(gearList) {
     gearUI = new GearUI(document.getElementById('gear'), gearList);
 
-    var glist = defaultGear;
-    
-    var gearCache = localStorage.getItem('cachedGear.v2');
-    if (gearCache && gearCache.length > 0) {
-        var parsedGear = JSON.parse(gearCache);
-        if (parsedGear.length > 0) {
-            glist = parsedGear;
-        }
-    }
-    var currentGear = gearUI.updateEquipped(glist);
+    var importVal = getQueryVariable("import");
 
+    if (importVal.length > 0) {
+        importGear(importVal);
+    } else {
+        var glist = defaultGear;
+        var gearCache = localStorage.getItem('cachedGear.v2');
+        if (gearCache && gearCache.length > 0) {
+            var parsedGear = JSON.parse(gearCache);
+            if (parsedGear.length > 0) {
+                glist = parsedGear;
+            }
+        }
+        gearUI.updateEquipped(glist);
+    }
+
+    var currentGear = gearUI.currentGear;
+    
     gearUI.addChangeListener((item, slot)=>{
         updateGearStats(gearUI.currentGear);
     });
@@ -722,6 +728,9 @@ function popgear(gearList) {
     }
 
     updateGearSetList();
+
+    changePhaseFilter({target: document.getElementById("phasesel")});
+    changeQualityFilter({target: document.getElementById("qualsel")})
 }
 
 // clearGear strips off all parts of gear that is non-changing. This lets us pass minimal data to sim and store in local storage.
@@ -736,10 +745,9 @@ function cleanGear(gear) {
         }
         var it = {
             Name: entry[1].Name,
-            Gems: [],
-            Enchant: "",
         }
         if (entry[1].Gems != null) {
+            it.Gems = [];
             entry[1].Gems.forEach((g)=>{
                 if (g == null) {
                     it.Gems.push("");
@@ -748,7 +756,7 @@ function cleanGear(gear) {
                 it.Gems.push(g.Name);
             });    
         }
-        if (entry[1].Enchant != null) {
+        if (entry[1].Enchant != null && entry[1].Enchant.length > 0) {
             it.Enchant = entry[1].Enchant.Name;
         }
         cleanedGear.push(it);
@@ -974,4 +982,53 @@ function deleteGearSet() {
     var name = document.getElementById("gearloader").value;
     localStorage.removeItem("stored."+name);
     updateGearSetList();
+}
+
+function importGearHandler() {
+    var inputVal = document.getElementById("importexport").value;
+    importGear(inputVal);
+}
+
+function importGear(inputVal) {
+    var gearCache = inputVal;
+    if (inputVal[0] != "[") { // that is opening brace for a gear list in JSON, but not valid base64
+        var binary = atob(inputVal);
+        var bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < bytes.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        gearCache = pako.inflate(bytes, {to:'string'});    
+    }
+    if (gearCache && gearCache.length > 0) {
+        var parsedGear = JSON.parse(gearCache);
+        if (parsedGear.length > 0) {
+            var currentGear = gearUI.updateEquipped(parsedGear);
+            updateGearStats(currentGear);
+        }
+    }
+}
+
+function exportGear(compressed) {
+    var cleanedGear = cleanGear(gearUI.currentGear); // converts to array with minimal data for serialization.
+    var box = document.getElementById("importexport");
+    var enc = JSON.stringify(cleanedGear);
+    if (compressed) {
+        var val = pako.deflate(enc, { to: 'string' });
+        enc = btoa(String.fromCharCode(...new Uint8Array(val.buffer)));
+        console.log("JSON SIZE: ", JSON.stringify(cleanedGear).length, " ENC SIZE: ", enc.length);    
+    }
+    box.value = enc;
+}
+
+function getQueryVariable(variable) {
+    var query = window.location.search.substring(1);
+    var vars = query.split('&');
+    for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split('=');
+        if (decodeURIComponent(pair[0]) == variable) {
+            return decodeURIComponent(pair[1]);
+        }
+    }
+
+    return "";
 }

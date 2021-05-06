@@ -149,14 +149,17 @@ class SelectorComponent {
         listItem.addEventListener("click", (e)=>{
             this.gearClickHandler(item.Name);
         });
-            
+
+        
         this.selectorlist.appendChild(listItem);
         this.items.push(item);
     }
 
     show() {
         this.selectordiv.style.display = "block";
+        this.clearSearch(); // reset search items when showing
     }
+
     focus(tab, subitem) {
         if (tab == "item") {
             this.tab1.classList.add("selactive");
@@ -186,6 +189,7 @@ class SelectorComponent {
             this.enchselector.style.display = "block";
         }
     }
+    
     hide(e) {
         if (e == null) {
             // by default just hide
@@ -323,30 +327,12 @@ class SelectorComponent {
     }
     setPhase(phase) {
         this.phase = phase;
-
-        for (var i = 0; i < this.items.length; i++) {
-            var item = this.items[i];
-            var le = this.selectorlist.childNodes[i];
-            if (item.Phase > this.phase) {
-                le.style.display = "none";
-            } else {
-                le.style.display = "block";
-            }
-        }
+        this.clearSearch();
     }
 
     setFilter(filterLevel) {
         this.filterLevel = filterLevel;
-
-        for (var i = 0; i < this.items.length; i++) {
-            var item = this.items[i];
-            var le = this.selectorlist.childNodes[i];
-            if (item.Quality <= this.filterLevel) {
-                le.style.display = "none";
-            } else {
-                le.style.display = "block";
-            }
-        }
+        this.clearSearch();
     }
 
     // Uses text from element to find item slot list.
@@ -407,7 +393,13 @@ class SelectorComponent {
         var numChild = this.selectorlist.childNodes.length;
         for (var i = 0; i < numChild; i++) {
             var le = this.selectorlist.children[i];
-            le.style.removeProperty("display");
+            var item = this.items[i];
+
+            if (item.Quality <= this.filterLevel || item.Phase > this.phase) {
+                le.style.display = "none";
+            } else {
+                le.style.removeProperty("display");
+            }
             le.classList.remove("lisearch");
         }
 
