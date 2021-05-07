@@ -109,6 +109,7 @@ func getGear(val js.Value) tbc.Equipment {
 			ic = tbc.ItemsByID[int32(id.Int())]
 		}
 		gems := v.Get("Gems")
+		gemids := v.Get("g")
 		if !(gems.IsUndefined() || gems.IsNull()) && gems.Length() > 0 {
 			ic.Gems = make([]tbc.Gem, len(ic.GemSlots))
 			for i := range ic.Gems {
@@ -122,9 +123,24 @@ func getGear(val js.Value) tbc.Equipment {
 				}
 				ic.Gems[i] = gv
 			}
+		} else if !(gemids.IsUndefined() || gemids.IsNull()) && gemids.Length() > 0 {
+			ic.Gems = make([]tbc.Gem, len(ic.GemSlots))
+			for i := range ic.Gems {
+				jsgem := gemids.Index(i)
+				if jsgem.IsNull() {
+					continue
+				}
+				gv, ok := tbc.GemsByID[int32(jsgem.Int())]
+				if !ok {
+					continue // wasn't a valid gem
+				}
+				ic.Gems[i] = gv
+			}
 		}
 		if !v.Get("Enchant").IsNull() && !v.Get("Enchant").IsUndefined() {
 			ic.Enchant = tbc.EnchantLookup[v.Get("Enchant").String()]
+		} else if !v.Get("e").IsNull() && !v.Get("e").IsUndefined() {
+			ic.Enchant = tbc.EnchantByID[int32(v.Get("e").Int())]
 		}
 		gearSet[i] = ic
 	}
