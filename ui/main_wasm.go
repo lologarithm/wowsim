@@ -18,13 +18,22 @@ func main() {
 	statfunc := js.FuncOf(StatWeight)
 	statComputefunc := js.FuncOf(ComputeStats)
 	gearlistfunc := js.FuncOf(GearList)
+	packOptfunc := js.FuncOf(PackOptions)
 
 	js.Global().Set("simulate", simfunc)
 	js.Global().Set("statweight", statfunc)
 	js.Global().Set("computestats", statComputefunc)
 	js.Global().Set("gearlist", gearlistfunc)
+	js.Global().Set("packopts", packOptfunc)
 	js.Global().Call("wasmready")
 	<-c
+}
+
+func PackOptions(this js.Value, args []js.Value) interface{} {
+	opt := parseOptions(args[0])
+	packedOpts := opt.Pack()
+	js.CopyBytesToJS(js.Global().Get("results").Get(args[1].String()), packedOpts)
+	return len(packedOpts)
 }
 
 // GearList reports all items of gear to the UI to display.
@@ -140,7 +149,7 @@ func parseOptions(val js.Value) tbc.Options {
 			Misery:                   val.Get("debuffmis").Truthy(),
 			Moonkin:                  val.Get("buffmoon").Truthy(),
 			MoonkinRavenGoddess:      val.Get("buffmoonrg").Truthy(),
-			SpriestDPS:               val.Get("buffspriest").Int(),
+			SpriestDPS:               uint16(val.Get("buffspriest").Int()),
 			WaterShield:              val.Get("sbufws").Truthy(),
 			EyeOfNight:               val.Get("buffeyenight").Truthy(),
 			TwilightOwl:              val.Get("bufftwilightowl").Truthy(),

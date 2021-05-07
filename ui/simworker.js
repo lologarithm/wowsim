@@ -607,6 +607,8 @@ WebAssembly.instantiateStreaming(fetch("lib.wasm"), go.importObject).then(
 
 var workerID = "";
 
+var results = {};
+
 addEventListener('message', async (e) => {
 	var msg = e.data.msg;
 	var payload = e.data.payload;
@@ -649,6 +651,17 @@ addEventListener('message', async (e) => {
 		postMessage({
 			msg: "statweight",
 			id: e.data.id,
+			payload: result,
+		});
+	} else if (msg == "packopt") {
+		var id = e.data.id;
+		results["res"+id] = new Uint8Array(128);
+		var num = packopts(payload.opt, "res"+id);
+		var result = results["res"+id].subarray(0, num);
+		results["res"+id] = null;
+		postMessage({
+			msg: "packopt",
+			id: id,
 			payload: result,
 		});
 	}

@@ -102,11 +102,11 @@
                             <b style="width: 100%;text-align: right;font-size: 0.7em;color: #1e87f0;">Self Buffs</b>
                             <label><input id="sbufws" class="uk-checkbox" type="checkbox" checked>Water Shield</label>
                             <label>Race: <select id="sbufrace" class="buffdrop">
+                                <option class="buffdrop" value=0>None</option>
+                                <option class="buffdrop" value=1>Draenei (1% Hit)</option>
                                 <option class="buffdrop" value=2 selected>Troll (10% Haste)</option>
                                 <option class="buffdrop" value=3>Troll (30% Haste)</option>
                                 <option class="buffdrop" value=4>Orc (143 SP)</option>
-                                <option class="buffdrop" value=1>Draenei (1% Hit)</option>
-                                <option class="buffdrop" value=0>None</option>
                             </select></label>
                         </div>
                         <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid buffs dtl">
@@ -298,7 +298,6 @@
                         <textarea id="importexport" style="width:95%;height: 200px"></textarea>
                         <button onclick="importGearHandler()" style="">Import</button><br />
                         <button onclick="exportGear(false)" style="">Export JSON</button><br />
-                        <button onclick="exportGear(true)" style="">Export Compressed</button><br />
                     </div>
                 </div>
             </div>
