@@ -86,6 +86,14 @@ function statweight(iters, dur, gearlist, opts, statToMod, modAmount, onComplete
     }});
 }
 
+function packOptions(opt, onComplete) {
+    var id = makeid();
+    simrequests[id] = onComplete
+    simlib.postMessage({msg: "packopt", id: id, payload: {
+        opt: opt,
+    }});
+}
+
 function makeid() {
     var result           = '';
     var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -113,6 +121,7 @@ function getOptions() {
     options.buffibow =  document.getElementById("buffibow").checked;
     options.buffids =  document.getElementById("buffids").checked;
     options.buffmoon =  document.getElementById("buffmoon").checked;
+    options.buffmoonrg =  document.getElementById("buffmoonrg").checked;
     options.sbufws =  document.getElementById("sbufws").checked;
     options.debuffjow =  document.getElementById("debuffjow").checked;
     options.debuffisoc =  document.getElementById("debuffisoc").checked;
@@ -147,6 +156,85 @@ function getOptions() {
     options.custom.custmana = parseInt(document.getElementById("custmana").value) || 0;
     
     return options;
+}
+
+// basically this is a parser for the compact serializer for options.
+//  for some reason I wrote the writer in go and the parser here. 
+//  maybe its time to re-evaluate my life choices.
+function setOptions(data) {
+    
+    document.getElementById("buffbl").selectedIndex = data[1];
+    document.getElementById("buffdrums").selectedIndex = data[2];
+    
+    var dst = new ArrayBuffer(data.byteLength);
+    new Uint8Array(dst).set(new Uint8Array(data));
+
+    var buffView = new DataView(dst, 3);
+    
+    var idx = 0;
+
+    var buffOpt1 = buffView.getUint8(idx, true); idx++;
+    var buffOpt2 = buffView.getUint8(idx, true); idx++;
+
+    document.getElementById("buffai").checked = (buffOpt1 & 1) == 1;
+    document.getElementById("buffgotw").checked = (buffOpt1 & 1<<1) == 1<<1;
+    document.getElementById("buffbk").checked = (buffOpt1 & 1<<2) == 1<<2;
+    document.getElementById("buffibow").checked = (buffOpt1 & 1<<3) == 1<<3;
+    document.getElementById("buffids").checked = (buffOpt1 & 1<<4) == 1<<4;
+    document.getElementById("buffmoon").checked = (buffOpt1 & 1<<5) == 1<<5;
+    document.getElementById("buffmoonrg").checked = (buffOpt1 & 1<<6) == 1<<6;
+    document.getElementById("buffeyenight").checked = (buffOpt1 & 1<<7) == 1<<7;
+    
+    document.getElementById("bufftwilightowl").checked = (buffOpt2 & 1) == 1;
+    document.getElementById("sbufws").checked = (buffOpt2 & 1<<1) == 1<<1;
+    document.getElementById("debuffjow").checked = (buffOpt2 & 1<<2) == 1<<2;
+    document.getElementById("debuffisoc").checked = (buffOpt2 & 1<<3) == 1<<3;
+    document.getElementById("debuffmis").checked = (buffOpt2 & 1<<4) == 1<<4;
+    
+    idx++; // water shield procs not implemented
+    document.getElementById("buffspriest").value = buffView.getUint16(idx, true); idx+=2;
+    document.getElementById("sbufrace").selectedIndex = buffView.getUint8(idx, true); idx++;
+
+    var numCustom = buffView.getUint8(idx, true); idx++;
+    if (numCustom > 0) {
+        document.getElementById("custint").value = buffView.getFloat64(7, true);
+        // document.getElementById("custstm").value = buffView.getFloat64(7+8*1);
+        document.getElementById("custsc").value = buffView.getFloat64(7+8*2, true);
+        document.getElementById("custsh").value = buffView.getFloat64(7+8*3, true);
+        document.getElementById("custsp").value = buffView.getFloat64(7+8*4, true);
+        document.getElementById("custha").value = buffView.getFloat64(7+8*5, true);
+        document.getElementById("custmp5").value = buffView.getFloat64(7+8*6, true);
+        document.getElementById("custmana").value = buffView.getFloat64(7+8*7, true);
+        idx += numCustom*8;
+    } else {
+        document.getElementById("custint").value = 0;
+        // document.getElementById("custstm").value = 0;
+        document.getElementById("custsc").value = 0;
+        document.getElementById("custsh").value = 0;
+        document.getElementById("custsp").value = 0;
+        document.getElementById("custha").value = 0;
+        document.getElementById("custmp5").value = 0;
+        document.getElementById("custmana").value = 0;
+    }
+    
+    var consumOpt = buffView.getUint8(idx, true); idx++;
+    document.getElementById("conbwo").checked = (consumOpt & 1) == 1;
+    document.getElementById("conmm").checked = (consumOpt & 1<<1) == 1<<1;
+    document.getElementById("confbl").checked = (consumOpt & 1<<2) == 1<<2;
+    document.getElementById("confmr").checked = (consumOpt & 1<<3) == 1<<3;
+    document.getElementById("conbb").checked = (consumOpt & 1<<4) == 1<<4;
+    document.getElementById("condp").checked = (consumOpt & 1<<5) == 1<<5;
+    document.getElementById("consmp").checked = (consumOpt & 1<<6) == 1<<6;
+    document.getElementById("condr").checked = (consumOpt & 1<<7) == 1<<7;
+
+    // talents
+    idx += 9;
+
+    document.getElementById("totwr").selectedIndex = buffView.getUint8(idx, true); idx++;
+	var totemOpt = buffView.getUint8(idx, true); idx++;
+    document.getElementById("totwoa").checked = (totemOpt & 1) == 1;
+    document.getElementById("totms").checked = (totemOpt & 1<<1) == 1<<1;
+    document.getElementById("totcycl2p").checked = (totemOpt & 1<<2) == 1<<2;
 }
 
 var castIDToName = {
@@ -669,7 +757,7 @@ var gearUI;
 function popgear(gearList) {
     gearUI = new GearUI(document.getElementById('gear'), gearList);
 
-    var importVal = getQueryVariable("import");
+    var importVal = location.hash.substr(1);
 
     if (importVal.length > 0) {
         importGear(importVal);
@@ -731,6 +819,19 @@ function popgear(gearList) {
 
     changePhaseFilter({target: document.getElementById("phasesel")});
     changeQualityFilter({target: document.getElementById("qualsel")})
+
+
+    window.addEventListener('hashchange', ()=>{
+        var importVal = location.hash;
+        if (importVal.length > 0) {
+            importVal = importVal.substr(1);
+            if (importVal != currentHash) {
+                console.log("hash changed, importing new set.");
+                currentHash = importVal;
+                importGear(importVal);
+            }
+        }    
+    });
 }
 
 // clearGear strips off all parts of gear that is non-changing. This lets us pass minimal data to sim and store in local storage.
@@ -744,20 +845,20 @@ function cleanGear(gear) {
             return;
         }
         var it = {
-            Name: entry[1].Name,
+            ID: entry[1].ID
         }
         if (entry[1].Gems != null) {
-            it.Gems = [];
+            it.g = [];
             entry[1].Gems.forEach((g)=>{
                 if (g == null) {
-                    it.Gems.push("");
+                    it.g.push(0);
                     return;
                 }
-                it.Gems.push(g.Name);
+                it.g.push(g.ID);
             });    
         }
-        if (entry[1].Enchant != null && entry[1].Enchant.Name.length > 0) {
-            it.Enchant = entry[1].Enchant.Name;
+        if (entry[1].Enchant != null && entry[1].Enchant.ID > 0) {
+            it.e = entry[1].Enchant.ID;
         }
         cleanedGear.push(it);
     });
@@ -801,6 +902,8 @@ function updateGearStats(gearlist) {
             }
         }    
     });
+
+    exportGear(true); // this will update the URL
 }
 
 
@@ -998,7 +1101,9 @@ function importGear(inputVal) {
             });
             return;
         } else {
-            gearCache = pakoInflate(inputVal);
+            var infdata = pakoInflate(inputVal);
+            gearCache = infdata.gear;
+            setOptions(infdata.buffs);
         }
     }
     if (gearCache && gearCache.length > 0) {
@@ -1016,11 +1121,18 @@ function pakoInflate(v) {
     for (let i = 0; i < bytes.length; i++) {
       bytes[i] = binary.charCodeAt(i);
     }
-    return pako.inflate(bytes, {to:'string'});
+    // var bytes = base2048.decode(v);
+    var dv = new DataView(bytes.buffer);
+    var leng = dv.getInt32(0);
+
+    return {gear: pako.inflate(bytes.subarray(4, leng+4), {to:'string'}), buffs: bytes.subarray(leng+4, bytes.length)};
 }
 
+
+var currentHash = "";
+
 function exportGear(compressed) {
-    var cleanedGear = cleanGear(gearUI.currentGear); // converts to array with minimal data for serialization.
+    var cleanedGear = cleanGear(gearUI.currentGear); // converts to array with minimal data for serialization.\
     var box = document.getElementById("importexport");
     var enc = JSON.stringify(cleanedGear);
     if (compressed) {
@@ -1030,8 +1142,23 @@ function exportGear(compressed) {
             });
             return;
         } else {
-            var val = pako.deflate(enc, { to: 'string' });
-            enc = btoa(String.fromCharCode(...new Uint8Array(val.buffer)));
+            packOptions(getOptions(), (r)=>{
+                var val = pako.deflate(enc, { to: 'string' });
+                var mergedArray = new Uint8Array(val.length + r.length+4);
+                var dv = new DataView(mergedArray.buffer);
+                dv.setInt32(0, val.length);
+                mergedArray.set(val, 4);
+                mergedArray.set(r, 4+val.length);
+                // var output = base2048.encode(mergedArray);
+                var output = btoa(String.fromCharCode(...mergedArray));
+                console.log(`JSON Size: ${enc.length}, Bin Size: ${mergedArray.length}, b2048: ${output.length}`);    
+                // box.value = output;
+                if (currentHash != output) {
+                    currentHash = output;
+                    location.hash = output;
+                }
+            });
+            return;
         }
     }
     box.value = enc;
@@ -1054,7 +1181,5 @@ function loadPako(onLoad) {
     var script = document.createElement('script');
     script.onload = onLoad
     script.src = "pako.js";
-
-    var head = document.getElementsByTagName("head")[0];
-    head.appendChild(script);
+    document.head.appendChild(script);
 }

@@ -18,13 +18,22 @@ func main() {
 	statfunc := js.FuncOf(StatWeight)
 	statComputefunc := js.FuncOf(ComputeStats)
 	gearlistfunc := js.FuncOf(GearList)
+	packOptfunc := js.FuncOf(PackOptions)
 
 	js.Global().Set("simulate", simfunc)
 	js.Global().Set("statweight", statfunc)
 	js.Global().Set("computestats", statComputefunc)
 	js.Global().Set("gearlist", gearlistfunc)
+	js.Global().Set("packopts", packOptfunc)
 	js.Global().Call("wasmready")
 	<-c
+}
+
+func PackOptions(this js.Value, args []js.Value) interface{} {
+	opt := parseOptions(args[0])
+	packedOpts := opt.Pack()
+	js.CopyBytesToJS(js.Global().Get("results").Get(args[1].String()), packedOpts)
+	return len(packedOpts)
 }
 
 // GearList reports all items of gear to the UI to display.
@@ -39,9 +48,9 @@ func GearList(this js.Value, args []js.Value) interface{} {
 		Gems     []tbc.Gem
 		Enchants []tbc.Enchant
 	}{
-		Items: make([]tbc.Item, 0, len(tbc.ItemLookup)),
+		Items: make([]tbc.Item, 0, len(tbc.ItemsByID)),
 	}
-	for _, v := range tbc.ItemLookup {
+	for _, v := range tbc.ItemsByID {
 		if slot != 128 && v.Slot != slot {
 			continue
 		}
@@ -91,7 +100,14 @@ func getGear(val js.Value) tbc.Equipment {
 	gearSet := make([]tbc.Item, numGear)
 	for i := range gearSet {
 		v := val.Index(i)
-		ic := tbc.ItemLookup[v.Get("Name").String()]
+		name := v.Get("Name")
+		id := v.Get("ID")
+		var ic tbc.Item
+		if !name.IsUndefined() {
+			ic = tbc.ItemsByName[name.String()]
+		} else if !id.IsUndefined() {
+			ic = tbc.ItemsByID[int32(id.Int())]
+		}
 		gems := v.Get("Gems")
 		if !(gems.IsUndefined() || gems.IsNull()) && gems.Length() > 0 {
 			ic.Gems = make([]tbc.Gem, len(ic.GemSlots))
@@ -133,7 +149,7 @@ func parseOptions(val js.Value) tbc.Options {
 			Misery:                   val.Get("debuffmis").Truthy(),
 			Moonkin:                  val.Get("buffmoon").Truthy(),
 			MoonkinRavenGoddess:      val.Get("buffmoonrg").Truthy(),
-			SpriestDPS:               val.Get("buffspriest").Int(),
+			SpriestDPS:               uint16(val.Get("buffspriest").Int()),
 			WaterShield:              val.Get("sbufws").Truthy(),
 			EyeOfNight:               val.Get("buffeyenight").Truthy(),
 			TwilightOwl:              val.Get("bufftwilightowl").Truthy(),

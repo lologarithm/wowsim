@@ -1,5 +1,10 @@
 package tbc
 
+import (
+	"encoding/binary"
+	"math"
+)
+
 type Options struct {
 	SpellOrder []string
 	UseAI      bool // when set true, the AI will modulate the rotations to maximize DPS and mana.
@@ -17,6 +22,16 @@ type Options struct {
 	Debug bool // enables debug printing.
 	// TODO: could change this to be a func/stream consumer could provide,
 	// make it easier to integrate into different output systems.
+}
+
+func (o Options) Pack() []byte {
+	// first byte is version
+	bytes := []byte{0, byte(o.NumBloodlust), byte(o.NumDrums)}
+	bytes = append(bytes, o.Buffs.Pack()...)
+	bytes = append(bytes, o.Consumes.Pack()...)
+	bytes = append(bytes, o.Talents.Pack()...)
+	bytes = append(bytes, o.Totems.Pack()...)
+	return bytes
 }
 
 func (o Options) StatTotal(e Equipment) Stats {
@@ -61,6 +76,22 @@ type Totems struct {
 	Cyclone2PC   bool // Cyclone set 2pc bonus
 }
 
+func (tt Totems) Pack() []byte {
+	var opts byte
+	if tt.WrathOfAir {
+		opts = opts | 1
+	}
+	if tt.ManaStream {
+		opts = opts | 2
+	}
+	if tt.Cyclone2PC {
+		opts = opts | 4
+	}
+	bytes := []byte{byte(tt.TotemOfWrath), opts}
+
+	return bytes
+}
+
 func (tt Totems) AddStats(s Stats) Stats {
 	s[StatSpellCrit] += 66.24 * float64(tt.TotemOfWrath)
 	s[StatSpellHit] += 37.8 * float64(tt.TotemOfWrath)
@@ -88,6 +119,26 @@ type Talents struct {
 	Concussion         float64 // temp hack to speed up not converting this to a int on every spell cast
 }
 
+func (t Talents) Pack() []byte {
+	var elemast byte
+	if t.ElementalMastery {
+		elemast = 1
+	}
+	bytes := []byte{
+		byte(t.LightninOverload),
+		byte(t.ElementalPrecision),
+		byte(t.NaturesGuidance),
+		byte(t.TidalMastery),
+		elemast,
+		byte(t.UnrelentingStorm),
+		byte(t.CallOfThunder),
+		byte(t.Convection),
+		byte(t.Concussion),
+	}
+
+	return bytes
+}
+
 func (t Talents) AddStats(s Stats) Stats {
 	s[StatSpellHit] += 25.2 * float64(t.ElementalPrecision)
 	s[StatSpellHit] += 12.6 * float64(t.NaturesGuidance)
@@ -107,14 +158,14 @@ type Buffs struct {
 
 	// Party Buffs
 	Moonkin             bool
-	MoonkinRavenGoddess bool // adds 20 spell crit to moonkin aura
-	SpriestDPS          int  // adds Mp5 ~ 25% (dps*5%*5sec = 25%)
-	EyeOfNight          bool // Eye of night bonus from party member (not you)
-	TwilightOwl         bool // from party member
+	MoonkinRavenGoddess bool   // adds 20 spell crit to moonkin aura
+	SpriestDPS          uint16 // adds Mp5 ~ 25% (dps*5%*5sec = 25%)
+	EyeOfNight          bool   // Eye of night bonus from party member (not you)
+	TwilightOwl         bool   // from party member
 
 	// Self Buffs
 	WaterShield    bool
-	WaterShieldPPM int // how many procs per minute does watershield get? Every 3 requires a recast.
+	WaterShieldPPM byte // how many procs per minute does watershield get? Every 3 requires a recast.
 	Race           RaceBonusType
 
 	// Target Debuff
@@ -124,6 +175,75 @@ type Buffs struct {
 
 	// Custom
 	Custom Stats
+}
+
+func (b Buffs) Pack() []byte {
+	var opt1 byte
+	var opt2 byte
+	if b.ArcaneInt {
+		opt1 = opt1 | 1
+	}
+	if b.GiftOftheWild {
+		opt1 = opt1 | 1<<1
+	}
+	if b.BlessingOfKings {
+		opt1 = opt1 | 1<<2
+	}
+	if b.ImprovedBlessingOfWisdom {
+		opt1 = opt1 | 1<<3
+	}
+	if b.ImprovedDivineSpirit {
+		opt1 = opt1 | 1<<4
+	}
+	if b.Moonkin {
+		opt1 = opt1 | 1<<5
+	}
+	if b.MoonkinRavenGoddess {
+		opt1 = opt1 | 1<<6
+	}
+	if b.EyeOfNight {
+		opt1 = opt1 | 1<<7
+	}
+	if b.TwilightOwl {
+		opt2 = opt2 | 1
+	}
+	if b.WaterShield {
+		opt2 = opt2 | 1<<1
+	}
+	if b.JudgementOfWisdom {
+		opt2 = opt2 | 1<<2
+	}
+	if b.ImpSealofCrusader {
+		opt2 = opt2 | 1<<3
+	}
+	if b.Misery {
+		opt2 = opt2 | 1<<4
+	}
+
+	bytes := []byte{
+		opt1, opt2, b.WaterShieldPPM,
+		0, 0, // spriest dps
+		byte(b.Race),
+		0,
+	}
+
+	binary.LittleEndian.PutUint16(bytes[3:], b.SpriestDPS)
+
+	var customBytes []byte
+	for _, v := range b.Custom {
+		if v != 0 {
+			bytes[6] = byte(len(b.Custom))
+			customBytes = make([]byte, len(b.Custom)*8)
+			for i, rv := range b.Custom {
+				binary.LittleEndian.PutUint64(customBytes[i*8:], math.Float64bits(rv))
+			}
+			break
+		}
+	}
+	if len(customBytes) > 0 {
+		bytes = append(bytes, customBytes...)
+	}
+	return bytes
 }
 
 type RaceBonusType byte
@@ -184,11 +304,40 @@ type Consumes struct {
 	FlaskOfBlindingLight     bool
 	FlaskOfMightyRestoration bool
 	BlackendBasilisk         bool
-	DestructionPotion        bool
 
 	// Used in rotations
-	SuperManaPotion bool
-	DarkRune        bool
+	DestructionPotion bool
+	SuperManaPotion   bool
+	DarkRune          bool
+}
+
+func (c Consumes) Pack() []byte {
+	var opt1 byte
+	if c.BrilliantWizardOil {
+		opt1 = opt1 | 1
+	}
+	if c.MajorMageblood {
+		opt1 = opt1 | 1<<1
+	}
+	if c.FlaskOfBlindingLight {
+		opt1 = opt1 | 1<<2
+	}
+	if c.FlaskOfMightyRestoration {
+		opt1 = opt1 | 1<<3
+	}
+	if c.BlackendBasilisk {
+		opt1 = opt1 | 1<<4
+	}
+	if c.DestructionPotion {
+		opt1 = opt1 | 1<<5
+	}
+	if c.SuperManaPotion {
+		opt1 = opt1 | 1<<6
+	}
+	if c.DarkRune {
+		opt1 = opt1 | 1<<7
+	}
+	return []byte{opt1}
 }
 
 func (c Consumes) AddStats(s Stats) Stats {

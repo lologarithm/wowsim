@@ -159,7 +159,10 @@ func getGear(val []byte) (tbc.Equipment, tbc.Options) {
 	}
 	gearSet := make([]tbc.Item, len(in.Gear))
 	for i, v := range in.Gear {
-		itemTemplate := tbc.ItemLookup[v.Name]
+		itemTemplate := tbc.ItemsByName[v.Name]
+		if v.Name == "" && v.ID > 0 {
+			itemTemplate = tbc.ItemsByID[v.ID]
+		}
 		ic := itemTemplate
 		if len(v.Gems) > 0 {
 			ic.Gems = make([]tbc.Gem, len(ic.GemSlots))

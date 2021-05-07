@@ -9,7 +9,6 @@
         <script src="uikit.min.js"></script>
         <script src="uikit-icons.min.js"></script>
         <script src="chart.min.js"></script>
-        <!-- <script src="pako.js"></script> -->
 
         <!-- My UI -->
         <script src="ui.js"></script>
@@ -102,11 +101,11 @@
                             <b style="width: 100%;text-align: right;font-size: 0.7em;color: #1e87f0;">Self Buffs</b>
                             <label><input id="sbufws" class="uk-checkbox" type="checkbox" checked>Water Shield</label>
                             <label>Race: <select id="sbufrace" class="buffdrop">
+                                <option class="buffdrop" value=0>None</option>
+                                <option class="buffdrop" value=1>Draenei (1% Hit)</option>
                                 <option class="buffdrop" value=2 selected>Troll (10% Haste)</option>
                                 <option class="buffdrop" value=3>Troll (30% Haste)</option>
                                 <option class="buffdrop" value=4>Orc (143 SP)</option>
-                                <option class="buffdrop" value=1>Draenei (1% Hit)</option>
-                                <option class="buffdrop" value=0>None</option>
                             </select></label>
                         </div>
                         <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid buffs dtl">
@@ -268,7 +267,7 @@
         <div id="pullout">
             <div class="dtl" style="height:100%;width:100%;padding:10px">
                 <div id="themetoggle" style="height:20px; bottom: 10px; cursor: pointer;" onclick="toggletheme()">
-                    <text>v0.3.1</text>
+                    <text>v0.4.0</text>
                     <img id="themebulb" style="height: 20px; width: 20px" src="../icons/light-bulb.svg"></img>
                 </div>
                 <div style="margin-top:10px">
@@ -298,7 +297,6 @@
                         <textarea id="importexport" style="width:95%;height: 200px"></textarea>
                         <button onclick="importGearHandler()" style="">Import</button><br />
                         <button onclick="exportGear(false)" style="">Export JSON</button><br />
-                        <button onclick="exportGear(true)" style="">Export Compressed</button><br />
                     </div>
                 </div>
             </div>

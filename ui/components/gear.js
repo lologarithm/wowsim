@@ -27,7 +27,12 @@ var slotToID = [
 class GearUI {
     allitems;
     allgems;
-    
+    allenchants;
+
+    itemsByID;
+    enchantsByID;
+    gemsByID;
+
     compdiv;
     
     itemCompSlots; // index of itemComps by slot
@@ -39,8 +44,11 @@ class GearUI {
     constructor(node, gearList) {
         this.changeHandlers = [];
         this.allitems = {};
+        this.itemsByID = {};
         this.allgems = {};
+        this.gemsByID = {};
         this.allenchants = {};
+        this.enchantsByID = {};
         this.itemComps = [];
         this.itemCompSlots = {};
         this.currentGear = {};
@@ -105,6 +113,7 @@ class GearUI {
                 g.GemSlots = gemslots;
             }
             this.allitems[g.Name] = g;
+            this.itemsByID[g.ID] = g;
 
             var slot = slotToID[g.Slot];
             if (slot == "equipfinger" || slot == "equiptrinket") {
@@ -116,9 +125,11 @@ class GearUI {
         });
         gearList.Gems.forEach((gem)=>{
             this.allgems[gem.Name] = gem;
+            this.gemsByID[gem.ID] = gem;
         });
         gearList.Enchants.forEach((enchant)=>{
             this.allenchants[enchant.Name] = enchant;
+            this.enchantsByID[enchant.ID] = enchant;
         });
     
         this.compdiv = node;
@@ -164,11 +175,17 @@ class GearUI {
 
         // Take each item, find its slot
         newGear.forEach( (item) => {
-            var inm = item.Name;
-            if (inm == "" || inm == "None") {
-                return;
+            var newID = item.ID;
+            var realItem;
+            if (newID === undefined) {
+                var inm = item.Name;
+                if (inm == "" || inm == "None") {
+                    return;
+                }
+                realItem = Object.assign({}, this.allitems[inm]);
+            } else {
+                realItem = Object.assign({}, this.itemsByID[newID]);
             }
-            var realItem = Object.assign({}, this.allitems[inm]);
             if (realItem == null || realItem.Name == null) {
                 return;
             }
@@ -190,6 +207,7 @@ class GearUI {
                 }
             }
             if (item.Gems != null && item.Gems.length > 0) {
+                var gems = item.Gems;
                 realItem.Gems = [];
                 item.Gems.forEach((g, idx) => {
                     var gem = this.allgems[g];
@@ -199,8 +217,21 @@ class GearUI {
                     realItem.Gems.push(gem);
                 });
             }
+            if (item.g != null && item.g.length > 0) {
+                realItem.Gems = [];
+                item.g.forEach((g, idx) => {
+                    var gem = this.gemsByID[g];
+                    if (gem == null) {
+                        gem = {}; // empty object for gem sentinal?
+                    }
+                    realItem.Gems.push(gem);
+                });
+            }
             if (item.Enchant != null && item.Enchant != "") {
                 realItem.Enchant = this.allenchants[item.Enchant];
+            }
+            if (item.e != null && item.e > 0) {
+                realItem.Enchant = this.enchantsByID[item.e];
             }
             this.updateItemSlot(realItem, slotid)
         });
