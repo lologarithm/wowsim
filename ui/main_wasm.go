@@ -127,7 +127,7 @@ func getGear(val js.Value) tbc.Equipment {
 			ic.Gems = make([]tbc.Gem, len(ic.GemSlots))
 			for i := range ic.Gems {
 				jsgem := gemids.Index(i)
-				if jsgem.IsNull() {
+				if jsgem.IsNull() || jsgem.IsUndefined() {
 					continue
 				}
 				gv, ok := tbc.GemsByID[int32(jsgem.Int())]
