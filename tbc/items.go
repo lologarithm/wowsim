@@ -517,7 +517,7 @@ var items = []Item{
 	{ID: 30914, Slot: EquipWaist, Name: "Belt of the Crescent Moon", Phase: 3, Quality: ItemQualityEpic, SourceZone: "Hyjal", SourceDrop: "Kazrogal", Stats: Stats{StatStm: 25, StatInt: 27, StatSpellDmg: 44, StatHaste: 36, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 0}},
 	{ID: 32256, Slot: EquipWaist, Name: "Waistwrap of Infinity", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Supremus", Stats: Stats{StatStm: 31, StatInt: 22, StatSpellDmg: 56, StatHaste: 32, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 0}},
 	{ID: 30038, Slot: EquipWaist, Name: "Belt of Blasting", Phase: 2, Quality: ItemQualityEpic, SourceZone: "SSC/TK", SourceDrop: "Tailoring", Stats: Stats{StatStm: 0, StatInt: 0, StatSpellDmg: 50, StatHaste: 0, StatSpellCrit: 30, StatSpellHit: 23, StatMP5: 0}, GemSlots: []GemColor{GemColorBlue, GemColorYellow}, SocketBonus: Stats{StatSpellDmg: 4}},
-	{ID: 30888, Slot: EquipWaist, Name: "Anetheron's Noose", Phase: 2, Quality: ItemQualityEpic, SourceZone: "Hyjal", SourceDrop: "Anetheron", Stats: Stats{StatStm: 22, StatInt: 23, StatSpellDmg: 55, StatHaste: 0, StatSpellCrit: 24, StatSpellHit: 0, StatMP5: 0}, GemSlots: []GemColor{GemColorYellow, GemColorBlue}, SocketBonus: Stats{StatSpellDmg: 4}},
+	{ID: 30888, Slot: EquipWaist, Name: "Anetheron's Noose", Phase: 3, Quality: ItemQualityEpic, SourceZone: "Hyjal", SourceDrop: "Anetheron", Stats: Stats{StatStm: 22, StatInt: 23, StatSpellDmg: 55, StatHaste: 0, StatSpellCrit: 24, StatSpellHit: 0, StatMP5: 0}, GemSlots: []GemColor{GemColorYellow, GemColorBlue}, SocketBonus: Stats{StatSpellDmg: 4}},
 	{ID: 32276, Slot: EquipWaist, Name: "Flashfire Girdle", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Akama", Stats: Stats{StatStm: 27, StatInt: 26, StatSpellDmg: 44, StatHaste: 37, StatSpellCrit: 18, StatSpellHit: 0, StatMP5: 0}},
 	{ID: 29036, Slot: EquipLegs, Name: "Cyclone Legguards (Tier 4)", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Gruul's Lair", SourceDrop: "Gruul", Stats: Stats{StatStm: 40, StatInt: 40, StatSpellDmg: 49, StatHaste: 0, StatSpellCrit: 0, StatSpellHit: 20, StatMP5: 8}},
 	{ID: 28594, Slot: EquipLegs, Name: "Trial-Fire Trousers", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Opera", Stats: Stats{StatStm: 42, StatInt: 40, StatSpellDmg: 49, StatHaste: 0, StatSpellCrit: 0, StatSpellHit: 0, StatMP5: 0}, GemSlots: []GemColor{GemColorYellow, GemColorYellow, GemColorYellow}, SocketBonus: Stats{StatSpellDmg: 5}},
@@ -583,11 +583,11 @@ var items = []Item{
 	{ID: 28418, Slot: EquipTrinket, Name: "Shiffar's Nexus-Horn", Phase: 1, Quality: ItemQualityRare, SourceZone: "Arc - Harbinger Skyriss", SourceDrop: "", Stats: Stats{0, 0, 30, 0, 0, 0, 0}, Activate: ActivateNexusHorn, ActivateCD: -1},
 	{ID: 31856, Slot: EquipTrinket, Name: "Darkmoon Card: Crusade", Phase: 2, Quality: ItemQualityEpic, SourceZone: "Blessings Deck", SourceDrop: "", Activate: ActivateDCC, ActivateCD: -1},
 	{ID: 28785, Slot: EquipTrinket, Name: "The Lightning Capacitor", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "", Activate: ActivateTLC, ActivateCD: -1},
-	{ID: 28789, Slot: EquipTrinket, Name: "Eye of Magtheridon", Phase: 1, Quality: ItemQualityRare, SourceZone: "", SourceDrop: "", Stats: Stats{StatSpellDmg: 54}, Activate: ActivateEyeOfMag, ActivateCD: -1},
+	{ID: 28789, Slot: EquipTrinket, Name: "Eye of Magtheridon", Phase: 1, Quality: ItemQualityEpic, SourceZone: "", SourceDrop: "", Stats: Stats{StatSpellDmg: 54}, Activate: ActivateEyeOfMag, ActivateCD: -1},
 	{ID: 30626, Slot: EquipTrinket, Name: "Sextant of Unstable Currents", Phase: 2, Quality: ItemQualityRare, SourceZone: "SSC", SourceDrop: "", Stats: Stats{StatSpellCrit: 40}, Activate: ActivateSextant, ActivateCD: -1},
-	{ID: 34429, Slot: EquipTrinket, Name: "Shifting Naaru Sliver", Phase: 5, Quality: ItemQualityRare, SourceZone: "Sunwell", SourceDrop: "", Stats: Stats{StatHaste: 54}, Activate: createSpellDmgActivate(MagicIDShiftingNaaru, 320, 15), ActivateCD: 90, CoolID: MagicIDShiftingNaaruTrink},
-	{ID: 32483, Slot: EquipTrinket, Name: "The Skull of Gul'dan", Phase: 3, Quality: ItemQualityRare, SourceZone: "Black Temple", SourceDrop: "", Stats: Stats{StatSpellHit: 25, StatSpellDmg: 55}, Activate: createHasteActivate(MagicIDSkullGuldan, 175, 20), ActivateCD: 120, CoolID: MagicIDSkullGuldanTrink},
-	{ID: 33829, Slot: EquipTrinket, Name: "Hex Shrunken Head", Phase: 4, Quality: ItemQualityRare, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatSpellDmg: 53}, Activate: createSpellDmgActivate(MagicIDHexShunkHead, 211, 20), ActivateCD: 120, CoolID: MagicIDHexTrink},
+	{ID: 34429, Slot: EquipTrinket, Name: "Shifting Naaru Sliver", Phase: 5, Quality: ItemQualityEpic, SourceZone: "Sunwell", SourceDrop: "", Stats: Stats{StatHaste: 54}, Activate: createSpellDmgActivate(MagicIDShiftingNaaru, 320, 15), ActivateCD: 90, CoolID: MagicIDShiftingNaaruTrink},
+	{ID: 32483, Slot: EquipTrinket, Name: "The Skull of Gul'dan", Phase: 3, Quality: ItemQualityEpic, SourceZone: "Black Temple", SourceDrop: "", Stats: Stats{StatSpellHit: 25, StatSpellDmg: 55}, Activate: createHasteActivate(MagicIDSkullGuldan, 175, 20), ActivateCD: 120, CoolID: MagicIDSkullGuldanTrink},
+	{ID: 33829, Slot: EquipTrinket, Name: "Hex Shrunken Head", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatSpellDmg: 53}, Activate: createSpellDmgActivate(MagicIDHexShunkHead, 211, 20), ActivateCD: 120, CoolID: MagicIDHexTrink},
 	{ID: 24116, Slot: EquipNeck, Name: "Eye of the Night", Phase: 1, Quality: ItemQualityRare, SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatSpellCrit: 26, StatSpellHit: 16, StatSpellPen: 15}, Activate: func(sim *Simulation) Aura {
 		if sim.Options.Buffs.EyeOfNight {
 			return Aura{}
@@ -619,6 +619,7 @@ var items = []Item{
 	// {Slot: EquipWaist, Name: "Lurker's Belt of the Invoker", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 33, StatSpellCrit: 28}},
 	// {Slot: EquipWrist, Name: "Ravager's Bands of the Invoker", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 25, StatSpellCrit: 21}},
 	{ID: 28583, Slot: EquipHead, Name: "Big Bad Wolf's Head", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "The Big Bad Wolf", Stats: Stats{StatStm: 42, StatInt: 40, StatSpellDmg: 47, StatSpellCrit: 28}},
+	{ID: 32586, Slot: EquipShoulder, Name: "Bracers of Nimble Thought", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Tailoring", Stats: Stats{StatStm: 27, StatInt: 20, StatSpellDmg: 34, StatHaste: 28}},
 
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", Phase: 1, Quality: ItemQualityEpic, SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", Phase: 1, Quality: ItemQualityEpic, SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }
@@ -691,5 +692,20 @@ var sets = []ItemSet{
 			}
 			return Aura{ID: MagicIDWindhawk, Expires: 0}
 		}},
+	},
+	{
+		Name:    "Cataclysm Regalia",
+		Items:   map[string]bool{"Cataclysm Headpiece (Tier 5)": true, "Cataclysm Shoulderpads (Tier 5)": true, "Cataclysm Chestpiece (Tier 5)": true, "Cataclysm Handgrips (Tier 5)": true, "Cataclysm Leggings (Tier 5)": true},
+		Bonuses: map[int]ItemActivation{4: ActivateCataclysmLBDiscount},
+	},
+	{
+		Name:  "Skyshatter Regalia",
+		Items: map[string]bool{"Skyshatter Headguard (Tier 6)": true, "Skyshatter Mantle (Tier 6)": true, "Skyshatter Breastplate (Tier 6)": true, "Skyshatter Gauntlets (Tier 6)": true, "Skyshatter Legguards (Tier 6)": true},
+		Bonuses: map[int]ItemActivation{2: func(sim *Simulation) Aura {
+			sim.Buffs[StatMP5] += 15
+			sim.Buffs[StatSpellCrit] += 35
+			sim.Buffs[StatSpellDmg] += 45
+			return Aura{ID: MagicIDSkyshatter2pc, Expires: 0}
+		}, 4: ActivateSkyshatterImpLB},
 	},
 }

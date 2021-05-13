@@ -2,26 +2,27 @@
     "Options": {
         "RSeed": 0,
         "ExitOnOOM": false,
-        "NumBloodlust": 1,
+        "NumBloodlust": 0,
         "NumDrums": 0,
         "Buffs": {
-            "ArcaneInt": false,
-            "GiftOftheWild": false,
-            "BlessingOfKings": false,
-            "ImprovedBlessingOfWisdom": false,
+            "ArcaneInt": true,
+            "GiftOftheWild": true,
+            "BlessingOfKings": true,
+            "ImprovedBlessingOfWisdom": true,
             "ImprovedDivineSpirit": false,
-            "Moonkin": false,
+            "Moonkin": true,
             "MoonkinRavenGoddess": false,
             "SpriestDPS": 0,
             "EyeOfNight": false,
             "TwilightOwl": false,
             "WaterShield": true,
             "WaterShieldPPM": 0,
-            "Race": 2,
+            "Race": 1,
             "JudgementOfWisdom": true,
             "ImpSealofCrusader": false,
-            "Misery": false,
+            "Misery": true,
             "Custom": [
+                0,
                 0,
                 0,
                 0,
@@ -30,14 +31,14 @@
             ]
         },
         "Consumes": {
-            "BrilliantWizardOil": false,
-            "MajorMageblood": false,
+            "BrilliantWizardOil": true,
+            "MajorMageblood": true,
             "FlaskOfBlindingLight": false,
             "FlaskOfMightyRestoration": false,
             "BlackendBasilisk": false,
             "DestructionPotion": false,
             "SuperManaPotion": true,
-            "DarkRune": false
+            "DarkRune": true
         },
         "Talents": {
             "LightninOverload": 5,
@@ -52,7 +53,7 @@
         },
         "Totems": {
             "TotemOfWrath": 1,
-            "WrathOfAir": false,
+            "WrathOfAir": true,
             "ManaStream": true,
             "Cyclone2PC": false
         },
@@ -76,7 +77,7 @@
         },
         {
             "Slot": 2,
-            "Name": "Charlotte's Ivy",
+            "Name": "Eye of the Night",
             "Gems": [],
             "Enchant": {
                 "Name": ""
@@ -195,7 +196,7 @@
         },
         {
             "Slot": 14,
-            "Name": "Natural Alignment Crystal"
+            "Name": "The Lightning Capacitor"
         },
         {
             "Slot": 14,

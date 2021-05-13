@@ -148,6 +148,12 @@ func AuraName(a int32) string {
 		return "Eye Of Mag"
 	case MagicIDRecurringPower:
 		return "Recurring Power"
+	case MagicIDCataclysm4pc:
+		return "Cataclysm 4pc Set Bonus"
+	case MagicIDSkyshatter2pc:
+		return "Skyshatter 2pc Set Bonus"
+	case MagicIDSkyshatter4pc:
+		return "Skyshatter 4pc Set Bonus"
 	}
 
 	return "<<TODO: Add Aura name to switch!!>>"
@@ -215,6 +221,9 @@ const (
 	MagicIDUnstableCurrents // Sextant Proc Aura
 	MagicIDEyeOfMag         // trinket aura
 	MagicIDRecurringPower   // eye of mag proc aura
+	MagicIDCataclysm4pc     // cyclone 4pc aura
+	MagicIDSkyshatter2pc    // skyshatter 2pc aura
+	MagicIDSkyshatter4pc    // skyshatter 4pc aura
 
 	//Items
 	MagicIDISCTrink
@@ -666,6 +675,30 @@ func ActivateCycloneManaReduce(sim *Simulation) Aura {
 						sim.removeAuraByID(MagicIDCycloneMana)
 					},
 				})
+			}
+		},
+	}
+}
+
+func ActivateCataclysmLBDiscount(sim *Simulation) Aura {
+	return Aura{
+		ID:      MagicIDCataclysm4pc,
+		Expires: math.MaxInt32,
+		OnSpellHit: func(sim *Simulation, c *Cast) {
+			if c.DidCrit && sim.rando.Float64() < 0.25 {
+				sim.CurrentMana += 120
+			}
+		},
+	}
+}
+
+func ActivateSkyshatterImpLB(sim *Simulation) Aura {
+	return Aura{
+		ID:      MagicIDSkyshatter4pc,
+		Expires: math.MaxInt32,
+		OnSpellHit: func(sim *Simulation, c *Cast) {
+			if c.Spell.ID == MagicIDLB12 {
+				c.DidDmg *= 1.05
 			}
 		},
 	}
