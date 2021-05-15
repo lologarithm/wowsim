@@ -304,7 +304,7 @@ function runsim(currentGear, fullLogs) {
         } else {
             ttoom = Math.round(ttoom);
         }
-        lbout.innerHTML = `<div><h3>Mana</h3><text class="simnums">${ttoom}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only</text></div>`
+        lbout.innerHTML = `<div><h3>Mana</h3><text class="simnums">${ttoom}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(stats.dps)} DPS</text></div>`
     });
 
     var secondOpts = getOptions();

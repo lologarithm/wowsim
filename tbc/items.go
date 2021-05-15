@@ -677,7 +677,11 @@ var items = []Item{
 		GemSlots:    []GemColor{GemColorRed, GemColorYellow, GemColorYellow},
 		SocketBonus: Stats{StatSpellDmg: 5},
 	},
-
+	{ID: 34390, Slot: EquipShoulder, Name: "Erupting Epaulets", Phase: 5, Quality: ItemQualityEpic, SourceZone: "SW", SourceDrop: "",
+		Stats:       Stats{StatStm: 30, StatInt: 30, StatSpellDmg: 53, StatHaste: 24, StatSpellCrit: 30},
+		GemSlots:    []GemColor{GemColorYellow, GemColorRed},
+		SocketBonus: Stats{StatSpellDmg: 4},
+	},
 	// {Slot:EquipTrinket, Name:"Arcanist's Stone", Phase: 1, Quality: ItemQualityEpic, SourceZone:"H OHF - Epoch Hunter", SourceDrop:"", Stats:Stats{0, 0, 0, 25, 0, 0, 0} }
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", Phase: 1, Quality: ItemQualityEpic, SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }
 	{ID: 32330, Slot: EquipTotem, Name: "Totem of Ancestral Guidance", Phase: 3, Quality: ItemQualityRare, SourceZone: "BT", SourceDrop: "", Stats: Stats{StatSpellDmg: 85}},
