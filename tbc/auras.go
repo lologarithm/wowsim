@@ -638,7 +638,8 @@ func ActivateTLC(sim *Simulation) Aura {
 					Spell:     tlcspell,
 					CritBonus: 1.5, // TLC does not get elemental fury
 					// TLC does not get hit talents bonus, subtract them here. (since we dont conditionally apply them)
-					Hit: (-0.02 * float64(sim.Options.Talents.ElementalPrecision)) + (-0.01 * float64(sim.Options.Talents.NaturesGuidance)),
+					Hit:  (-0.02 * float64(sim.Options.Talents.ElementalPrecision)) + (-0.01 * float64(sim.Options.Talents.NaturesGuidance)),
+					Crit: (-0.01 * float64(sim.Options.Talents.TidalMastery)) + (-0.01 * float64(sim.Options.Talents.CallOfThunder)),
 				}
 				sim.Cast(clone)
 				charges = 0

@@ -175,7 +175,6 @@ func (sim *Simulation) Run(seconds int) SimMetrics {
 	sim.endTick = seconds * TicksPerSecond
 	sim.reset()
 
-	// Pop BL at start.
 	for i := 0; i < sim.endTick; {
 		if sim.CurrentMana < 0 {
 			panic("you should never have negative mana.")
@@ -190,7 +189,6 @@ func (sim *Simulation) Run(seconds int) SimMetrics {
 
 		sim.Advance(i, advance)
 		i += advance
-
 	}
 	sim.metrics.ManaAtEnd = int(sim.CurrentMana)
 
@@ -266,8 +264,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 	if sim.rando.Float64() < hit {
 		sp := sim.Stats[StatSpellDmg] + sim.Buffs[StatSpellDmg] + cast.Spellpower
 		dmg := (sim.rando.Float64() * (cast.Spell.MaxDmg - cast.Spell.MinDmg)) + cast.Spell.MinDmg
-		spbonus := (sp * cast.Spell.Coeff)
-		dmg += spbonus
+		dmg += (sp * cast.Spell.Coeff)
 		if cast.DidDmg != 0 { // use the pre-set dmg
 			dmg = cast.DidDmg
 		}
@@ -296,7 +293,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 			dbgCast += " hit"
 		}
 
-		if sim.Options.Talents.Concussion > 0 && cast.Spell.ID == MagicIDLB12 || cast.Spell.ID == MagicIDCL6 {
+		if sim.Options.Talents.Concussion > 0 && (cast.Spell.ID == MagicIDLB12 || cast.Spell.ID == MagicIDCL6) {
 			// Talent Concussion
 			dmg *= 1 + (0.01 * sim.Options.Talents.Concussion)
 		}
