@@ -4,6 +4,9 @@ import (
 	"math"
 )
 
+// AuraEffects will mutate a cast or simulation state.
+type AuraEffect func(sim *Simulation, c *Cast)
+
 type Aura struct {
 	ID      int32
 	Expires int // ticks aura will apply
@@ -159,9 +162,6 @@ func AuraName(a int32) string {
 	return "<<TODO: Add Aura name to switch!!>>"
 }
 
-// AuraEffects will mutate a cast or simulation state.
-type AuraEffect func(sim *Simulation, c *Cast)
-
 // List of all magic effects and spells and items and stuff that can go on CD or have an aura.
 const (
 	MagicIDUnknown int32 = iota
@@ -312,10 +312,11 @@ func AuraEleMastery() Aura {
 		Expires: math.MaxInt32,
 		OnCast: func(sim *Simulation, c *Cast) {
 			c.ManaCost = 0
-			sim.CDs[MagicIDEleMastery] = 180 * TicksPerSecond
 		},
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			c.Crit += 1.01 // 101% chance of crit
+			// Remove the buff and put skill on CD
+			sim.CDs[MagicIDEleMastery] = 180 * TicksPerSecond
 			sim.removeAuraByID(MagicIDEleMastery)
 		},
 	}

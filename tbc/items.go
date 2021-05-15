@@ -590,7 +590,7 @@ var items = []Item{
 	{ID: 33829, Slot: EquipTrinket, Name: "Hex Shrunken Head", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatSpellDmg: 53}, Activate: createSpellDmgActivate(MagicIDHexShunkHead, 211, 20), ActivateCD: 120, CoolID: MagicIDHexTrink},
 	{ID: 24116, Slot: EquipNeck, Name: "Eye of the Night", Phase: 1, Quality: ItemQualityRare, SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatSpellCrit: 26, StatSpellHit: 16, StatSpellPen: 15}, Activate: func(sim *Simulation) Aura {
 		if sim.Options.Buffs.EyeOfNight {
-			return Aura{}
+			return Aura{} // if we already have buff from party member, no need to activate this
 		}
 		activate := createSpellDmgActivate(MagicIDEyeOfTheNight, 34, 30*60)
 		return activate(sim)

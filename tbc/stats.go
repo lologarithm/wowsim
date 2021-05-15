@@ -89,3 +89,55 @@ func (st Stats) Print(pretty bool) string {
 	output += " }"
 	return output
 }
+
+// CalculatedTotal will add Mana and Crit from Int and return the new stats.
+func (s Stats) CalculatedTotal() Stats {
+	stats := make([]float64, len(s))
+	copy(stats, s)
+
+	// Add crit/mana from int
+	stats[StatSpellCrit] += (stats[StatInt] / 80) * 22.08
+	stats[StatMana] += stats[StatInt] * 15
+	return stats
+}
+
+// CalculateTotalStats will take a set of equipment and options and add all stats/buffs/etc together
+func CalculateTotalStats(o Options, e Equipment) Stats {
+	gearStats := e.Stats()
+	stats := BaseStats(o.Buffs.Race)
+	for i := range stats {
+		stats[i] += gearStats[i]
+	}
+
+	stats = o.Talents.AddStats(o.Buffs.AddStats(o.Consumes.AddStats(o.Totems.AddStats(stats))))
+
+	if o.Buffs.BlessingOfKings {
+		stats[StatInt] *= 1.1 // blessing of kings
+	}
+	if o.Buffs.ImprovedDivineSpirit {
+		stats[StatSpellDmg] += stats[StatSpirit] * 0.1
+	}
+
+	stats = stats.CalculatedTotal()
+
+	// Add stat increases from talents
+	stats[StatMP5] += stats[StatInt] * (0.02 * float64(o.Talents.UnrelentingStorm))
+
+	return stats
+}
+
+func BaseStats(race RaceBonusType) Stats {
+	stats := Stats{
+		StatInt:       104,    // Base int for troll,
+		StatMana:      2678,   // level 70 shaman
+		StatSpirit:    135,    // lvl 70 shaman
+		StatSpellCrit: 48.576, // base crit for 70 sham
+		StatLen:       0,
+	}
+	// TODO: Find race int differences.
+	switch race {
+	case RaceBonusOrc:
+
+	}
+	return stats
+}
