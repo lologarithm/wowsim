@@ -77,12 +77,11 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 	}
 	if args[1].IsNull() {
 		gearStats := gear.Stats()
-		gearStats[tbc.StatSpellCrit] += (gearStats[tbc.StatInt] / 80) * 22.08
-		gearStats[tbc.StatMana] += gearStats[tbc.StatInt] * 15
+		gearStats = gearStats.CalculatedTotal()
 		return gearStats.Print(false)
 	}
 	opt := parseOptions(args[1])
-	stats := opt.StatTotal(gear)
+	stats := tbc.CalculateTotalStats(opt, gear)
 	opt.UseAI = true // stupid complaining sim...maybe I should just default AI on.
 	fakesim := tbc.NewSim(stats, gear, opt)
 	fakesim.ActivateSets()
@@ -92,6 +91,104 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 		finalStats[i] += v
 	}
 	return finalStats.Print(false)
+}
+
+// Simulate takes in number of iterations, duration, a gear list, and simulation options.
+// (iterations, duration, gearlist, options, <optional, custom rotation)
+func StatWeight(this js.Value, args []js.Value) interface{} {
+	numSims := args[0].Int()
+	seconds := args[1].Int()
+	gear := getGear(args[2])
+	opts := parseOptions(args[3])
+	stat := args[4].Int()
+	statModVal := args[5].Float()
+
+	if len(opts.Buffs.Custom) == 0 {
+		opts.Buffs.Custom = tbc.Stats{tbc.StatLen: 0}
+	}
+	opts.Buffs.Custom[tbc.Stat(stat)] += statModVal
+	opts.UseAI = true // use AI optimal rotation.
+
+	if numSims == 1 {
+		opts.Debug = true
+	}
+
+	simdmg := 0.0
+	simdmgsq := 0.0
+	simmet := make([]tbc.SimMetrics, 0, numSims)
+
+	opts.RSeed = time.Now().Unix()
+
+	oomcount := 0
+	sim := tbc.NewSim(tbc.CalculateTotalStats(opts, gear), gear, opts)
+	for ns := 0; ns < numSims; ns++ {
+		metrics := sim.Run(seconds)
+		dps := metrics.TotalDamage / float64(seconds)
+		simdmg += dps
+		simdmgsq += dps * dps
+		simmet = append(simmet, metrics)
+		if metrics.OOMAt > 0 && metrics.OOMAt < seconds-5 {
+			oomcount++
+		}
+	}
+
+	meanSq := simdmgsq / float64(numSims)
+	mean := simdmg / float64(numSims)
+	stdev := math.Sqrt(meanSq - mean*mean)
+	fmt.Printf("(Mod: %s) Mean: %0.1f, Stddev: %0.1f\n", tbc.Stat(stat).StatName(), mean, stdev)
+
+	if float64(oomcount)/float64(numSims) > 0.25 {
+		return -1
+	}
+
+	conf90 := 1.645 * stdev / math.Sqrt(float64(numSims))
+	return fmt.Sprintf("%0.2f,%0.2f,%0.2f", mean, stdev, conf90)
+}
+
+// Simulate takes in number of iterations, duration, a gear list, and simulation options.
+// (iterations, duration, gearlist, options, <optional, custom rotation)
+func Simulate(this js.Value, args []js.Value) interface{} {
+	if len(args) < 4 {
+		print("Expected 4 min arguments:  (#iterations, duration, gearlist, options)")
+		return `{"error": "invalid arguments supplied"}`
+	}
+
+	customRotation := [][]string{}
+	customHaste := 0.0
+	if len(args) >= 6 {
+		if args[4].Truthy() {
+			customRotation = parseRotation(args[4])
+		}
+		if args[5].Truthy() {
+			customHaste = args[5].Float()
+		}
+	}
+	gear := getGear(args[2])
+	opt := parseOptions(args[3])
+	stats := tbc.CalculateTotalStats(opt, gear)
+	if customHaste != 0 {
+		stats[tbc.StatHaste] = customHaste
+	}
+
+	simi := args[0].Int()
+	if simi == 1 { // if single iteration, dump all logs to console.
+		opt.Debug = true
+	}
+	dur := args[1].Int()
+	fullLogs := false
+	if len(args) > 6 {
+		fullLogs = args[6].Truthy()
+		fmt.Printf("Building Full Log:%v\n", fullLogs)
+	}
+
+	results := runTBCSim(opt, stats, gear, dur, simi, customRotation, fullLogs)
+	st := time.Now()
+	output, err := json.Marshal(results)
+	if err != nil {
+		print("Failed to json marshal results: ", err.Error())
+	}
+	fmt.Printf("Took %s to json marshal response.\n", time.Now().Sub(st))
+	return string(output)
 }
 
 // getGear converts js string array to a list of equipment items.
@@ -226,121 +323,6 @@ func parseRotation(val js.Value) [][]string {
 	}
 
 	return out
-}
-
-// Simulate takes in number of iterations, duration, a gear list, and simulation options.
-// (iterations, duration, gearlist, options, <optional, custom rotation)
-func StatWeight(this js.Value, args []js.Value) interface{} {
-	numSims := args[0].Int()
-	if numSims == 1 {
-		tbc.IsDebug = true
-	} else {
-		tbc.IsDebug = false
-	}
-	seconds := args[1].Int()
-	gear := getGear(args[2])
-	opts := parseOptions(args[3])
-	stat := args[4].Int()
-	statModVal := args[5].Float()
-
-	if len(opts.Buffs.Custom) == 0 {
-		opts.Buffs.Custom = tbc.Stats{tbc.StatLen: 0}
-	}
-	opts.Buffs.Custom[tbc.Stat(stat)] += statModVal
-	opts.UseAI = true // use AI optimal rotation.
-
-	simdmg := 0.0
-	simdmgsq := 0.0
-	simmet := make([]tbc.SimMetrics, 0, numSims)
-
-	opts.RSeed = time.Now().Unix()
-
-	oomcount := 0
-	sim := tbc.NewSim(opts.StatTotal(gear), gear, opts)
-	for ns := 0; ns < numSims; ns++ {
-		metrics := sim.Run(seconds)
-		dps := metrics.TotalDamage / float64(seconds)
-		simdmg += dps
-		simdmgsq += dps * dps
-		simmet = append(simmet, metrics)
-		if metrics.OOMAt > 0 && metrics.OOMAt < seconds-5 {
-			oomcount++
-		}
-	}
-
-	meanSq := simdmgsq / float64(numSims)
-	mean := simdmg / float64(numSims)
-	stdev := math.Sqrt(meanSq - mean*mean)
-	fmt.Printf("(Mod: %s) Mean: %0.1f, Stddev: %0.1f\n", tbc.Stat(stat).StatName(), mean, stdev)
-
-	if float64(oomcount)/float64(numSims) > 0.25 {
-		return -1
-	}
-
-	conf90 := 1.645 * stdev / math.Sqrt(float64(numSims))
-	return fmt.Sprintf("%0.2f,%0.2f,%0.2f", mean, stdev, conf90)
-}
-
-// Simulate takes in number of iterations, duration, a gear list, and simulation options.
-// (iterations, duration, gearlist, options, <optional, custom rotation)
-func Simulate(this js.Value, args []js.Value) interface{} {
-	if len(args) < 4 {
-		print("Expected 4 min arguments:  (#iterations, duration, gearlist, options)")
-		return `{"error": "invalid arguments supplied"}`
-	}
-
-	customRotation := [][]string{}
-	customHaste := 0.0
-	if len(args) >= 6 {
-		if args[4].Truthy() {
-			customRotation = parseRotation(args[4])
-		}
-		if args[5].Truthy() {
-			customHaste = args[5].Float()
-		}
-	}
-	gear := getGear(args[2])
-	opt := parseOptions(args[3])
-	stats := opt.StatTotal(gear)
-	if customHaste != 0 {
-		stats[tbc.StatHaste] = customHaste
-	}
-
-	simi := args[0].Int()
-	if simi == 1 {
-		tbc.IsDebug = true
-	} else {
-		tbc.IsDebug = false
-	}
-	dur := args[1].Int()
-	fullLogs := false
-	if len(args) > 6 {
-		fullLogs = args[6].Truthy()
-		fmt.Printf("Building Full Log:%v\n", fullLogs)
-	}
-
-	results := runTBCSim(opt, stats, gear, dur, simi, customRotation, fullLogs)
-	st := time.Now()
-	output, err := json.Marshal(results)
-	if err != nil {
-		print("Failed to json marshal results: ", err.Error())
-	}
-	fmt.Printf("Took %s to json marshal response.\n", time.Now().Sub(st))
-	return string(output)
-}
-
-func jsonmarshal(results []SimResult) string {
-
-	val := "["
-	for i, v := range results {
-		js, _ := json.Marshal(v)
-		val += string(js)
-		if i != len(results)-1 {
-			val += ","
-		}
-	}
-	val += "]"
-	return val
 }
 
 type SimResult struct {

@@ -37,7 +37,7 @@ func StatWeights(opts Options, equip Equipment, seconds int, numSims int) []floa
 		copy(optClone2, myopts.Buffs.Custom) // clone existing buff
 		myopts.Buffs.Custom = optClone2
 		myopts.Buffs.Custom[mod] += value
-		stats := myopts.StatTotal(equip)
+		stats := CalculateTotalStats(myopts, equip)
 
 		myOpts := myopts
 		myOpts.SpellOrder = []string{""}
@@ -128,10 +128,10 @@ func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) Optima
 		}
 	}
 
-	fmt.Printf("All Red Gems Stats:\n%s\n\nMatched Sockets Stats:\n%s\n\n", opts.StatTotal(set1).Print(false), opts.StatTotal(set2).Print(false))
+	fmt.Printf("All Red Gems Stats:\n%s\n\nMatched Sockets Stats:\n%s\n\n", CalculateTotalStats(opts, set1).Print(false), CalculateTotalStats(opts, set2).Print(false))
 
 	simdmg := 0.0
-	sim := NewSim(opts.StatTotal(set1), equip, opts)
+	sim := NewSim(CalculateTotalStats(opts, set1), equip, opts)
 	simmet := make([]SimMetrics, 0, numSims)
 	for ns := 0; ns < numSims; ns++ {
 		metrics := sim.Run(seconds)
@@ -142,7 +142,7 @@ func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) Optima
 	output.Sims = append(output.Sims, EquipmentResult{Results: simmet, Equip: set1})
 
 	simdmg = 0.0
-	sim = NewSim(opts.StatTotal(set2), equip, opts)
+	sim = NewSim(CalculateTotalStats(opts, set2), equip, opts)
 	simmet = make([]SimMetrics, 0, numSims)
 	for ns := 0; ns < numSims; ns++ {
 		metrics := sim.Run(seconds)
@@ -156,10 +156,8 @@ func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) Optima
 }
 
 // Finds the optimal rotation for given parameters.
+// This might not be needed now that the AI basically does this but faster.
 func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, numSims int) ([]SimMetrics, []string) {
-
-	// fmt.Printf("Starting optimize...\n")
-
 	topDmg := 0.0
 	topRot := []string{}
 	topMets := []SimMetrics{}
@@ -203,8 +201,6 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 		}
 
 		avgOOM := float64(numoom) / float64(numSims)
-		// fmt.Printf("(%d LB: 1 CL) %0.0f DPS  OOM: %0.0f percent\n", numLB, simdmg/float64(seconds)/float64(numSims), avgOOM*100)
-
 		if numLB == minLB || numLB == maxLB {
 			if simdmg >= topDmg {
 				// printResult(simmet, seconds)
@@ -299,7 +295,7 @@ func NewAI(sim *Simulation) *EleAI {
 		LB:       spellmap[MagicIDLB12],
 		CL:       spellmap[MagicIDCL6],
 		LastMana: sim.CurrentMana,
-		NumCasts: 3,
+		NumCasts: 3, // This lets us cast CL first.
 	}
 	if sim.Debug != nil {
 		sim.Debug("[AI] initialized\n")
@@ -313,11 +309,12 @@ func (ai *EleAI) ChooseSpell(sim *Simulation, didPot bool) int {
 	}
 	ai.NumCasts++
 	if didPot {
-		// Use Potion to reset the calculation... only early on in fight.
+		// Use Potion to reset the calculation...
 		ai.LastMana = sim.CurrentMana
 		ai.LastCheck = sim.CurrentTick
 		ai.NumCasts = 0
 	}
+	// Always give a couple casts before we figure out mana drain.
 	if sim.CDs[MagicIDCL6] < 1 && ai.NumCasts > 3 {
 		manaDrained := ai.LastMana - sim.CurrentMana
 		timePassed := sim.CurrentTick - ai.LastCheck

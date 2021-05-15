@@ -24,6 +24,11 @@ type Options struct {
 	// make it easier to integrate into different output systems.
 }
 
+// Pack is how to convert all options/buffs/consumes/etc to reproduce the UI state
+// so that a simulation can be shared. I am using byte packing here because most options are bools
+// and this makes it easy to pack it all together.
+// I also have a JSON parser for these in the command line interface. This compressed format
+// is used to allow for shorter URLs
 func (o Options) Pack() []byte {
 	// first byte is version
 	bytes := []byte{0, byte(o.NumBloodlust), byte(o.NumDrums)}
@@ -32,41 +37,6 @@ func (o Options) Pack() []byte {
 	bytes = append(bytes, o.Talents.Pack()...)
 	bytes = append(bytes, o.Totems.Pack()...)
 	return bytes
-}
-
-func (o Options) StatTotal(e Equipment) Stats {
-	gearStats := e.Stats()
-	stats := o.BaseStats()
-	for i := range stats {
-		stats[i] += gearStats[i]
-	}
-
-	stats = o.Talents.AddStats(o.Buffs.AddStats(o.Consumes.AddStats(o.Totems.AddStats(stats))))
-
-	if o.Buffs.BlessingOfKings {
-		stats[StatInt] *= 1.1 // blessing of kings
-	}
-	if o.Buffs.ImprovedDivineSpirit {
-		stats[StatSpellDmg] += stats[StatSpirit] * 0.1
-	}
-
-	// Final calculations
-	stats[StatSpellCrit] += (stats[StatInt] / 80) * 22.08
-	stats[StatMana] += stats[StatInt] * 15
-	stats[StatMP5] += stats[StatInt] * (0.02 * float64(o.Talents.UnrelentingStorm))
-	// fmt.Printf("\fFinal MP5: %f", (stats[StatMP5] + (stats[StatInt] * 0.06)))
-	return stats
-}
-
-func (o Options) BaseStats() Stats {
-	stats := Stats{
-		StatInt:       104,    // Base int for troll
-		StatMana:      2678,   // level 70 shaman
-		StatSpirit:    135,    // lvl 70 shaman
-		StatSpellCrit: 48.576, // base crit for 70 sham
-		StatLen:       0,
-	}
-	return stats
 }
 
 type Totems struct {

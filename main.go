@@ -39,13 +39,11 @@ func main() {
 
 	flag.Parse()
 
-	// this is silly lol
-	tbc.IsDebug = *isDebug
-
 	if *runWebUI {
 		log.Printf("Closing: %s", http.ListenAndServe(":3333", nil))
 	}
 
+	// Just some default gear if not provided in the config file.
 	gear := tbc.NewEquipmentSet(
 		"Tidefury Helm",
 		"Charlotte's Ivy",
@@ -65,7 +63,8 @@ func main() {
 		"Icon of the Silver Crescent",
 		"Totem of the Void",
 	)
-	// gear[tbc.EquipHead].Gems[0] = tbc.GemLookup["Chaotic Skyfire Diamond"]
+
+	// Auto gem the default gear above.
 	ruby := tbc.GemLookup["Runed Living Ruby"]
 	for i := range gear {
 		gear[i].Gems = make([]tbc.Gem, len(gear[i].GemSlots))
@@ -73,7 +72,7 @@ func main() {
 			if color != tbc.GemColorMeta {
 				gear[i].Gems[gs] = ruby
 			} else {
-				gear[i].Gems[gs] = tbc.Gems[0]
+				gear[i].Gems[gs] = tbc.Gems[0] // CSD
 			}
 		}
 	}
@@ -134,6 +133,7 @@ func main() {
 
 	if *isDebug {
 		*iterations = 1
+		opt.Debug = true
 	}
 	rotArray := []string{}
 	if rotation != nil && len(*rotation) > 0 {
@@ -183,12 +183,13 @@ func getGear(val []byte) (tbc.Equipment, tbc.Options) {
 func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, customRotation []string, noopt bool) []string {
 	fmt.Printf("\nSim Duration: %d sec\nNum Simulations: %d\n", seconds, numSims)
 
-	stats := opt.StatTotal(equip)
+	stats := tbc.CalculateTotalStats(opt, equip)
 
 	spellOrders := [][]string{
-		// {"CL6", "LB12", "LB12", "LB12"},
-		// {"CL6", "LB12", "LB12", "LB12", "LB12"},
-		// {"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
+		{"CL6", "LB12", "LB12", "LB12"},
+		{"CL6", "LB12", "LB12", "LB12", "LB12"},
+		{"CL6", "LB12", "LB12", "LB12", "LB12", "LB12"},
+		{"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
 		// {"LB12"},               // only LB
 	}
 	if len(customRotation) > 0 {
@@ -200,7 +201,7 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 	statchan := make(chan string, 3)
 	for spi, spells := range spellOrders {
 		go doSimMetrics(spells, stats, equip, opt, seconds, numSims, statchan)
-		if tbc.IsDebug && spi != len(spellOrders)-1 {
+		if opt.Debug && spi != len(spellOrders)-1 {
 			time.Sleep(time.Second * 2)
 		}
 	}
@@ -280,7 +281,7 @@ func doSimMetrics(spo []string, stats tbc.Stats, equip tbc.Equipment, opt tbc.Op
 	for k, v := range histogram {
 		out += strconv.Itoa(k) + "," + strconv.Itoa(v) + "\n"
 	}
-	ioutil.WriteFile(strings.Join(spo, ""), []byte(out), 0666)
+	// ioutil.WriteFile(strings.Join(spo, ""), []byte(out), 0666)
 
 	totalDmg := 0.0
 	tdSq := totalDmg
