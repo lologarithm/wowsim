@@ -183,7 +183,7 @@ func getGear(val []byte) (tbc.Equipment, tbc.Options) {
 func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, customRotation []string, noopt bool) []string {
 	fmt.Printf("\nSim Duration: %d sec\nNum Simulations: %d\n", seconds, numSims)
 
-	stats := opt.StatTotal(equip)
+	stats := tbc.CalculateTotalStats(opt, equip)
 
 	spellOrders := [][]string{
 		{"CL6", "LB12", "LB12", "LB12"},
