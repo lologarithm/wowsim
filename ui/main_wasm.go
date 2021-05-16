@@ -82,7 +82,6 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 		if err != nil {
 			fmt.Printf("Failed to format JSON output: %s\n", err)
 		}
-		fmt.Printf("OUTSTR: '%s', STATS: %#v\n", string(out), gearStats)
 		return string(out)
 	}
 	opt := parseOptions(args[1])

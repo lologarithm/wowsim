@@ -279,7 +279,6 @@ function runsim(currentGear, fullLogs) {
     simulate(iters, 600, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, false, (out) => { 
         var stats = out[0];
         var max = stats.dps;
-        console.log("PRI Stats: ", stats);
         if (stats.dpsAtOOM > max) {
             max = stats.dpsAtOOM;
         }
@@ -518,7 +517,7 @@ function calcStatWeights(gear) {
                 if (weight < 0.01) {
                     weight = 0.0;
                 }
-                if (currentFinalStats["StatSpellHit"] > 202) {
+                if (currentFinalStats[3] > 202) {
                     weight = 0.0; // Just going to force 0 weight if you are hit capped.
                 }
 
@@ -554,8 +553,6 @@ function calcStatWeights(gear) {
         });
 
         if (done.length == 7) {
-            console.log("Mod DPS: ", modDPS);
-
             var oomed = true;
             modDPS.forEach((v) => {
                 if (v > 0) {
@@ -609,7 +606,8 @@ function calcStatWeights(gear) {
 function showGearRecommendations(weights) {
     var itemWeightsBySlot = {};
     var curSlotWeights = {};
-    var csdVal = (((currentFinalStats["StatSpellDmg"]*0.795)+603)*2 * (currentFinalStats["StatSpellCrit"]/2208) * 0.045) / 0.795;
+    // 4 == dmg, 2 == crit
+    var csdVal = (((currentFinalStats[4]*0.795)+603)*2 * (currentFinalStats[2]/2208) * 0.045) / 0.795;
     // process all items to find the weighted value.
     // find the value of each slots currently equipped item.
     Object.entries(gearUI.allitems).forEach((entry) => {
@@ -826,7 +824,6 @@ function popgear(gearList) {
         if (importVal.length > 0) {
             importVal = importVal.substr(1);
             if (importVal != currentHash) {
-                console.log("hash changed, importing new set.");
                 currentHash = importVal;
                 importGear(importVal);
             }
@@ -1167,7 +1164,7 @@ function exportGear(compressed) {
                 mergedArray.set(r, 4+val.length);
                 // var output = base2048.encode(mergedArray);
                 var output = btoa(String.fromCharCode(...mergedArray));
-                console.log(`JSON Size: ${enc.length}, Bin Size: ${mergedArray.length}, b2048: ${output.length}`);    
+                // console.log(`JSON Size: ${enc.length}, Bin Size: ${mergedArray.length}, b2048: ${output.length}`);    
                 // box.value = output;
                 if (currentHash != output) {
                     currentHash = output;
