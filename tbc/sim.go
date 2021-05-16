@@ -3,6 +3,7 @@ package tbc
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 )
 
 func debugFunc(sim *Simulation) func(string, ...interface{}) {
@@ -385,7 +386,9 @@ func (sim *Simulation) ActivateRacial() {
 	}
 }
 
-func (sim *Simulation) ActivateSets() {
+// Activates set bonuses, returning the list of active bonuses.
+func (sim *Simulation) ActivateSets() []string {
+	active := []string{}
 	// Activate Set Bonuses
 	for _, set := range sets {
 		itemCount := 0
@@ -393,11 +396,13 @@ func (sim *Simulation) ActivateSets() {
 			if set.Items[i.Name] {
 				itemCount++
 				if bonus, ok := set.Bonuses[itemCount]; ok {
+					active = append(active, set.Name+" ("+strconv.Itoa(itemCount)+"pc)")
 					sim.addAura(bonus(sim))
 				}
 			}
 		}
 	}
+	return active
 }
 
 // Spellcasting performs the core logic of the advancement of simulation state.

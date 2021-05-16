@@ -78,19 +78,31 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 	if args[1].IsNull() {
 		gearStats := gear.Stats()
 		gearStats = gearStats.CalculatedTotal()
-		return gearStats.Print(false)
+		out, err := json.Marshal(gearStats)
+		if err != nil {
+			fmt.Printf("Failed to format JSON output: %s\n", err)
+		}
+		fmt.Printf("OUTSTR: '%s', STATS: %#v\n", string(out), gearStats)
+		return string(out)
 	}
 	opt := parseOptions(args[1])
 	stats := tbc.CalculateTotalStats(opt, gear)
 	opt.UseAI = true // stupid complaining sim...maybe I should just default AI on.
 	fakesim := tbc.NewSim(stats, gear, opt)
-	fakesim.ActivateSets()
+	sets := fakesim.ActivateSets()
 
 	finalStats := stats
 	for i, v := range fakesim.Buffs {
 		finalStats[i] += v
 	}
-	return finalStats.Print(false)
+	out, err := json.Marshal(struct {
+		Stats []float64
+		Sets  []string
+	}{Stats: finalStats, Sets: sets})
+	if err != nil {
+		fmt.Printf("Failed to format JSON output: %s\n", err)
+	}
+	return string(out)
 }
 
 // Simulate takes in number of iterations, duration, a gear list, and simulation options.

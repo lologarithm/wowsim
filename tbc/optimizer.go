@@ -128,8 +128,6 @@ func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) Optima
 		}
 	}
 
-	fmt.Printf("All Red Gems Stats:\n%s\n\nMatched Sockets Stats:\n%s\n\n", CalculateTotalStats(opts, set1).Print(false), CalculateTotalStats(opts, set2).Print(false))
-
 	simdmg := 0.0
 	sim := NewSim(CalculateTotalStats(opts, set1), equip, opts)
 	simmet := make([]SimMetrics, 0, numSims)

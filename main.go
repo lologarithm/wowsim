@@ -197,7 +197,7 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 		spellOrders = [][]string{customRotation}
 	}
 
-	fmt.Printf("\nFinal Stats: %s\n", stats.Print(true))
+	fmt.Printf("\nFinal Stats: %s\n", stats.Print())
 	statchan := make(chan string, 3)
 	for spi, spells := range spellOrders {
 		go doSimMetrics(spells, stats, equip, opt, seconds, numSims, statchan)

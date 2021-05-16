@@ -867,6 +867,19 @@ function cleanGear(gear) {
 
 var currentFinalStats = {};
 
+var statToName = [
+    "StatInt",
+	"StatStm",
+	"StatSpellCrit",
+	"StatSpellHit",
+	"StatSpellDmg",
+	"StatHaste",
+	"StatMP5",
+	"StatMana",
+	"StatSpellPen",
+	"StatSpirit",
+    "StatLen",
+]
 // Updates the 'stats' pane in the viewport.
 function updateGearStats(gearlist) {
     
@@ -877,28 +890,31 @@ function updateGearStats(gearlist) {
 
     computeStats(cleanedGear, null, (result) => {
         for (const [key, value] of Object.entries(result)) {
-            var lab = document.getElementById(key.toLowerCase());
+            var lab = document.getElementById(statToName[key].toLowerCase());
             if (lab != null) {
-                lab.innerText = value;
+                lab.innerText = value.toFixed(0);
             }
         }
     });
 
     var opts = getOptions();
     computeStats(cleanedGear, opts, (result) => {
-        currentFinalStats = result;
-        for (const [key, value] of Object.entries(result)) {
-            var lab = document.getElementById("f"+key.toLowerCase());
-            if (key.toLowerCase() == "statspellcrit") {
-                lab.innerText = value.toString() + " ("  + (value/22.08).toFixed(1) + "%)";
-            } else if (key.toLowerCase() == "statspellhit") {
-                lab.innerText = value.toString() + " ("  + (value/12.6).toFixed(1) + "%)";
-            } else if (key.toLowerCase() == "statspellhaste") {
-                lab.innerText = value.toString() + " ("  + (value/15.76).toFixed(1) + "%)";
+        currentFinalStats = result.Stats;
+        var sets = result.Sets;
+        var setlist = document.getElementById("setlist");
+        setlist.innerHTML = sets.join("<br />");
+        for (const [key, value] of Object.entries(currentFinalStats)) {
+            var lab = document.getElementById("f"+statToName[key].toLowerCase());
+            if (key == 2) {
+                lab.innerText = value.toFixed(0).toString() + " ("  + (value/22.08).toFixed(1) + "%)";
+            } else if (key == 3) {
+                lab.innerText = value.toFixed(0).toString() + " ("  + (value/12.6).toFixed(1) + "%)";
+            } else if (key == 5) {
+                lab.innerText = value.toFixed(0).toString() + " ("  + (value/15.76).toFixed(1) + "%)";
             } else if (lab == null) {
                 // do nothing...
             } else {
-                lab.innerText = value;
+                lab.innerText = value.toFixed(0);
             }
         }    
     });

@@ -60,7 +60,33 @@ func (st Stats) Clone() Stats {
 	return ns
 }
 
-func (st Stats) Print(pretty bool) string {
+// func (st Stats) MarshalJSON() ([]byte, error) {
+// 	output := bytes.Buffer{}
+// 	output.WriteByte('{')
+// 	printed := false
+// 	for k, v := range st {
+// 		name := Stat(k).StatName()
+// 		if name == "none" {
+// 			continue
+// 		}
+// 		if printed {
+// 			printed = false
+// 			output.WriteByte(',')
+// 		}
+// 		if v < 50 {
+// 			printed = true
+// 			output.WriteString("\"" + name + "\": " + strconv.FormatFloat(v, 'f', 3, 64))
+// 		} else {
+// 			printed = true
+// 			output.WriteString("\"" + name + "\": " + strconv.FormatFloat(v, 'f', 0, 64))
+// 		}
+// 	}
+// 	output.WriteByte('}')
+// 	return output.Bytes(), nil
+// }
+
+// Print is debug print function
+func (st Stats) Print() string {
 	output := "{ "
 	printed := false
 	for k, v := range st {
@@ -70,14 +96,9 @@ func (st Stats) Print(pretty bool) string {
 		}
 		if printed {
 			printed = false
-			output += ","
-			if pretty {
-				output += "\n"
-			}
+			output += ",\n"
 		}
-		if pretty {
-			output += "\t"
-		}
+		output += "\t"
 		if v < 50 {
 			printed = true
 			output += "\"" + name + "\": " + strconv.FormatFloat(v, 'f', 3, 64)
