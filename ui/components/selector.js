@@ -417,6 +417,10 @@ class SelectorComponent {
         var div = document.createElement("div");
         div.classList.add("enchselectorlist")
         Object.entries(this.allgear.Enchants).filter((v) => {
+            // Specially handle finger enchants.
+            if (this.slot == "equipfinger1" || this.slot == "equipfinger2") {
+                return slotToID[v[1].Slot] == "equipfinger"
+            }
             return this.slot == slotToID[v[1].Slot]
         }).forEach((ench) => {
             var name = ench[1].Name;

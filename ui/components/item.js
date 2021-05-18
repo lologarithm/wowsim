@@ -166,7 +166,6 @@ class ItemComponent {
             // updates the selector UI with the current gems/enchants (later)
             this.selector.updateEquipped(newItem);
             this.socketComp.updateSockets(newItem.GemSlots, newItem.Gems);
-            // gemdiv.innerHTML += '<div class="enchslot" style="float: right;"></div>';
         } else {
             this.name.innerText = "None";
             this.img.src = "";
@@ -265,7 +264,11 @@ class SocketsComponent {
         var addedEnc = false;
         this.enchants.forEach((e)=>{
             if (addedEnc) { return; }
-            if (slotToID[e.Slot] == this.slot) {
+            var slot = this.slot;
+            if (slot == "equipfinger1" || slot == "equipfinger2") {
+                slot = "equipfinger";
+            }
+            if (slotToID[e.Slot] == slot) {
                 var enchdiv = document.createElement("div");
                 enchdiv.classList.add("enchslot");
                 enchdiv.addEventListener("click", (event)=>{
