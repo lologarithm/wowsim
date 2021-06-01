@@ -624,6 +624,7 @@ var items = []Item{
 	// {Slot: EquipWrist, Name: "Ravager's Bands of the Invoker", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 25, StatSpellCrit: 21}},
 	{ID: 28583, Slot: EquipHead, Name: "Big Bad Wolf's Head", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "The Big Bad Wolf", Stats: Stats{StatStm: 42, StatInt: 40, StatSpellDmg: 47, StatSpellCrit: 28}},
 	{ID: 32586, Slot: EquipShoulder, Name: "Bracers of Nimble Thought", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Tailoring", Stats: Stats{StatStm: 27, StatInt: 20, StatSpellDmg: 34, StatHaste: 28}},
+	{ID: 23049, Slot: EquipOffhand, Name: "Sapphiron's Left Eye", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Sapphiron", Stats: Stats{StatStm: 12, StatInt: 8, StatSpellDmg: 26, StatSpellCrit: 14, StatSpellHit: 8}},
 
 	{ID: 34336, Slot: EquipWeapon, Name: "Sunflare", Phase: 5, Quality: ItemQualityEpic, SourceZone: "SW", SourceDrop: "Kil'jaden",
 		Stats: Stats{StatStm: 17, StatInt: 20, StatSpellDmg: 292, StatHaste: 23, StatSpellCrit: 30}},
