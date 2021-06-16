@@ -270,7 +270,11 @@ func AuraLightningOverload(lvl int) Aura {
 			if c.IsLO {
 				return // can't proc LO on LO
 			}
-			if sim.rando.Float64() < chance {
+			actualChance := chance
+			if c.Spell.ID == MagicIDCL6 {
+				chance /= 3 // 33% chance of regular for CL LO
+			}
+			if sim.rando.Float64() < actualChance {
 				if sim.Debug != nil {
 					sim.Debug(" +Lightning Overload\n")
 				}

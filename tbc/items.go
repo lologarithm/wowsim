@@ -349,7 +349,7 @@ var items = []Item{
 	{ID: 31340, Slot: EquipChest, Name: "Will of Edward the Odd", Phase: 1, Quality: ItemQualityEpic, SourceZone: "BoE World Drop", SourceDrop: "", Stats: Stats{30, 0, 30, 0, 53, 0, 0}},
 	{ID: 29129, Slot: EquipChest, Name: "Anchorite's Robe", Phase: 1, Quality: ItemQualityEpic, SourceZone: "The Aldor - Honored", SourceDrop: "", Stats: Stats{38, 16, 0, 0, 29, 0, 18}, GemSlots: []GemColor{0x4, 0x4, 0x3}},
 	{ID: 28231, Slot: EquipChest, Name: "Tidefury Chestpiece", Phase: 1, Quality: ItemQualityRare, SourceZone: "Arc - Harbinger Skyriss", SourceDrop: "", Stats: Stats{22, 28, 0, 10, 36, 0, 4}, GemSlots: []GemColor{0x4, 0x4, 0x3}, SocketBonus: Stats{StatSpellDmg: 5}},
-	{ID: 29341, Slot: EquipChest, Name: "Auchenai Anchorite's Robe", Phase: 1, Quality: ItemQualityRare, SourceZone: "Everything Will Be Alright - AC Quest", SourceDrop: "", Stats: Stats{24, 0, 0, 23, 28, 0, 0}, GemSlots: []GemColor{0x2, 0x4, 0x4}, SocketBonus: Stats{StatSpellCrit: 4}},
+	{ID: 29341, Slot: EquipChest, Name: "Auchenai Anchorite's Robe", Phase: 1, Quality: ItemQualityRare, SourceZone: "Everything Will Be Alright - AC Quest", SourceDrop: "", Stats: Stats{StatInt: 24, StatSpellDmg: 28, StatSpellHit: 23}, GemSlots: []GemColor{0x2, 0x4, 0x4}, SocketBonus: Stats{StatSpellCrit: 4}},
 	{ID: 28191, Slot: EquipChest, Name: "Mana-Etched Vestments", Phase: 1, Quality: ItemQualityRare, SourceZone: "OHF - Epoch Hunter", SourceDrop: "", Stats: Stats{25, 25, 17, 0, 29, 0, 0}, GemSlots: []GemColor{0x2, 0x4, 0x3}, SocketBonus: Stats{StatSpellDmg: 5}},
 	{ID: 31297, Slot: EquipChest, Name: "Robe of the Crimson Order", Phase: 1, Quality: ItemQualityEpic, SourceZone: "BoE World Drop", SourceDrop: "", Stats: Stats{23, 0, 0, 30, 50, 0, 0}},
 	{ID: 28342, Slot: EquipChest, Name: "Warp Infused Drape", Phase: 1, Quality: ItemQualityRare, SourceZone: "Bot - Warp Splinter", SourceDrop: "", Stats: Stats{28, 27, 0, 12, 30, 0, 0}, GemSlots: []GemColor{0x2, 0x4, 0x3}, SocketBonus: Stats{}},
@@ -608,7 +608,7 @@ var items = []Item{
 	{ID: 27510, Slot: EquipHands, Name: "Tidefury Gauntlets", Phase: 1, Quality: ItemQualityRare, SourceZone: "", SourceDrop: "", Stats: Stats{StatStm: 22, StatInt: 26, StatSpellDmg: 29, StatMP5: 7}},
 	{ID: 22730, Slot: EquipWaist, Name: "Eyestalk Waist Cord", Phase: 0, Quality: ItemQualityEpic, SourceZone: "AQ40", SourceDrop: "C'thun", Stats: Stats{StatStm: 10, StatInt: 9, StatSpellDmg: 41, StatSpellCrit: 14}},
 	{ID: 23070, Slot: EquipLegs, Name: "Leggings of Polarity", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Thaddius", Stats: Stats{StatStm: 20, StatInt: 14, StatSpellDmg: 44, StatSpellCrit: 28}},
-	{ID: 21709, Slot: EquipFinger, Name: "Ring of the Fallen God", Phase: 0, Quality: ItemQualityEpic, SourceZone: "AQ40", SourceDrop: "C'thun", Stats: Stats{StatStm: 5, StatInt: 6, StatSpellDmg: 37, StatSpellCrit: 8}},
+	{ID: 21709, Slot: EquipFinger, Name: "Ring of the Fallen God", Phase: 0, Quality: ItemQualityEpic, SourceZone: "AQ40", SourceDrop: "C'thun", Stats: Stats{StatStm: 5, StatInt: 6, StatSpellDmg: 37, StatSpellHit: 8}},
 	{ID: 23031, Slot: EquipFinger, Name: "Band of the Inevitable", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Noth", Stats: Stats{StatSpellDmg: 36, StatSpellHit: 8}},
 	{ID: 23025, Slot: EquipFinger, Name: "Seal of the Damned", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "4H", Stats: Stats{StatStm: 17, StatSpellDmg: 21, StatSpellCrit: 14, StatSpellHit: 8}},
 	{ID: 23057, Slot: EquipNeck, Name: "Gem of Trapped Innocents", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "KT", Stats: Stats{StatStm: 9, StatInt: 7, StatSpellDmg: 15, StatSpellCrit: 28}},
@@ -616,15 +616,23 @@ var items = []Item{
 	{ID: 23664, Slot: EquipShoulder, Name: "Pauldrons of Elemental Fury", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Trash", Stats: Stats{StatStm: 19, StatInt: 21, StatSpellDmg: 26, StatSpellCrit: 14, StatSpellHit: 8}},
 	{ID: 23665, Slot: EquipLegs, Name: "Leggings of Elemental Fury", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Trash", Stats: Stats{StatStm: 26, StatInt: 27, StatSpellDmg: 32, StatSpellCrit: 28}},
 	{ID: 23050, Slot: EquipBack, Name: "Cloak of the Necropolis", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Sapp", Stats: Stats{StatStm: 12, StatInt: 11, StatSpellDmg: 26, StatSpellCrit: 14, StatSpellHit: 8}},
-	{ID: 30682, Slot: EquipFeet, Name: "Glider's Sabatons of Nature's Wrath", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 78}},
-	{ID: 30677, Slot: EquipWaist, Name: "Lurker's Belt of Nature's Wrath", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 78}},
-	{ID: 30686, Slot: EquipWrist, Name: "Ravager's Bands of Nature's Wrath", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 58}},
-	// {Slot: EquipFeet, Name: "Glider's Sabatons of the Invoker", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 33, StatSpellCrit: 28}},
-	// {Slot: EquipWaist, Name: "Lurker's Belt of the Invoker", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 33, StatSpellCrit: 28}},
-	// {Slot: EquipWrist, Name: "Ravager's Bands of the Invoker", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Beast Trash?", Stats: Stats{StatSpellDmg: 25, StatSpellCrit: 21}},
+	{ID: 30682, Slot: EquipFeet, Name: "Glider's Sabatons of Nature's Wrath", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Servants Quarter", Stats: Stats{StatSpellDmg: 78}},
+	{ID: 30677, Slot: EquipWaist, Name: "Lurker's Belt of Nature's Wrath", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Servants Quarter", Stats: Stats{StatSpellDmg: 78}},
+	{ID: 30686, Slot: EquipWrist, Name: "Ravager's Bands of Nature's Wrath", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Servants Quarter", Stats: Stats{StatSpellDmg: 58}},
+	// {Slot: EquipFeet, Name: "Glider's Sabatons of the Invoker", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Servants Quarter", Stats: Stats{StatSpellDmg: 33, StatSpellCrit: 28}},
+	// {Slot: EquipWaist, Name: "Lurker's Belt of the Invoker", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Servants Quarter", Stats: Stats{StatSpellDmg: 33, StatSpellCrit: 28}},
+	// {Slot: EquipWrist, Name: "Ravager's Bands of the Invoker", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Servants Quarter", Stats: Stats{StatSpellDmg: 25, StatSpellCrit: 21}},
 	{ID: 28583, Slot: EquipHead, Name: "Big Bad Wolf's Head", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "The Big Bad Wolf", Stats: Stats{StatStm: 42, StatInt: 40, StatSpellDmg: 47, StatSpellCrit: 28}},
 	{ID: 32586, Slot: EquipShoulder, Name: "Bracers of Nimble Thought", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Tailoring", Stats: Stats{StatStm: 27, StatInt: 20, StatSpellDmg: 34, StatHaste: 28}},
 	{ID: 23049, Slot: EquipOffhand, Name: "Sapphiron's Left Eye", Phase: 0, Quality: ItemQualityEpic, SourceZone: "Naxx", SourceDrop: "Sapphiron", Stats: Stats{StatStm: 12, StatInt: 8, StatSpellDmg: 26, StatSpellCrit: 14, StatSpellHit: 8}},
+	{ID: 25778, Slot: EquipWrist, Name: "Manacles of Rememberance", Phase: 1, Quality: ItemQualityUncommon, SourceZone: "Nagrand", SourceDrop: "Quest", Stats: Stats{StatSpirit: 9, StatInt: 10, StatSpellDmg: 16, StatSpellCrit: 14}},
+	{ID: 31283, Slot: EquipWaist, Name: "Sash of Sealed Fate", Phase: 1, Quality: ItemQualityRare, SourceZone: "World Drop", SourceDrop: "BoE", Stats: Stats{StatInt: 15, StatSpellDmg: 35, StatSpellCrit: 23}},
+	{ID: 30004, Slot: EquipFeet, Name: "Landing Boots", Phase: 1, Quality: ItemQualityUncommon, SourceZone: "Netherstorm", SourceDrop: "Quest", Stats: Stats{StatStm: 12, StatInt: 8, StatSpellDmg: 35, StatSpellCrit: 16}},
+	{ID: 31290, Slot: EquipFinger, Name: "Band of Dominion", Phase: 1, Quality: ItemQualityRare, SourceZone: "World Drop", SourceDrop: "BoE", Stats: Stats{StatSpellDmg: 28, StatSpellCrit: 21}},
+
+	// Sash of Sealed Fate - blue BoE
+	// Landing Boots - green from quest
+	// Band of Dominion - Blue BoE
 
 	{ID: 34336, Slot: EquipWeapon, Name: "Sunflare", Phase: 5, Quality: ItemQualityEpic, SourceZone: "SW", SourceDrop: "Kil'jaden",
 		Stats: Stats{StatStm: 17, StatInt: 20, StatSpellDmg: 292, StatHaste: 23, StatSpellCrit: 30}},
@@ -713,6 +721,7 @@ var items = []Item{
 	// {Slot:EquipTrinket, Name:"Vengeance of the Illidari", Phase: 1, Quality: ItemQualityEpic, SourceZone:"Cruel's Intentions/Overlord - HFP Quest", SourceDrop:"", Stats:Stats{0, 0, 26, 0, 0, 0, 0} }
 	{ID: 32330, Slot: EquipTotem, Name: "Totem of Ancestral Guidance", Phase: 3, Quality: ItemQualityRare, SourceZone: "BT", SourceDrop: "", Stats: Stats{StatSpellDmg: 85}},
 	{ID: 33506, Slot: EquipTotem, Name: "Skycall Totem", Phase: 4, Quality: ItemQualityEpic, SourceZone: "Geras", SourceDrop: "20 Badges", Stats: Stats{}, Activate: ActivateSkycall, ActivateCD: -1}, // -1 will trigger an activation only once
+	{ID: 32086, Slot: EquipHead, Name: "Storm Master's Helmet", Phase: 1, Quality: ItemQualityRare, SourceZone: "Geras", SourceDrop: "50 Badges", Stats: Stats{StatStm: 24, StatInt: 32, StatSpellCrit: 24, StatSpellDmg: 37}, GemSlots: []GemColor{GemColorMeta, GemColorBlue}, SocketBonus: Stats{StatSpellCrit: 4}},
 }
 
 type ItemSet struct {
