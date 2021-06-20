@@ -148,11 +148,13 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	stdev := math.Sqrt(meanSq - mean*mean)
 	fmt.Printf("(Mod: %s) Mean: %0.1f, Stddev: %0.1f\n", tbc.Stat(stat).StatName(), mean, stdev)
 
+	conf90 := 1.645 * stdev / math.Sqrt(float64(numSims))
+
 	if float64(oomcount)/float64(numSims) > 0.25 {
-		return -1
+		fmt.Printf("Many oom, invalid stat weights may be seen.")
+		return fmt.Sprintf("%0.2f,%0.2f,%0.2f", mean, stdev, conf90)
 	}
 
-	conf90 := 1.645 * stdev / math.Sqrt(float64(numSims))
 	return fmt.Sprintf("%0.2f,%0.2f,%0.2f", mean, stdev, conf90)
 }
 

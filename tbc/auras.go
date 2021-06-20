@@ -272,7 +272,7 @@ func AuraLightningOverload(lvl int) Aura {
 			}
 			actualChance := chance
 			if c.Spell.ID == MagicIDCL6 {
-				chance /= 3 // 33% chance of regular for CL LO
+				actualChance /= 3 // 33% chance of regular for CL LO
 			}
 			if sim.rando.Float64() < actualChance {
 				if sim.Debug != nil {
