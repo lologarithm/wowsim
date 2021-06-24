@@ -51,6 +51,7 @@ var Enchants = []Enchant{
 	{ID: 29191, Name: "Glyph of Power", Bonus: Stats{StatSpellDmg: 22, StatSpellHit: 14}, Slot: EquipHead},
 	{ID: 28909, Name: "Greater Inscription of the Orb", Bonus: Stats{StatSpellDmg: 12, StatSpellCrit: 15}, Slot: EquipShoulder},
 	{ID: 28886, Name: "Greater Inscription of Discipline", Bonus: Stats{StatSpellDmg: 18, StatSpellCrit: 10}, Slot: EquipShoulder},
+	{ID: 24421, Name: "Zandalar Signet of Mojo", Bonus: Stats{StatSpellDmg: 18}, Slot: EquipShoulder},
 	{ID: 23545, Name: "Power of the Scourge", Bonus: Stats{StatSpellDmg: 15, StatSpellCrit: 14}, Slot: EquipShoulder},
 	{ID: 27960, Name: "Chest - Exceptional Stats", Bonus: Stats{StatStm: 6, StatInt: 6, StatSpirit: 6}, Slot: EquipChest},
 	{ID: 27917, Name: "Bracer - Spellpower", Bonus: Stats{StatSpellDmg: 15}, Slot: EquipWrist},
