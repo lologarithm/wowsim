@@ -21,6 +21,8 @@ class SelectorComponent {
     slot;
     filterLevel;
     phase;
+    currentItem;
+    activeTab;
 
     highlighted; // currently highlighted item
     highText; // text of highlighted item
@@ -37,6 +39,7 @@ class SelectorComponent {
         this.changeHandlers = [];
         this.items = [];
         this.slot = slot;
+        this.currentItem = null;
         this.sockComp = new SocketsComponent(slot, []);
         this.gemsList = document.createElement("div");
         this.sockComp.addSelectListener((socket)=>{
@@ -67,7 +70,16 @@ class SelectorComponent {
 
         var clearbutton = document.createElement("button");
         clearbutton.innerText = "Remove";
-        clearbutton.addEventListener("click", (e) => {this.notifyItemChange("None")});
+        clearbutton.addEventListener("click", (e) => {
+            if (this.activeTab == "gem") {
+                this.notifyGemChange("none", -1);
+                return;
+            } else if (this.activeTab == "enchant") {
+                this.notifyEnchantChange("none");
+                return;
+            }
+            this.notifyItemChange("None")
+        });
     
         var itemselector = document.createElement("div");
         var selectorlist = document.createElement("div");
@@ -134,11 +146,17 @@ class SelectorComponent {
 
     // Updates the socket selector UI
     updateEquipped(item) {
+        if (this.slot == "equipoffhand") { // todo: separate 1h/2h enchants here too
+            var enchantlist = this.enchantList(item);
+            this.enchselector.replaceChild(enchantlist, this.enchselector.firstChild);    
+        }
+
         if (item.GemSlots == null || item.GemSlots.length == 0) {
             return;
         }
 
         this.sockComp.updateSockets(item.GemSlots, item.Gems);
+        this.currentItem = item;
     }
 
     // Adds a new item that can be searched.
@@ -161,6 +179,7 @@ class SelectorComponent {
     }
 
     focus(tab, subitem) {
+        this.activeTab = tab;
         if (tab == "item") {
             this.tab1.classList.add("selactive");
             this.tab2.classList.remove("selactive");
@@ -413,13 +432,16 @@ class SelectorComponent {
         this.clearSearch();
     }
 
-    enchantList(enchants) {
+    enchantList(item) {
         var div = document.createElement("div");
         div.classList.add("enchselectorlist")
         Object.entries(this.allgear.Enchants).filter((v) => {
             // Specially handle finger enchants.
             if (this.slot == "equipfinger1" || this.slot == "equipfinger2") {
                 return slotToID[v[1].Slot] == "equipfinger"
+            }
+            if (this.slot == "equipoffhand" && (item == null || item.subSlot != 1)) {
+                return false; // only allow offhand shields to be enchanted.
             }
             return this.slot == slotToID[v[1].Slot]
         }).forEach((ench) => {

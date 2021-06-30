@@ -251,7 +251,14 @@ class SocketsComponent {
                     if (gems[idx].Name != null) {
                         var img = document.createElement("img")
                         img.src = gemToIcon[gems[idx].Color]
-                        img.title = gems[idx].Name;
+                        var text = gems[idx].Name;
+                        gems[idx].Stats.forEach((v,i)=>{
+                            if (v > 0) {
+                                text += `\n${statnames[i]}: ${v.toString()}`;
+                            }
+                        });
+                        img.title = text;
+
                         if (img.src != undefined) {
                             socketDiv.appendChild(img);
                         }

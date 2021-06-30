@@ -85,10 +85,22 @@ class GearUI {
                             this.currentGear[slot].Gems.push({})
                         });
                     }
-                    this.currentGear[slot].Gems[change.gem.socket] = this.allgems[change.gem.name];
+                    if (change.gem.socket == -1) {
+                        // all sockets
+                        if (change.gem.name == "none") {
+                            this.currentGear[slot].Gems = null;
+                        }
+                        // TODO: set all slots to a real gem
+                    } else {
+                        this.currentGear[slot].Gems[change.gem.socket] = this.allgems[change.gem.name];
+                    }
                     itemComp.updateEquipped(this.currentGear[slot]);
                 } else if (change.enchant != null) {
-                    this.currentGear[slot].Enchant = this.allenchants[change.enchant.name];
+                    if (change.enchant == "none") {
+                        this.currentGear[slot].Enchant == null;
+                    } else {
+                        this.currentGear[slot].Enchant = this.allenchants[change.enchant.name];
+                    }
                     itemComp.updateEquipped(this.currentGear[slot]);
                 }
 

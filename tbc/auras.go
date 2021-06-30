@@ -157,6 +157,11 @@ func AuraName(a int32) string {
 		return "Skyshatter 2pc Set Bonus"
 	case MagicIDSkyshatter4pc:
 		return "Skyshatter 4pc Set Bonus"
+	case MagicIDEssMartyrTrink:
+		return "Essence of the Martyr Trinket"
+	case MagicIDEssSappTrink:
+		return "Restrained Essence of Sapphiron Trinket"
+
 	}
 
 	return "<<TODO: Add Aura name to switch!!>>"
@@ -243,9 +248,12 @@ const (
 	MagicIDHexTrink
 	MagicIDShiftingNaaruTrink
 	MagicIDSkullGuldanTrink
+	MagicIDEssMartyrTrink
+	MagicIDEssSappTrink
 )
 
 func AuraJudgementOfWisdom() Aura {
+	const mana = 74 / 2 // 50% proc
 	return Aura{
 		ID:      MagicIDJoW,
 		Expires: math.MaxInt32,
@@ -253,7 +261,7 @@ func AuraJudgementOfWisdom() Aura {
 			if sim.Debug != nil {
 				sim.Debug(" +Judgement Of Wisdom: 74 mana\n")
 			}
-			sim.CurrentMana += 74
+			sim.CurrentMana += mana
 		},
 	}
 }
