@@ -96,8 +96,8 @@ class GearUI {
                     }
                     itemComp.updateEquipped(this.currentGear[slot]);
                 } else if (change.enchant != null) {
-                    if (change.enchant == "none") {
-                        this.currentGear[slot].Enchant == null;
+                    if (change.enchant.name == "none") {
+                        this.currentGear[slot].Enchant == null; // probably don't need the explicit check here since the below map lookup will also return null... but I like to be explicit.
                     } else {
                         this.currentGear[slot].Enchant = this.allenchants[change.enchant.name];
                     }
