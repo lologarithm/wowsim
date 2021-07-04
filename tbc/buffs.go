@@ -19,6 +19,8 @@ type Options struct {
 	Talents  Talents
 	Totems   Totems
 
+	DPSReportTime int // how many seconds to calculate DPS for.
+
 	Debug bool // enables debug printing.
 	// TODO: could change this to be a func/stream consumer could provide,
 	// make it easier to integrate into different output systems.

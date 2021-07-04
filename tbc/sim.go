@@ -47,12 +47,13 @@ type Simulation struct {
 }
 
 type SimMetrics struct {
-	TotalDamage float64
-	DamageAtOOM float64
-	OOMAt       int
-	Casts       []*Cast
-	ManaAtEnd   int
-	Rotation    []string
+	TotalDamage    float64
+	ReportedDamage float64 // used when DPSReportTime is set
+	DamageAtOOM    float64
+	OOMAt          int
+	Casts          []*Cast
+	ManaAtEnd      int
+	Rotation       []string
 }
 
 // New sim contructs a simulator with the given stats / equipment / options.
@@ -340,6 +341,9 @@ func (sim *Simulation) Cast(cast *Cast) {
 			}
 		}
 		sim.metrics.TotalDamage += cast.DidDmg
+		if sim.Options.DPSReportTime > 0 && sim.CurrentTick/TicksPerSecond <= sim.Options.DPSReportTime {
+			sim.metrics.ReportedDamage += cast.DidDmg
+		}
 	} else {
 		if sim.Debug != nil {
 			dbgCast += " miss"

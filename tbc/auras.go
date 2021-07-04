@@ -460,8 +460,8 @@ func ActivateBloodlust(sim *Simulation) Aura {
 		Expires: sim.CurrentTick + dur,
 		OnCast: func(sim *Simulation, c *Cast) {
 			c.CastTime /= 1.3 // 30% faster.
-			if c.CastTime < 1.0 {
-				c.CastTime = 1.0 // can't cast faster than 1/sec even with max haste.
+			if c.CastTime < 0.75 {
+				c.CastTime = 0.75 // can't cast faster than 0.75s
 			}
 			c.TicksUntilCast = int(c.CastTime*float64(TicksPerSecond)) + 1
 		},

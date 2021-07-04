@@ -155,6 +155,8 @@ function getOptions() {
     options.custom.custmp5 = parseInt(document.getElementById("custmp5").value) || 0;
     options.custom.custmana = parseInt(document.getElementById("custmana").value) || 0;
     
+    options.dpsReportTime = 0;
+
     return options;
 }
 
@@ -275,7 +277,7 @@ function runsim(currentGear, fullLogs) {
 
     var firstOpts = getOptions();
     firstOpts.exitoom = true;
-
+    firstOpts.dpsReportTime = 30; // report dps for 30 seconds only.
     simulate(iters, 600, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, false, (out) => { 
         var stats = out[0];
         var max = stats.dps;
@@ -293,8 +295,9 @@ function runsim(currentGear, fullLogs) {
         } else {
             oomat = Math.round(oomat);
         }
-        priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(max)}</text> dps<br /><text style="font-size:0.7em">${oomat}s to oom at peak dps.</text></div>`
+        priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(max)}</text> dps<br /><text style="font-size:0.7em">${oomat}s to oom using CL on CD.</text></div>`
     });
+    firstOpts.dpsReportTime = 0; // reset dps report time.
     simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0,false, (out) => {
         var stats = out[0];
         var ttoom = stats.oomat;

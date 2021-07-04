@@ -317,6 +317,7 @@ func parseOptions(val js.Value) tbc.Options {
 			Cyclone2PC:   val.Get("totcycl2p").Truthy(),
 			ManaStream:   val.Get("totms").Truthy(),
 		},
+		DPSReportTime: val.Get("dpsReportTime").Int(),
 	}
 
 	return opt
@@ -398,6 +399,9 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 			}
 			metrics := sim.Run(simsec)
 			dps := metrics.TotalDamage / float64(simsec)
+			if opts.DPSReportTime > 0 {
+				dps = metrics.ReportedDamage / float64(opts.DPSReportTime)
+			}
 			totalSq += dps * dps
 			simMetrics.DPSAvg += dps
 			dpsRounded := int(math.Round(dps/10) * 10)
