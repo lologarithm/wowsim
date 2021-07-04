@@ -44,6 +44,8 @@ type Simulation struct {
 	endTick     int
 
 	Debug func(string, ...interface{})
+
+	cpool *castPool
 }
 
 type SimMetrics struct {
@@ -94,6 +96,7 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		rando:         rand.New(rand.NewSource(options.RSeed)),
 		Debug:         nil,
 		SpellChooser:  ChooseSpell,
+		cpool:         &castPool{casts: make([]Cast, 1000)},
 	}
 
 	if options.UseAI {
@@ -132,7 +135,9 @@ func (sim *Simulation) reset() {
 	sim.Buffs = Stats{StatLen: 0}
 	sim.CDs = map[int32]int{}
 	sim.Auras = []Aura{}
-	sim.metrics = SimMetrics{}
+	sim.metrics = SimMetrics{
+		Casts: make([]*Cast, 0, 1000),
+	}
 
 	if sim.Debug != nil {
 		sim.Debug("SIM RESET\n")
