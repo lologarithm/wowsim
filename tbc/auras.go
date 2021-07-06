@@ -259,7 +259,7 @@ func AuraJudgementOfWisdom() Aura {
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
 			if sim.Debug != nil {
-				sim.Debug(" +Judgement Of Wisdom: 74 mana\n")
+				sim.Debug(" +Judgement Of Wisdom: 37 mana (74 @ 50% proc)\n")
 			}
 			sim.CurrentMana += mana
 		},
