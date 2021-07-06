@@ -273,29 +273,19 @@ function runsim(currentGear, fullLogs) {
     priout.innerHTML = metricHTML;
     aiout.innerHTML = metricHTML;
 
-    var veryMax = 0.0;
-
     var firstOpts = getOptions();
     firstOpts.exitoom = true;
     firstOpts.dpsReportTime = 30; // report dps for 30 seconds only.
     simulate(iters, 600, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, false, (out) => { 
         var stats = out[0];
-        var max = stats.dps;
-        if (stats.dpsAtOOM > max) {
-            max = stats.dpsAtOOM;
-        }
-        if (max > veryMax) {
-            veryMax = max;
-        } else {
-            max = veryMax;
-        }
+        var dps = Math.max(stats.dps, stats.dpsAtOOM);
         var oomat = stats.oomat;
         if (oomat == 0) {
             oomat = ">600"
         } else {
             oomat = Math.round(oomat);
         }
-        priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(max)}</text> dps<br /><text style="font-size:0.7em">${oomat}s to oom using CL on CD.</text></div>`
+        priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(dps)}</text> dps<br /><text style="font-size:0.7em">${oomat}s to oom using CL on CD.</text></div>`
     });
     firstOpts.dpsReportTime = 0; // reset dps report time.
     simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0,false, (out) => {
@@ -339,14 +329,6 @@ function runsim(currentGear, fullLogs) {
         var chartcanvas = document.createElement("canvas");
         var rotout = document.getElementById("rotout");
         var bounds = rotout.getBoundingClientRect();
-
-        // Dirty hack in case the prio casting runs out of mana after BL is done but the average case has enough mana to burn priority casting.
-        if (stats.dps > veryMax) {
-            if (priout.childNodes.length > 0) {
-                priout.childNodes[0].childNodes[1].innerText = Math.round(stats.dps);
-            }
-            veryMax = stats.dps;
-        }
 
         var rotchart = document.getElementById("rotchart");
         rotchart.innerHTML = "";
