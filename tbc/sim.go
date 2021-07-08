@@ -32,8 +32,8 @@ type Simulation struct {
 	CastingSpell *Cast
 
 	// timeToRegen := 0
-	CDs   map[int32]int // Map of MagicID to ticks until CD is done. 'Advance' counts down these
-	Auras []Aura        // this is array instaed of map to speed up browser perf.
+	CDs   []int  // Map of MagicID to ticks until CD is done. 'Advance' counts down these
+	Auras []Aura // this is array instaed of map to speed up browser perf.
 
 	// Clears and regenerates on each Run call.
 	metrics SimMetrics
@@ -88,7 +88,7 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		Stats:         stats,
 		SpellRotation: rot,
 		Options:       options,
-		CDs:           map[int32]int{},
+		CDs:           make([]int, MagicIDLen),
 		Buffs:         Stats{StatLen: 0},
 		Auras:         []Aura{},
 		Equip:         equip,
@@ -128,12 +128,13 @@ func (sim *Simulation) reset() {
 	// sim.rseed++
 	// sim.rando.Seed(sim.rseed)
 
+	sim.destructionPotion = false
 	sim.bloodlustCasts = 0
 	sim.CurrentTick = 0
 	sim.CurrentMana = sim.Stats[StatMana]
 	sim.CastingSpell = nil
 	sim.Buffs = Stats{StatLen: 0}
-	sim.CDs = map[int32]int{}
+	sim.CDs = make([]int, MagicIDLen)
 	sim.Auras = []Aura{}
 	sim.metrics = SimMetrics{
 		Casts: make([]*Cast, 0, 1000),
@@ -531,9 +532,9 @@ func (sim *Simulation) Advance(tickID int, ticks int) {
 	// CDS
 	for k := range sim.CDs {
 		sim.CDs[k] -= ticks
-		if sim.CDs[k] < 1 {
-			delete(sim.CDs, k)
-		}
+		// if sim.CDs[k] < 1 {
+		// 	delete(sim.CDs, k)
+		// }
 	}
 
 	todel := []int{}

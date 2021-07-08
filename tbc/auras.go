@@ -250,6 +250,9 @@ const (
 	MagicIDSkullGuldanTrink
 	MagicIDEssMartyrTrink
 	MagicIDEssSappTrink
+
+	// Always at end so we know how many magic IDs there are.
+	MagicIDLen
 )
 
 func AuraJudgementOfWisdom() Aura {
@@ -259,7 +262,7 @@ func AuraJudgementOfWisdom() Aura {
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
 			if sim.Debug != nil {
-				sim.Debug(" +Judgement Of Wisdom: 74 mana\n")
+				sim.Debug(" +Judgement Of Wisdom: 37 mana\n")
 			}
 			sim.CurrentMana += mana
 		},
