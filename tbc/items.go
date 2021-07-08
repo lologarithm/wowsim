@@ -736,6 +736,7 @@ var items = []Item{
 	{ID: 32330, Slot: EquipTotem, Name: "Totem of Ancestral Guidance", Phase: 3, Quality: ItemQualityRare, SourceZone: "BT", SourceDrop: "", Stats: Stats{StatSpellDmg: 85}},
 	{ID: 33506, Slot: EquipTotem, Name: "Skycall Totem", Phase: 4, Quality: ItemQualityEpic, SourceZone: "Geras", SourceDrop: "20 Badges", Stats: Stats{}, Activate: ActivateSkycall, ActivateCD: -1}, // -1 will trigger an activation only once
 	{ID: 32086, Slot: EquipHead, Name: "Storm Master's Helmet", Phase: 1, Quality: ItemQualityRare, SourceZone: "Geras", SourceDrop: "50 Badges", Stats: Stats{StatStm: 24, StatInt: 32, StatSpellCrit: 24, StatSpellDmg: 37}, GemSlots: []GemColor{GemColorMeta, GemColorBlue}, SocketBonus: Stats{StatSpellCrit: 4}},
+	{ID: 28602, Slot: EquipChest, Name: "Robe of the Elder Scribes", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Karazhan", SourceDrop: "Nightbane", Stats: Stats{StatStm: 27, StatInt: 29, StatSpirit: 24, StatSpellDmg: 32, StatSpellCrit: 24}, Activate: ActivateElderScribes, ActivateCD: -1},
 }
 
 type ItemSet struct {
