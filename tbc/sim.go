@@ -125,6 +125,7 @@ func (sim *Simulation) reset() {
 	// sim.rseed++
 	// sim.rando.Seed(sim.rseed)
 
+	sim.destructionPotion = false
 	sim.bloodlustCasts = 0
 	sim.CurrentTick = 0
 	sim.CurrentMana = sim.Stats[StatMana]
