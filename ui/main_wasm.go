@@ -318,6 +318,7 @@ func parseOptions(val js.Value) tbc.Options {
 			ManaStream:   val.Get("totms").Truthy(),
 		},
 		DPSReportTime: val.Get("dpsReportTime").Int(),
+		GCD:           val.Get("gcd").Float(),
 	}
 
 	return opt
