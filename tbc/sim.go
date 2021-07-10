@@ -2,7 +2,6 @@ package tbc
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"strconv"
 )
@@ -45,8 +44,6 @@ type Simulation struct {
 	endTick     int
 
 	Debug func(string, ...interface{})
-
-	cpool *castPool
 }
 
 type SimMetrics struct {
@@ -70,7 +67,6 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 	if options.GCD == 0 {
 		options.GCD = 0.75 // default to 0.75s GCD
 	}
-	log.Printf("GCD: %#v", options.GCD)
 	rotIdx := 0
 	var rot []*Spell
 	if !options.UseAI {
@@ -101,7 +97,6 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		rando:         rand.New(rand.NewSource(options.RSeed)),
 		Debug:         nil,
 		SpellChooser:  ChooseSpell,
-		cpool:         &castPool{casts: make([]Cast, 1000)},
 	}
 
 	if options.UseAI {

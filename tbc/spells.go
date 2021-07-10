@@ -26,27 +26,15 @@ type Cast struct {
 	Effects []AuraEffect // effects applied ONLY to this cast.
 }
 
-type castPool struct {
-	casts []Cast
-}
-
-func (cp *castPool) NewCast() *Cast {
-	if len(cp.casts) == 0 {
-		cp.casts = make([]Cast, 1000)
-	}
-	c := &cp.casts[len(cp.casts)-1]
-	cp.casts = cp.casts[:len(cp.casts)-1]
-	return c
-}
-
 // NewCast constructs a Cast from the current simulation and selected spell.
 //  OnCast mechanics are applied at this time (anything that modifies the cast before its cast, usually just mana cost stuff)
 func NewCast(sim *Simulation, sp *Spell) *Cast {
-	cast := sim.cpool.NewCast()
-	cast.Spell = sp
-	cast.ManaCost = float64(sp.Mana)
-	cast.Spellpower = 0 // TODO: type specific bonuses..
-	cast.CritBonus = 1.5
+	cast := &Cast{
+		Spell:      sp,
+		ManaCost:   float64(sp.Mana),
+		Spellpower: 0,
+		CritBonus:  1.5,
+	}
 
 	castTime := sp.CastTime
 	itsElectric := sp.ID == MagicIDLB12 || sp.ID == MagicIDCL6
