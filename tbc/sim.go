@@ -531,10 +531,7 @@ func (sim *Simulation) Advance(tickID int, ticks int) {
 
 	// CDS
 	for k := range sim.CDs {
-		sim.CDs[k] -= ticks
-		// if sim.CDs[k] < 1 {
-		// 	delete(sim.CDs, k)
-		// }
+		sim.CDs[k] -= ticks // CDs will go negative with this but that is OK
 	}
 
 	todel := []int{}
