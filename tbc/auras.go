@@ -229,6 +229,8 @@ const (
 	MagicIDCataclysm4pc     // cyclone 4pc aura
 	MagicIDSkyshatter2pc    // skyshatter 2pc aura
 	MagicIDSkyshatter4pc    // skyshatter 4pc aura
+	MagicIDElderScribe      // elder scribe robe item aura
+	MagicIDElderScribeProc  // elder scribe robe temp buff
 
 	//Items
 	MagicIDISCTrink
@@ -262,7 +264,7 @@ func AuraJudgementOfWisdom() Aura {
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
 			if sim.Debug != nil {
-				sim.Debug(" +Judgement Of Wisdom: 37 mana\n")
+				sim.Debug(" +Judgement Of Wisdom: 37 mana (74 @ 50% proc)\n")
 			}
 			sim.CurrentMana += mana
 		},
@@ -463,8 +465,8 @@ func ActivateBloodlust(sim *Simulation) Aura {
 		Expires: sim.CurrentTick + dur,
 		OnCast: func(sim *Simulation, c *Cast) {
 			c.CastTime /= 1.3 // 30% faster.
-			if c.CastTime < 0.75 {
-				c.CastTime = 0.75 // can't cast faster than 0.75s
+			if c.CastTime < sim.Options.GCD {
+				c.CastTime = sim.Options.GCD // can't cast faster than GCD
 			}
 			c.TicksUntilCast = int(c.CastTime*float64(TicksPerSecond)) + 1
 		},
@@ -776,6 +778,27 @@ func ActivateEyeOfMag(sim *Simulation) Aura {
 					active = false
 				},
 			})
+		},
+	}
+}
+
+func ActivateElderScribes(sim *Simulation) Aura {
+	// Gives a chance when your harmful spells land to increase the damage of your spells and effects by up to 130 for 10 sec. (Proc chance: 20%, 50s cooldown)
+	lastActivation := math.MinInt32
+	internalCD := 50 * TicksPerSecond
+	const spellBonus = 130.0
+	const dur = 10.0
+	const proc = 0.2
+	return Aura{
+		ID:      MagicIDElderScribe,
+		Expires: math.MaxInt32,
+		OnSpellHit: func(sim *Simulation, c *Cast) {
+			// This code is starting to look a lot like other ICD buff items. Perhaps we could DRY this out.
+			if lastActivation+internalCD < sim.CurrentTick && sim.rando.Float64() < proc {
+				sim.Buffs[StatSpellDmg] += spellBonus
+				sim.addAura(AuraStatRemoval(sim.CurrentTick, dur, spellBonus, StatSpellDmg, MagicIDElderScribeProc))
+				lastActivation = sim.CurrentTick
+			}
 		},
 	}
 }

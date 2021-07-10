@@ -2,6 +2,7 @@ package tbc
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"strconv"
 )
@@ -66,6 +67,10 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		fmt.Printf("[ERROR] No rotation given to sim.\n")
 		return nil
 	}
+	if options.GCD == 0 {
+		options.GCD = 0.75 // default to 0.75s GCD
+	}
+	log.Printf("GCD: %#v", options.GCD)
 	rotIdx := 0
 	var rot []*Spell
 	if !options.UseAI {
