@@ -252,6 +252,9 @@ const (
 	MagicIDSkullGuldanTrink
 	MagicIDEssMartyrTrink
 	MagicIDEssSappTrink
+
+	// Always at end so we know how many magic IDs there are.
+	MagicIDLen
 )
 
 func AuraJudgementOfWisdom() Aura {
@@ -462,8 +465,8 @@ func ActivateBloodlust(sim *Simulation) Aura {
 		Expires: sim.CurrentTick + dur,
 		OnCast: func(sim *Simulation, c *Cast) {
 			c.CastTime /= 1.3 // 30% faster.
-			if c.CastTime < 0.75 {
-				c.CastTime = 0.75 // can't cast faster than 0.75s
+			if c.CastTime < sim.Options.GCD {
+				c.CastTime = sim.Options.GCD // can't cast faster than GCD
 			}
 			c.TicksUntilCast = int(c.CastTime*float64(TicksPerSecond)) + 1
 		},

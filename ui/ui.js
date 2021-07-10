@@ -156,6 +156,7 @@ function getOptions() {
     options.custom.custmana = parseInt(document.getElementById("custmana").value) || 0;
     
     options.dpsReportTime = 0;
+    options.gcd = parseFloat(document.getElementById("custgcd").value) || 0;
 
     return options;
 }
@@ -275,6 +276,16 @@ function runsim(currentGear, fullLogs) {
 
     var firstOpts = getOptions();
     firstOpts.exitoom = true;
+    simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0,false, (out) => {
+        var stats = out[0];
+        var ttoom = stats.oomat;
+        if (ttoom == 0) {
+            ttoom = ">600";
+        } else {
+            ttoom = Math.round(ttoom);
+        }
+        lbout.innerHTML = `<div><h3>Mana</h3><text class="simnums">${ttoom}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(stats.dps)} DPS</text></div>`
+    });
     firstOpts.dpsReportTime = 30; // report dps for 30 seconds only.
     simulate(iters, 600, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, false, (out) => { 
         var stats = out[0];
@@ -287,21 +298,14 @@ function runsim(currentGear, fullLogs) {
         }
         priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(dps)}</text> dps<br /><text style="font-size:0.7em">${oomat}s to oom using CL on CD.</text></div>`
     });
-    firstOpts.dpsReportTime = 0; // reset dps report time.
-    simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0,false, (out) => {
-        var stats = out[0];
-        var ttoom = stats.oomat;
-        if (ttoom == 0) {
-            ttoom = ">600";
-        } else {
-            ttoom = Math.round(ttoom);
-        }
-        lbout.innerHTML = `<div><h3>Mana</h3><text class="simnums">${ttoom}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(stats.dps)} DPS</text></div>`
-    });
+
 
     var secondOpts = getOptions();
     secondOpts.useai = true;
+    var start = new Date();
     simulate(iters, dur, currentGear, secondOpts, null, 0, false, (out) => { 
+        var end = new Date();
+        console.log(`The sim took ${end - start} ms`);
         var stats = out[0];
         console.log("AI Stats: ", stats);
         aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> +/- ${Math.round(stats.dev)} dps<br /></div>`
