@@ -459,7 +459,7 @@ var items = []Item{
 	{ID: 28346, Slot: EquipOffhand, Name: "Gladiator's Endgame", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Arena Season 1 Reward", SourceDrop: "", Stats: Stats{14, 21, 0, 0, 19, 0, 0}},
 	{ID: 24557, Slot: EquipWeapon, Name: "Gladiator's War Staff", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Arena Season 1 Reward", SourceDrop: "", Stats: Stats{35, 48, 36, 21, 199, 0, 0}},
 
-	{ID: 29389, Slot: EquipTotem, Name: "Totem of the Pulsing Earth", Phase: 1, Quality: ItemQualityRare, SourceZone: "15 Badge of Justice - G'eras", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}, Activate: ActivateTotemOfPulsingEarth, ActivateCD: -1},
+	{ID: 29389, Slot: EquipTotem, Name: "Totem of the Pulsing Earth", Phase: 1, Quality: ItemQualityEpic, SourceZone: "15 Badge of Justice - G'eras", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}, Activate: ActivateTotemOfPulsingEarth, ActivateCD: -1},
 	// {Slot: EquipTotem, Name: "Totem of Impact", Phase: 1, Quality: ItemQualityRare, SourceZone: "15 Mark of Thrallmar/ Honor Hold", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
 	// {Slot: EquipTotem, Name: "Totem of Lightning", Phase: 1, Quality: ItemQualityRare, SourceZone: "Colossal Menace - HFP Quest", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
 
