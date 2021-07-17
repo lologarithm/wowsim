@@ -811,8 +811,10 @@ func ActivateTotemOfPulsingEarth(sim *Simulation) Aura {
 		ID:      MagicIDTotemOfPulsingEarth,
 		Expires: math.MaxInt32,
 		OnCast: func(sim *Simulation, c *Cast) {
-			// TODO: how to make sure this goes in before clearcasting?
-			c.ManaCost -= 27
+			if c.Spell.ID == MagicIDLB12 {
+				// TODO: how to make sure this goes in before clearcasting?
+				c.ManaCost -= 27
+			}
 		},
 	}
 }
