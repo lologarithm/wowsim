@@ -186,10 +186,10 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 	stats := tbc.CalculateTotalStats(opt, equip)
 
 	spellOrders := [][]string{
-		{"CL6", "LB12", "LB12", "LB12"},
-		{"CL6", "LB12", "LB12", "LB12", "LB12"},
-		{"CL6", "LB12", "LB12", "LB12", "LB12", "LB12"},
-		{"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
+		// {"CL6", "LB12", "LB12", "LB12"},
+		// {"CL6", "LB12", "LB12", "LB12", "LB12"},
+		// {"CL6", "LB12", "LB12", "LB12", "LB12", "LB12"},
+		// {"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
 		// {"LB12"},               // only LB
 	}
 	if len(customRotation) > 0 {

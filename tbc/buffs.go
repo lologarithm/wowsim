@@ -10,6 +10,7 @@ type Options struct {
 	UseAI      bool // when set true, the AI will modulate the rotations to maximize DPS and mana.
 	RSeed      int64
 	ExitOnOOM  bool
+	GCD        float64 // sets the GCD
 
 	NumBloodlust int
 	NumDrums     int
