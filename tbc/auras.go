@@ -785,17 +785,6 @@ func ActivateEyeOfMag(sim *Simulation) Aura {
 	}
 }
 
-func ActivateTotemOfPulsingEarth(sim *Simulation) Aura {
-	return Aura{
-		ID:      MagicIDTotemOfPulsingEarth,
-		Expires: math.MaxInt32,
-		OnCast: func(sim *Simulation, c *Cast) {
-			// TODO: how to make sure this goes in before clearcasting?
-			c.ManaCost -= 27
-		},
-	}
-}
-
 func ActivateElderScribes(sim *Simulation) Aura {
 	// Gives a chance when your harmful spells land to increase the damage of your spells and effects by up to 130 for 10 sec. (Proc chance: 20%, 50s cooldown)
 	lastActivation := math.MinInt32
@@ -812,6 +801,19 @@ func ActivateElderScribes(sim *Simulation) Aura {
 				sim.Buffs[StatSpellDmg] += spellBonus
 				sim.addAura(AuraStatRemoval(sim.CurrentTick, dur, spellBonus, StatSpellDmg, MagicIDElderScribeProc))
 				lastActivation = sim.CurrentTick
+			}
+		},
+	}
+}
+
+func ActivateTotemOfPulsingEarth(sim *Simulation) Aura {
+	return Aura{
+		ID:      MagicIDTotemOfPulsingEarth,
+		Expires: math.MaxInt32,
+		OnCast: func(sim *Simulation, c *Cast) {
+			if c.Spell.ID == MagicIDLB12 {
+				// TODO: how to make sure this goes in before clearcasting?
+				c.ManaCost -= 27
 			}
 		},
 	}
