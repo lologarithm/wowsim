@@ -157,6 +157,8 @@ func AuraName(a int32) string {
 		return "Skyshatter 2pc Set Bonus"
 	case MagicIDSkyshatter4pc:
 		return "Skyshatter 4pc Set Bonus"
+	case MagicIDTotemOfPulsingEarth:
+		return "Totem of Pulsing Earth"
 	case MagicIDEssMartyrTrink:
 		return "Essence of the Martyr Trinket"
 	case MagicIDEssSappTrink:
@@ -231,6 +233,7 @@ const (
 	MagicIDSkyshatter4pc    // skyshatter 4pc aura
 	MagicIDElderScribe      // elder scribe robe item aura
 	MagicIDElderScribeProc  // elder scribe robe temp buff
+	MagicIDTotemOfPulsingEarth
 
 	//Items
 	MagicIDISCTrink
@@ -482,8 +485,8 @@ func ActivateBerserking(sim *Simulation, hasteBonus float64) Aura {
 		Expires: sim.CurrentTick + dur,
 		OnCast: func(sim *Simulation, c *Cast) {
 			c.CastTime /= hasteBonus
-			if c.CastTime < 1.0 {
-				c.CastTime = 1.0 // can't cast faster than 1/sec even with max haste.
+			if c.CastTime < sim.Options.GCD {
+				c.CastTime = sim.Options.GCD // can't cast faster than GCD
 			}
 			c.TicksUntilCast = int(c.CastTime*float64(TicksPerSecond)) + 1
 		},
@@ -798,6 +801,19 @@ func ActivateElderScribes(sim *Simulation) Aura {
 				sim.Buffs[StatSpellDmg] += spellBonus
 				sim.addAura(AuraStatRemoval(sim.CurrentTick, dur, spellBonus, StatSpellDmg, MagicIDElderScribeProc))
 				lastActivation = sim.CurrentTick
+			}
+		},
+	}
+}
+
+func ActivateTotemOfPulsingEarth(sim *Simulation) Aura {
+	return Aura{
+		ID:      MagicIDTotemOfPulsingEarth,
+		Expires: math.MaxInt32,
+		OnCast: func(sim *Simulation, c *Cast) {
+			if c.Spell.ID == MagicIDLB12 {
+				// TODO: how to make sure this goes in before clearcasting?
+				c.ManaCost -= 27
 			}
 		},
 	}
