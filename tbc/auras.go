@@ -485,8 +485,8 @@ func ActivateBerserking(sim *Simulation, hasteBonus float64) Aura {
 		Expires: sim.CurrentTick + dur,
 		OnCast: func(sim *Simulation, c *Cast) {
 			c.CastTime /= hasteBonus
-			if c.CastTime < 0.75 {
-				c.CastTime = 0.75 // can't cast faster than 0.75s
+			if c.CastTime < sim.Options.GCD {
+				c.CastTime = sim.Options.GCD // can't cast faster than GCD
 			}
 			c.TicksUntilCast = int(c.CastTime*float64(TicksPerSecond)) + 1
 		},
