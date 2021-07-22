@@ -23,6 +23,8 @@ func AuraName(a int32) string {
 	switch a {
 	case MagicIDUnknown:
 		return "Unknown"
+	case MagicIDClBounce:
+		return "Chain Lightning Bounce"
 	case MagicIDLOTalent:
 		return "Lightning Overload Talent"
 	case MagicIDJoW:
@@ -178,6 +180,7 @@ const (
 	MagicIDTLCLB
 
 	// Auras
+	MagicIDClBounce
 	MagicIDLOTalent
 	MagicIDJoW
 	MagicIDEleFocus
@@ -260,16 +263,47 @@ const (
 	MagicIDLen
 )
 
-func AuraJudgementOfWisdom() Aura {
-	const mana = 74 / 2 // 50% proc
+func ActivateChainLightningBounce(sim *Simulation) Aura {
 	return Aura{
-		ID:      MagicIDJoW,
+		ID:      MagicIDClBounce,
 		Expires: math.MaxInt32,
-		OnSpellHit: func(sim *Simulation, c *Cast) {
-			if sim.Debug != nil {
-				sim.Debug(" +Judgement Of Wisdom: 37 mana (74 @ 50% proc)\n")
+		OnCastComplete: func(sim *Simulation, c *Cast) {
+			if c.Spell.ID != MagicIDCL6 || c.IsClBounce {
+				return
 			}
-			sim.CurrentMana += mana
+
+			dmgCoeff := 1.0
+			if c.IsLO {
+				dmgCoeff = 0.5
+			}
+			if sim.Options.NumClTargets > 1 {
+				bounceCoeff := 0.70
+				if sim.Options.Tidefury2Pc {
+					bounceCoeff = 0.83
+				}
+				clone := &Cast{
+					IsLO:       c.IsLO,
+					IsClBounce: true,
+					Spell:      c.Spell,
+					CritBonus:  1.5, // CL gets Elemental Fury
+					Effects:    []AuraEffect{func(sim *Simulation, c *Cast) { c.DidDmg *= dmgCoeff * bounceCoeff }},
+				}
+				sim.Cast(clone)
+			}
+			if sim.Options.NumClTargets > 2 {
+				bounceCoeff := 0.7 * 0.7
+				if sim.Options.Tidefury2Pc {
+					bounceCoeff = 0.83 * 0.83
+				}
+				clone := &Cast{
+					IsLO:       c.IsLO,
+					IsClBounce: true,
+					Spell:      c.Spell,
+					CritBonus:  1.5, // CL gets Elemental Fury
+					Effects:    []AuraEffect{func(sim *Simulation, c *Cast) { c.DidDmg *= dmgCoeff * bounceCoeff }},
+				}
+				sim.Cast(clone)
+			}
 		},
 	}
 }
@@ -296,12 +330,27 @@ func AuraLightningOverload(lvl int) Aura {
 				}
 				clone := &Cast{
 					IsLO:      true,
+					// Don't set IsClBounce even if this is a bounce, so that the clone does a normal CL and bounces
 					Spell:     c.Spell,
 					CritBonus: 1.5, // LO gets Elemental Fury
 					Effects:   []AuraEffect{func(sim *Simulation, c *Cast) { c.DidDmg /= 2 }},
 				}
 				sim.Cast(clone)
 			}
+		},
+	}
+}
+
+func AuraJudgementOfWisdom() Aura {
+	const mana = 74 / 2 // 50% proc
+	return Aura{
+		ID:      MagicIDJoW,
+		Expires: math.MaxInt32,
+		OnSpellHit: func(sim *Simulation, c *Cast) {
+			if sim.Debug != nil {
+				sim.Debug(" +Judgement Of Wisdom: 37 mana (74 @ 50% proc)\n")
+			}
+			sim.CurrentMana += mana
 		},
 	}
 }
@@ -326,18 +375,30 @@ func AuraElementalFocus(tick int) Aura {
 	}
 }
 
-func AuraEleMastery() Aura {
+func AuraEleMastery(tick int) Aura {
+	// The checks for current tick, and aura removal on next tick, ensure that
+	// all spells (except TLC LB) on the current tick get the bonus crit chance.
+	// This is important for CL bounces.
 	return Aura{
 		ID:      MagicIDEleMastery,
 		Expires: math.MaxInt32,
 		OnCast: func(sim *Simulation, c *Cast) {
-			c.ManaCost = 0
+			if tick == sim.CurrentTick {
+				if c.Spell.ID != MagicIDTLCLB {
+					c.ManaCost = 0
+				}
+			}
 		},
 		OnCastComplete: func(sim *Simulation, c *Cast) {
-			c.Crit += 1.01 // 101% chance of crit
-			// Remove the buff and put skill on CD
-			sim.CDs[MagicIDEleMastery] = 180 * TicksPerSecond
-			sim.removeAuraByID(MagicIDEleMastery)
+			if tick == sim.CurrentTick {
+				if c.Spell.ID != MagicIDTLCLB {
+					c.Crit += 1.01 // 101% chance of crit
+					// Remove the buff and put skill on CD
+					sim.CDs[MagicIDEleMastery] = 180 * TicksPerSecond
+				}
+			} else {
+				sim.removeAuraByID(MagicIDEleMastery)
+			}
 		},
 	}
 }
@@ -813,7 +874,7 @@ func ActivateTotemOfPulsingEarth(sim *Simulation) Aura {
 		OnCast: func(sim *Simulation, c *Cast) {
 			if c.Spell.ID == MagicIDLB12 {
 				// TODO: how to make sure this goes in before clearcasting?
-				c.ManaCost -= 27
+				c.ManaCost = math.Max(c.ManaCost - 27, 0)
 			}
 		},
 	}
