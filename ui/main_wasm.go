@@ -109,10 +109,11 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 func StatWeight(this js.Value, args []js.Value) interface{} {
 	numSims := args[0].Int()
 	seconds := args[1].Int()
-	gear := getGear(args[2])
-	opts := parseOptions(args[3])
-	stat := args[4].Int()
-	statModVal := args[5].Float()
+	numClTargets := args[2].Int()
+	gear := getGear(args[3])
+	opts := parseOptions(args[4])
+	stat := args[5].Int()
+	statModVal := args[6].Float()
 
 	if len(opts.Buffs.Custom) == 0 {
 		opts.Buffs.Custom = tbc.Stats{tbc.StatLen: 0}
@@ -129,6 +130,7 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	simmet := make([]tbc.SimMetrics, 0, numSims)
 
 	opts.RSeed = time.Now().Unix()
+	opts.NumClTargets = numClTargets
 
 	oomcount := 0
 	sim := tbc.NewSim(tbc.CalculateTotalStats(opts, gear), gear, opts)
@@ -161,23 +163,23 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 // Simulate takes in number of iterations, duration, a gear list, and simulation options.
 // (iterations, duration, gearlist, options, <optional, custom rotation)
 func Simulate(this js.Value, args []js.Value) interface{} {
-	if len(args) < 4 {
-		print("Expected 4 min arguments:  (#iterations, duration, gearlist, options)")
+	if len(args) < 5 {
+		print("Expected 5 min arguments:  (#iterations, duration, numClTargets, gearlist, options)")
 		return `{"error": "invalid arguments supplied"}`
 	}
 
 	customRotation := [][]string{}
 	customHaste := 0.0
-	if len(args) >= 6 {
-		if args[4].Truthy() {
-			customRotation = parseRotation(args[4])
-		}
+	if len(args) >= 7 {
 		if args[5].Truthy() {
-			customHaste = args[5].Float()
+			customRotation = parseRotation(args[5])
+		}
+		if args[6].Truthy() {
+			customHaste = args[6].Float()
 		}
 	}
-	gear := getGear(args[2])
-	opt := parseOptions(args[3])
+	gear := getGear(args[3])
+	opt := parseOptions(args[4])
 	stats := tbc.CalculateTotalStats(opt, gear)
 	if customHaste != 0 {
 		stats[tbc.StatHaste] = customHaste
@@ -188,9 +190,11 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 		opt.Debug = true
 	}
 	dur := args[1].Int()
+	numClTargets := args[2].Int()
+	opt.NumClTargets = numClTargets
 	fullLogs := false
-	if len(args) > 6 {
-		fullLogs = args[6].Truthy()
+	if len(args) > 7 {
+		fullLogs = args[7].Truthy()
 		fmt.Printf("Building Full Log:%v\n", fullLogs)
 	}
 
@@ -301,7 +305,7 @@ func parseOptions(val js.Value) tbc.Options {
 			DarkRune:                 val.Get("condr").Truthy(),
 		},
 		Talents: tbc.Talents{
-			LightninOverload:   5,
+			LightningOverload:   5,
 			ElementalPrecision: 3,
 			NaturesGuidance:    3,
 			TidalMastery:       5,
