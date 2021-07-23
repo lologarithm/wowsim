@@ -267,7 +267,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 		}
 	}
 	hit := 0.83 + ((sim.Stats[StatSpellHit] + sim.Buffs[StatSpellHit]) / 1260.0) + cast.Hit // 12.6 hit == 1% hit
-	hit = math.Min(hit, 0.99) // can't get away from the 1% miss
+	hit = math.Min(hit, 0.99)                                                               // can't get away from the 1% miss
 
 	dbgCast := cast.Spell.Name
 	if sim.Debug != nil {
@@ -453,7 +453,7 @@ func (sim *Simulation) Spellcasting(tickID int) int {
 
 		if sim.Options.Talents.ElementalMastery && sim.CDs[MagicIDEleMastery] < 1 {
 			// Apply auras
-			sim.addAura(AuraEleMastery(sim.CurrentTick))
+			sim.addAura(AuraEleMastery())
 		}
 
 		sim.ActivateRacial()
