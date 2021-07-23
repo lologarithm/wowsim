@@ -273,7 +273,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 	if sim.Debug != nil {
 		sim.Debug("Completed Cast (%s)\n", dbgCast)
 	}
-	if sim.rando.Float64() <= hit {
+	if sim.rando.Float64() < hit {
 		sp := sim.Stats[StatSpellDmg] + sim.Buffs[StatSpellDmg] + cast.Spellpower
 		dmg := (sim.rando.Float64() * (cast.Spell.MaxDmg - cast.Spell.MinDmg)) + cast.Spell.MinDmg
 		dmg += (sp * cast.Spell.Coeff)
@@ -283,7 +283,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 		cast.DidHit = true
 
 		crit := ((sim.Stats[StatSpellCrit] + sim.Buffs[StatSpellCrit]) / 2208.0) + cast.Crit // 22.08 crit == 1% crit
-		if sim.rando.Float64() <= crit {
+		if sim.rando.Float64() < crit {
 			cast.DidCrit = true
 			critBonus := 1.5 // fall back crit damage
 			if cast.CritBonus != 0 {
