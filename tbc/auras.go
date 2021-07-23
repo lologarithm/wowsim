@@ -320,7 +320,6 @@ func AuraLightningOverload(lvl int) Aura {
 					IsLO: true,
 					// Don't set IsClBounce even if this is a bounce, so that the clone does a normal CL and bounces
 					Spell:     c.Spell,
-					Crit:      c.Crit,
 					CritBonus: c.CritBonus,
 					Effects:   []AuraEffect{func(sim *Simulation, c *Cast) { c.DidDmg /= 2 }},
 				}
