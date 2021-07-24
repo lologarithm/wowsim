@@ -267,7 +267,7 @@ func ActivateChainLightningBounce(sim *Simulation) Aura {
 	return Aura{
 		ID:      MagicIDClBounce,
 		Expires: math.MaxInt32,
-		OnSpellHit: func(sim *Simulation, c *Cast) {
+		OnCastComplete: func(sim *Simulation, c *Cast) {
 			if c.Spell.ID != MagicIDCL6 || c.IsClBounce {
 				return
 			}
