@@ -56,7 +56,7 @@ simlib2.onmessage = (event) => {
 }
 
 var simrequests = {};
-function simulate(iters, dur, gearlist, opts, rots, haste, fullLogs, onComplete) {
+function simulate(iters, dur, numClTargets, gearlist, opts, rots, haste, fullLogs, onComplete) {
     var id = makeid();
     simrequests[id] = onComplete
     var worker = simlib;
@@ -66,7 +66,14 @@ function simulate(iters, dur, gearlist, opts, rots, haste, fullLogs, onComplete)
         simlibBusy = true;
     }
     worker.postMessage({msg: "simulate", id: id, payload: {
-        iters: iters, dur: dur, gearlist: gearlist, opts: opts, rots: rots, haste: haste, fullLogs: fullLogs
+	    iters: iters,
+	    dur: dur,
+	    numClTargets: numClTargets,
+	    gearlist: gearlist,
+	    opts: opts,
+	    rots: rots,
+	    haste: haste,
+	    fullLogs: fullLogs
     }});
 }
 
@@ -252,9 +259,10 @@ var castIDToName = {
 function runsim(currentGear, fullLogs) {
     if (fullLogs) {
         var dur = parseInt(document.getElementById("logdur").value);
+        var numClTargets = parseInt(document.getElementById("lognumClTargets").value);
         var firstOpts = getOptions();
         firstOpts.useai = true;
-        simulate(1, dur, currentGear, firstOpts, null, null, true, (out) => { 
+        simulate(1, dur, numClTargets, currentGear, firstOpts, null, null, true, (out) => { 
             var logdiv = document.getElementById("simlogs");
             logdiv.innerText = out[0].Logs;
         });
@@ -263,6 +271,7 @@ function runsim(currentGear, fullLogs) {
 
     var iters = parseInt(document.getElementById("iters").value);
     var dur = parseInt(document.getElementById("dur").value);
+    var numClTargets = parseInt(document.getElementById("numClTargets").value);
 
     var lbout = document.getElementById("simrotlb");
     var priout = document.getElementById("simrotpri");
@@ -276,7 +285,7 @@ function runsim(currentGear, fullLogs) {
 
     var firstOpts = getOptions();
     firstOpts.exitoom = true;
-    simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0,false, (out) => {
+    simulate(iters, 600, numClTargets, currentGear, firstOpts, [["LB12"]], 0,false, (out) => {
         var stats = out[0];
         var ttoom = stats.oomat;
         if (ttoom == 0) {
@@ -287,7 +296,7 @@ function runsim(currentGear, fullLogs) {
         lbout.innerHTML = `<div><h3>Mana</h3><text class="simnums">${ttoom}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(stats.dps)} DPS</text></div>`
     });
     firstOpts.dpsReportTime = 30; // report dps for 30 seconds only.
-    simulate(iters, 600, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, false, (out) => { 
+    simulate(iters, 600, numClTargets, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, false, (out) => { 
         var stats = out[0];
         var dps = Math.max(stats.dps, stats.dpsAtOOM);
         var oomat = stats.oomat;
@@ -303,7 +312,7 @@ function runsim(currentGear, fullLogs) {
     var secondOpts = getOptions();
     secondOpts.useai = true;
     var start = new Date();
-    simulate(iters, dur, currentGear, secondOpts, null, 0, false, (out) => { 
+    simulate(iters, dur, numClTargets, currentGear, secondOpts, null, 0, false, (out) => { 
         var end = new Date();
         console.log(`The sim took ${end - start} ms`);
         var stats = out[0];
@@ -410,7 +419,7 @@ function hastedRotations(currentGear) {
         row.children[1].innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
         row.children[2].innerText = "";
 
-        simulate(1000, 40, currentGear, opts, rots, haste, false, (output) => {
+        simulate(1000, 40, 1, currentGear, opts, rots, haste, false, (output) => {
             var maxdmg = 0.0;
             var maxrot = {};
     
@@ -434,6 +443,7 @@ function hastedRotations(currentGear) {
 function calcStatWeights(gear) {
     var iters = parseInt(document.getElementById("switer").value);
     var dur = parseInt(document.getElementById("swdur").value);
+    var numClTargets = parseInt(document.getElementById("swnumClTargets").value);
     var opts = getOptions();
     
     var baseDPS = 0.0;
@@ -451,7 +461,7 @@ function calcStatWeights(gear) {
     });
 
     // A base DPS without any modified stats.
-    statweight(iters, dur, gear, opts, 0, 0, (res) => {
+    statweight(iters, dur, numClTargets, gear, opts, 0, 0, (res) => {
         var resVals = res.split(",")
         baseDPS = parseFloat(resVals[0]);
         baseConf = parseFloat(resVals[2]);
@@ -555,37 +565,37 @@ function calcStatWeights(gear) {
         }
     };
 
-    statweight(iters, dur, gear, opts, 4, 20, (res) => {
+    statweight(iters, dur, numClTargets, gear, opts, 4, 20, (res) => {
         var resVals = res.split(",");
         sp_hitModDPS = parseFloat(resVals[0]);
         sp_hitModConf = parseFloat(resVals[2]);
         onfinish();}); // sp
-    statweight(iters, dur, gear, opts, 3, 20, (res) => {
+    statweight(iters, dur, numClTargets, gear, opts, 3, 20, (res) => {
         var resVals = res.split(",");
         modConf[3] = parseFloat(resVals[2])
         modDPS[3] = parseFloat(resVals[0]);
         onfinish();}); // hit
-    statweight(iters, dur, gear, opts, 4, 50, (res) => {
+    statweight(iters, dur, numClTargets, gear, opts, 4, 50, (res) => {
         var resVals = res.split(",");
         modConf[0] = parseFloat(resVals[2])
         modDPS[0] = parseFloat(resVals[0]);
         onfinish();}); // sp
-    statweight(iters, dur, gear, opts, 0, 50, (res) => {
+    statweight(iters, dur, numClTargets, gear, opts, 0, 50, (res) => {
         var resVals = res.split(",");
         modConf[1] = parseFloat(resVals[2])
         modDPS[1] = parseFloat(resVals[0]);
         onfinish();}); // int
-    statweight(iters, dur, gear, opts, 2, 50, (res) => {
+    statweight(iters, dur, numClTargets, gear, opts, 2, 50, (res) => {
         var resVals = res.split(",");
         modConf[2] = parseFloat(resVals[2])
         modDPS[2] = parseFloat(resVals[0]);
         onfinish();}); // crit
-    statweight(iters, dur, gear, opts, 5, 50, (res) => {
+    statweight(iters, dur, numClTargets, gear, opts, 5, 50, (res) => {
         var resVals = res.split(",");
         modConf[4] = parseFloat(resVals[2])
         modDPS[4] = parseFloat(resVals[0]);
         onfinish();}); // haste
-    statweight(iters, dur, gear, opts, 6, 50, (res) => {
+    statweight(iters, dur, numClTargets, gear, opts, 6, 50, (res) => {
         var resVals = res.split(",");
         modConf[5] = parseFloat(resVals[2])
         modDPS[5] = parseFloat(resVals[0]);
@@ -707,9 +717,10 @@ function showGearRecommendations(weights) {
                 });
                 var iters = parseInt(document.getElementById("switer").value);
                 var dur = parseInt(document.getElementById("swdur").value);
+                var numClTargets = parseInt(document.getElementById("swnumClTargets").value);
                 var opts = getOptions();
                 opts.useai = true;
-                simulate(iters, dur, cleanGear(newgear), opts, null, null, false, (res)=>{
+                simulate(iters, dur, numClTargets, cleanGear(newgear), opts, null, null, false, (res)=>{
                     var statistics = res[0];
                     col4.innerText = Math.round(statistics.dps).toString() + " +/- " + Math.round(statistics.dev).toString();
                 });

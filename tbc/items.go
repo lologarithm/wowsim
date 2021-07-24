@@ -765,12 +765,18 @@ var sets = []ItemSet{
 	{
 		Name:  "Tidefury",
 		Items: map[string]bool{"Tidefury Helm": true, "Tidefury Shoulderguards": true, "Tidefury Chestpiece": true, "Tidefury Kilt": true, "Tidefury Gauntlets": true},
-		Bonuses: map[int]ItemActivation{4: func(sim *Simulation) Aura {
-			if sim.Options.Buffs.WaterShield {
-				sim.Buffs[StatMP5] += 3
-			}
-			return Aura{ID: MagicIDNetherstrike, Expires: 0}
-		}},
+		Bonuses: map[int]ItemActivation{
+			2: func(sim *Simulation) Aura {
+				sim.Options.Tidefury2Pc = true
+				return Aura{ID: MagicIDTidefury, Expires: 0}
+			},
+			4: func(sim *Simulation) Aura {
+				if sim.Options.Buffs.WaterShield {
+					sim.Buffs[StatMP5] += 3
+				}
+				return Aura{ID: MagicIDTidefury, Expires: 0}
+			},
+		},
 	},
 	{
 		Name:    "Spellstrike",
