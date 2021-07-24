@@ -106,7 +106,7 @@ func main() {
 			// DarkRune:             false,
 		},
 		Talents: tbc.Talents{
-			LightninOverload:   5,
+			LightningOverload:   5,
 			ElementalPrecision: 3,
 			NaturesGuidance:    3,
 			TidalMastery:       5,

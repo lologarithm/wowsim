@@ -2,6 +2,7 @@ package tbc
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"strconv"
 )
@@ -146,8 +147,13 @@ func (sim *Simulation) reset() {
 	}
 
 	// Activate all talents
-	if sim.Options.Talents.LightninOverload > 0 {
-		sim.addAura(AuraLightningOverload(sim.Options.Talents.LightninOverload))
+	if sim.Options.Talents.LightningOverload > 0 {
+		sim.addAura(AuraLightningOverload(sim.Options.Talents.LightningOverload))
+	}
+
+	// Chain lightning bounces
+	if sim.Options.NumClTargets > 1 {
+		sim.addAura(ActivateChainLightningBounce(sim))
 	}
 
 	// Judgement of Wisdom
@@ -261,14 +267,12 @@ func (sim *Simulation) Cast(cast *Cast) {
 		}
 	}
 	hit := 0.83 + ((sim.Stats[StatSpellHit] + sim.Buffs[StatSpellHit]) / 1260.0) + cast.Hit // 12.6 hit == 1% hit
-	if hit > 0.99 {
-		hit = 0.99 // can't get away from the 1% miss
-	}
+	hit = math.Min(hit, 0.99)                                                               // can't get away from the 1% miss
 
-	if sim.Debug != nil {
-		sim.Debug("Completed Cast (%s)\n", cast.Spell.Name)
-	}
 	dbgCast := cast.Spell.Name
+	if sim.Debug != nil {
+		sim.Debug("Completed Cast (%s)\n", dbgCast)
+	}
 	if sim.rando.Float64() < hit {
 		sp := sim.Stats[StatSpellDmg] + sim.Buffs[StatSpellDmg] + cast.Spellpower
 		dmg := (sim.rando.Float64() * (cast.Spell.MaxDmg - cast.Spell.MinDmg)) + cast.Spell.MinDmg

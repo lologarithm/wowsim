@@ -630,11 +630,11 @@ addEventListener('message', async (e) => {
 		// temp workaround to keep it like how it was.
 		if (payload.rots == null && payload.fullLogs == null) {
 			resultJSON = simulate(
-				payload.iters, payload.dur, payload.gearlist, payload.opts
+				payload.iters, payload.dur, payload.numClTargets, payload.gearlist, payload.opts
 			)
 		} else {
 			resultJSON = simulate(
-				payload.iters, payload.dur, payload.gearlist, payload.opts, payload.rots, payload.haste, payload.fullLogs
+				payload.iters, payload.dur, payload.numClTargets, payload.gearlist, payload.opts, payload.rots, payload.haste, payload.fullLogs
 			)
 		}
 		var result = JSON.parse(resultJSON);
@@ -647,7 +647,7 @@ addEventListener('message', async (e) => {
 		workerID = payload;
 		postMessage({msg: "idconfirm"})
 	} else if (msg == "statweight") {
-		var result = statweight(payload.iters, payload.dur, payload.gearlist, payload.opts, payload.stat, payload.modVal);
+		var result = statweight(payload.iters, payload.dur, payload.numClTargets, payload.gearlist, payload.opts, payload.stat, payload.modVal);
 		postMessage({
 			msg: "statweight",
 			id: e.data.id,
