@@ -588,7 +588,7 @@
 })();
 
 function wasmready() {
-    postMessage({
+	postMessage({
 		msg: "ready"
 	});
 }
@@ -597,12 +597,12 @@ const go = new Go();
 let mod, inst;
 
 WebAssembly.instantiateStreaming(fetch("lib.wasm"), go.importObject).then(
-    async result => {
-        mod = result.module;
-        inst = result.instance;
-        // console.log("loading wasm...")
-        await go.run(inst);
-    }
+	async result => {
+		mod = result.module;
+		inst = result.instance;
+		// console.log("loading wasm...")
+		await go.run(inst);
+	}
 );
 
 var workerID = "";
@@ -613,20 +613,20 @@ addEventListener('message', async (e) => {
 	var msg = e.data.msg;
 	var payload = e.data.payload;
 
-    if ( msg == "getGearList") {
-        postMessage({
-            msg: "getGearList",
-            payload: JSON.parse(gearlist()),
-        });
-    } else if (msg == "computeStats") {
+	if (msg == "getGearList") {
+		postMessage({
+			msg: "getGearList",
+			payload: JSON.parse(gearlist()),
+		});
+	} else if (msg == "computeStats") {
 		var output = computestats(payload.gear, payload.opts)
-        postMessage({
-            msg: "computeStats",
+		postMessage({
+			msg: "computeStats",
 			id: e.data.id,
-            payload: JSON.parse(output),
-        });		
+			payload: JSON.parse(output),
+		});
 	} else if (msg == "simulate") {
-		var resultJSON; 
+		var resultJSON;
 		// temp workaround to keep it like how it was.
 		if (payload.rots == null && payload.fullLogs == null) {
 			resultJSON = simulate(
@@ -638,14 +638,14 @@ addEventListener('message', async (e) => {
 			)
 		}
 		var result = JSON.parse(resultJSON);
-        postMessage({
-            msg: "simulate",
+		postMessage({
+			msg: "simulate",
 			id: e.data.id,
-            payload: result,
-        });
+			payload: result,
+		});
 	} else if (msg == "setID") {
 		workerID = payload;
-		postMessage({msg: "idconfirm"})
+		postMessage({ msg: "idconfirm" })
 	} else if (msg == "statweight") {
 		var result = statweight(payload.iters, payload.dur, payload.numClTargets, payload.gearlist, payload.opts, payload.stat, payload.modVal);
 		postMessage({
@@ -655,10 +655,10 @@ addEventListener('message', async (e) => {
 		});
 	} else if (msg == "packopt") {
 		var id = e.data.id;
-		results["res"+id] = new Uint8Array(128);
-		var num = packopts(payload.opt, "res"+id);
-		var result = results["res"+id].subarray(0, num);
-		results["res"+id] = null;
+		results["res" + id] = new Uint8Array(128);
+		var num = packopts(payload.opt, "res" + id);
+		var result = results["res" + id].subarray(0, num);
+		results["res" + id] = null;
 		postMessage({
 			msg: "packopt",
 			id: id,
