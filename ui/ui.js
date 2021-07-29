@@ -56,7 +56,7 @@ simlib2.onmessage = (event) => {
 }
 
 var simrequests = {};
-function simulate(iters, dur, numClTargets, gearlist, opts, rots, haste, fullLogs, onComplete) {
+function simulate(iters, dur, numClTargets, gearlist, opts, agentTypes, haste, fullLogs, onComplete) {
     var id = makeid();
     simrequests[id] = onComplete
     var worker = simlib;
@@ -72,7 +72,7 @@ function simulate(iters, dur, numClTargets, gearlist, opts, rots, haste, fullLog
             numClTargets: numClTargets,
             gearlist: gearlist,
             opts: opts,
-            rots: rots,
+            agentTypes: agentTypes,
             haste: haste,
             fullLogs: fullLogs
         }
@@ -273,8 +273,7 @@ function runsim(currentGear, fullLogs) {
         var dur = parseInt(document.getElementById("logdur").value);
         var numClTargets = parseInt(document.getElementById("lognumClTargets").value);
         var firstOpts = getOptions();
-        firstOpts.useai = true;
-        simulate(1, dur, numClTargets, currentGear, firstOpts, null, null, true, (out) => {
+        simulate(1, dur, numClTargets, currentGear, firstOpts, ["Adaptive"], null, true, (out) => {
             var logdiv = document.getElementById("simlogs");
             logdiv.innerText = out[0].Logs;
         });
@@ -297,7 +296,7 @@ function runsim(currentGear, fullLogs) {
 
     var firstOpts = getOptions();
     firstOpts.exitoom = true;
-    simulate(iters, 600, numClTargets, currentGear, firstOpts, [["LB12"]], 0, false, (out) => {
+    simulate(iters, 600, numClTargets, currentGear, firstOpts, ["FixedLBOnly"], 0, false, (out) => {
         var stats = out[0];
         var ttoom = stats.oomat;
         if (ttoom == 0) {
@@ -308,7 +307,7 @@ function runsim(currentGear, fullLogs) {
         lbout.innerHTML = `<div><h3>Mana</h3><text class="simnums">${ttoom}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(stats.dps)} DPS</text></div>`
     });
     firstOpts.dpsReportTime = 30; // report dps for 30 seconds only.
-    simulate(iters, 600, numClTargets, currentGear, firstOpts, [["pri", "CL6", "LB12"]], 0, false, (out) => {
+    simulate(iters, 600, numClTargets, currentGear, firstOpts, ["Fixed3LB1CL"], 0, false, (out) => {
         var stats = out[0];
         var dps = Math.max(stats.dps, stats.dpsAtOOM);
         var oomat = stats.oomat;
@@ -322,9 +321,8 @@ function runsim(currentGear, fullLogs) {
 
 
     var secondOpts = getOptions();
-    secondOpts.useai = true;
     var start = new Date();
-    simulate(iters, dur, numClTargets, currentGear, secondOpts, null, 0, false, (out) => {
+    simulate(iters, dur, numClTargets, currentGear, secondOpts, ["Adaptive"], 0, false, (out) => {
         var end = new Date();
         console.log(`The sim took ${end - start} ms`);
         var stats = out[0];
@@ -414,10 +412,10 @@ function hastedRotations(currentGear) {
     opts.buffdrum = 0;
 
     var hastes = [0, 50, 100, 200, 300, 400, 500, 600, 700, 788];
-    var rots = [
-        ["CL6", "LB12", "LB12", "LB12", "LB12"],
-        ["CL6", "LB12", "LB12", "LB12", "LB12", "LB12"],
-        ["CL6", "LB12", "LB12", "LB12", "LB12", "LB12", "LB12"]
+    var agentTypes = [
+				"Fixed4LB1CL",
+				"Fixed5LB1CL",
+				"Fixed6LB1CL",
     ];
 
     // TODO: Fix this to match the new return values now that process is done in go WASM code.
@@ -431,19 +429,21 @@ function hastedRotations(currentGear) {
         row.children[1].innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
         row.children[2].innerText = "";
 
-        simulate(1000, 40, 1, currentGear, opts, rots, haste, false, (output) => {
+        simulate(1000, 40, 1, currentGear, opts, agentTypes, haste, false, (output) => {
             var maxdmg = 0.0;
             var maxrot = {};
+						var maxIdx = 0;
 
-            output.forEach(out => {
+            output.forEach((out, i) => {
                 if (maxdmg < out.dps) {
                     maxdmg = out.dps
                     maxrot = out;
+										maxIdx = i;
                 }
             });
 
             var simdur = maxrot.SimSeconds;
-            var rotTitle = "CL / " + (maxrot.Rotation.length - 1).toString() + "xLB";
+            var rotTitle = "CL / " + (maxIdx + 4).toString() + "xLB";
             row.children[0].innerText = haste;
             row.children[1].innerText = rotTitle;
             row.children[2].innerText = "" + Math.round(maxrot.dps) + " +/- " + Math.round(maxrot.dev);
@@ -457,6 +457,7 @@ function calcStatWeights(gear) {
     var dur = parseInt(document.getElementById("swdur").value);
     var numClTargets = parseInt(document.getElementById("swnumClTargets").value);
     var opts = getOptions();
+		opts.agenttype = "Adaptive";
 
     var baseDPS = 0.0;
     var baseConf = 0.0;
@@ -738,8 +739,7 @@ function showGearRecommendations(weights) {
                 var dur = parseInt(document.getElementById("swdur").value);
                 var numClTargets = parseInt(document.getElementById("swnumClTargets").value);
                 var opts = getOptions();
-                opts.useai = true;
-                simulate(iters, dur, numClTargets, cleanGear(newgear), opts, null, null, false, (res) => {
+                simulate(iters, dur, numClTargets, cleanGear(newgear), opts, ["Adaptive"], null, false, (res) => {
                     var statistics = res[0];
                     col4.innerText = Math.round(statistics.dps).toString() + " +/- " + Math.round(statistics.dev).toString();
                 });
@@ -914,6 +914,7 @@ function updateGearStats(gearlist) {
     });
 
     var opts = getOptions();
+		opts.agenttype = "Adaptive";
     computeStats(cleanedGear, opts, (result) => {
         currentFinalStats = result.Stats;
         var sets = result.Sets;

@@ -15,6 +15,9 @@ type Agent interface {
 	Reset(*Simulation)
 }
 
+// ################################################################
+//                          FIXED ROTATION
+// ################################################################
 type FixedRotationAgent struct {
 	numLBsPerCL int  // If -1, uses LB only
 	numLBsSinceLastCL int
@@ -51,6 +54,9 @@ func NewFixedRotationAgent(sim *Simulation, numLBsPerCL int) *FixedRotationAgent
 	}
 }
 
+// ################################################################
+//                             ADAPTIVE
+// ################################################################
 type AdaptiveAgent struct {
 	LastMana  float64
 	LastCheck int
