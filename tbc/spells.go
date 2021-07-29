@@ -2,126 +2,6 @@ package tbc
 
 import "math"
 
-type Cast struct {
-	Spell *Spell
-	// Caster ... // Needed for onstruck effects?
-	IsLO bool // stupid hack
-	IsClBounce bool // stupider hack
-
-	// Pre-hit Mutatable State
-	TicksUntilCast int
-	CastTime       float64 // time in seconds to cast the spell
-	ManaCost       float64
-
-	Hit        float64 // Direct % bonus... 0.1 == 10%
-	Crit       float64 // Direct % bonus... 0.1 == 10%
-	CritBonus  float64 // Multiplier to critical dmg bonus.
-	Spellpower float64 // Bonus Spellpower to add at end of cast.
-
-	// Calculated Values
-	DidHit  bool
-	DidCrit bool
-	DidDmg  float64
-	CastAt  int // simulation tick the spell cast
-
-	Effects []AuraEffect // effects applied ONLY to this cast.
-}
-
-// NewCast constructs a Cast from the current simulation and selected spell.
-//  OnCast mechanics are applied at this time (anything that modifies the cast before its cast, usually just mana cost stuff)
-func NewCast(sim *Simulation, sp *Spell) *Cast {
-	cast := &Cast{
-		Spell:      sp,
-		ManaCost:   float64(sp.Mana),
-		Spellpower: 0,
-		CritBonus:  1.5,
-	}
-
-	castTime := sp.CastTime
-	itsElectric := sp.ID == MagicIDLB12 || sp.ID == MagicIDCL6
-
-	if itsElectric {
-		// TODO: Add LightningMaster to talent list (this will never not be selected for an elemental shaman)
-		castTime -= 0.5 // Talent Lightning Mastery
-	}
-	castTime /= (1 + ((sim.Stats[StatHaste] + sim.Buffs[StatHaste]) / 1576)) // 15.76 rating grants 1% spell haste
-	// TODO: Should be current GCD, not min GCD (should rename the variable to avoid confusion)
-	castTime = math.Max(castTime, sim.Options.GCD) // can't cast faster than GCD
-	cast.CastTime = castTime
-	cast.TicksUntilCast = int(castTime*float64(TicksPerSecond)) + 1 // round up
-
-	if itsElectric {
-		cast.ManaCost *= 1 - (0.02 * float64(sim.Options.Talents.Convection))
-	}
-
-	// Apply any on cast effects.
-	for _, aur := range sim.Auras {
-		if aur.OnCast != nil {
-			aur.OnCast(sim, cast)
-		}
-	}
-
-	return cast
-}
-
-// ChooseSpell is a basic rotation spell selector. This is the default
-// spell selection logic if not using the 'ai optimizer' for selecting spells.
-func ChooseSpell(sim *Simulation, _ bool) int {
-	if sim.RotationIdx == -1 {
-		lowestWait := math.MaxInt32
-		wasMana := false
-		for i := 0; i < len(sim.SpellRotation); i++ {
-			sp := sim.SpellRotation[i]
-			so := sp.ID
-			cast := NewCast(sim, sp)
-			if sim.CDs[so] > 0 { // if
-				if sim.CDs[so] < lowestWait {
-					lowestWait = sim.CDs[so]
-				}
-				continue
-			}
-			if sim.CurrentMana >= cast.ManaCost {
-				sim.CastingSpell = cast
-				return cast.TicksUntilCast
-			}
-			manaRegenTicks := int(math.Ceil((cast.ManaCost - sim.CurrentMana) / sim.manaRegen()))
-			if manaRegenTicks < lowestWait {
-				lowestWait = manaRegenTicks
-				wasMana = true
-			}
-		}
-		if wasMana && sim.metrics.OOMAt == 0 { // loop only completes if no spell was found.
-			sim.metrics.OOMAt = sim.CurrentTick / TicksPerSecond
-			sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
-		}
-		return lowestWait
-	}
-
-	sp := sim.SpellRotation[sim.RotationIdx]
-	so := sp.ID
-	cast := NewCast(sim, sp)
-	if sim.CDs[so] < 1 {
-		if sim.CurrentMana >= cast.ManaCost {
-			sim.CastingSpell = cast
-			sim.RotationIdx++
-			if sim.RotationIdx == len(sim.SpellRotation) {
-				sim.RotationIdx = 0
-			}
-			return cast.TicksUntilCast
-		} else {
-			if sim.Debug != nil {
-				sim.Debug("Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
-			}
-			if sim.metrics.OOMAt == 0 {
-				sim.metrics.OOMAt = sim.CurrentTick / TicksPerSecond
-				sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
-			}
-			return int(math.Ceil((cast.ManaCost - sim.CurrentMana) / sim.manaRegen()))
-		}
-	}
-	return sim.CDs[so]
-}
-
 // Spell represents a single castable spell. This is all the data needed to begin a cast.
 type Spell struct {
 	ID         int32
@@ -179,4 +59,63 @@ func init() {
 		spp := &sp2
 		spellmap[sp.ID] = spp
 	}
+}
+
+type Cast struct {
+	Spell *Spell
+	// Caster ... // Needed for onstruck effects?
+	IsLO bool // stupid hack
+	IsClBounce bool // stupider hack
+
+	// Pre-hit Mutatable State
+	CastTime       float64 // time in seconds to cast the spell
+	ManaCost       float64
+
+	Hit        float64 // Direct % bonus... 0.1 == 10%
+	Crit       float64 // Direct % bonus... 0.1 == 10%
+	CritBonus  float64 // Multiplier to critical dmg bonus.
+	Spellpower float64 // Bonus Spellpower to add at end of cast.
+
+	// Calculated Values
+	DidHit  bool
+	DidCrit bool
+	DidDmg  float64
+	CastAt  int // simulation tick the spell cast
+
+	Effects []AuraEffect // effects applied ONLY to this cast.
+}
+
+// NewCast constructs a Cast from the current simulation and selected spell.
+//  OnCast mechanics are applied at this time (anything that modifies the cast before its cast, usually just mana cost stuff)
+func NewCast(sim *Simulation, sp *Spell) *Cast {
+	cast := &Cast{
+		Spell:      sp,
+		ManaCost:   float64(sp.Mana),
+		Spellpower: 0,
+		CritBonus:  1.5,
+	}
+
+	castTime := sp.CastTime
+	itsElectric := sp.ID == MagicIDLB12 || sp.ID == MagicIDCL6
+
+	if itsElectric {
+		// TODO: Add LightningMaster to talent list (this will never not be selected for an elemental shaman)
+		castTime -= 0.5 // Talent Lightning Mastery
+	}
+	castTime /= (1 + ((sim.Stats[StatHaste] + sim.Buffs[StatHaste]) / 1576)) // 15.76 rating grants 1% spell haste
+	castTime = math.Max(castTime, sim.Options.GCD) // can't cast faster than GCD
+	cast.CastTime = castTime
+
+	if itsElectric {
+		cast.ManaCost *= 1 - (0.02 * float64(sim.Options.Talents.Convection))
+	}
+
+	// Apply any on cast effects.
+	for _, aur := range sim.Auras {
+		if aur.OnCast != nil {
+			aur.OnCast(sim, cast)
+		}
+	}
+
+	return cast
 }
