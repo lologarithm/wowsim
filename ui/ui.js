@@ -19,6 +19,20 @@ var defaultGear = [
     { Name: "Icon of the Silver Crescent" }
 ];
 
+// This must be kept in sync with the enum in agents.go
+var AGENT_TYPES = {
+	"FIXED_3LB_1CL": 0,
+	"FIXED_4LB_1CL": 1,
+	"FIXED_5LB_1CL": 2,
+	"FIXED_6LB_1CL": 3,
+	"FIXED_7LB_1CL": 4,
+	"FIXED_8LB_1CL": 5,
+	"FIXED_9LB_1CL": 6,
+	"FIXED_10LB_1CL": 7,
+	"FIXED_LB_ONLY": 8,
+	"ADAPTIVE": 9
+};
+
 
 // This code is all for interacting with the workers.
 var simlib = new window.Worker(`simworker.js`);
@@ -132,7 +146,7 @@ function computeStats(gear, opts, onComplete) {
 // Pulls options from the input 'options' pane for use in sims.
 function getOptions() {
     var options = {};
-
+		options.agenttype = AGENT_TYPES.ADAPTIVE;
 
     options.buffai = document.getElementById("buffai").checked;
     options.buffgotw = document.getElementById("buffgotw").checked;
@@ -273,7 +287,7 @@ function runsim(currentGear, fullLogs) {
         var dur = parseInt(document.getElementById("logdur").value);
         var numClTargets = parseInt(document.getElementById("lognumClTargets").value);
         var firstOpts = getOptions();
-        simulate(1, dur, numClTargets, currentGear, firstOpts, ["Adaptive"], null, true, (out) => {
+        simulate(1, dur, numClTargets, currentGear, firstOpts, [AGENT_TYPES.ADAPTIVE], null, true, (out) => {
             var logdiv = document.getElementById("simlogs");
             logdiv.innerText = out[0].Logs;
         });
@@ -296,7 +310,7 @@ function runsim(currentGear, fullLogs) {
 
     var firstOpts = getOptions();
     firstOpts.exitoom = true;
-    simulate(iters, 600, numClTargets, currentGear, firstOpts, ["FixedLBOnly"], 0, false, (out) => {
+    simulate(iters, 600, numClTargets, currentGear, firstOpts, [AGENT_TYPES.FIXED_LB_ONLY], 0, false, (out) => {
         var stats = out[0];
         var ttoom = stats.oomat;
         if (ttoom == 0) {
@@ -307,7 +321,7 @@ function runsim(currentGear, fullLogs) {
         lbout.innerHTML = `<div><h3>Mana</h3><text class="simnums">${ttoom}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(stats.dps)} DPS</text></div>`
     });
     firstOpts.dpsReportTime = 30; // report dps for 30 seconds only.
-    simulate(iters, 600, numClTargets, currentGear, firstOpts, ["Fixed3LB1CL"], 0, false, (out) => {
+    simulate(iters, 600, numClTargets, currentGear, firstOpts, [AGENT_TYPES.FIXED_3LB_1CL], 0, false, (out) => {
         var stats = out[0];
         var dps = Math.max(stats.dps, stats.dpsAtOOM);
         var oomat = stats.oomat;
@@ -322,7 +336,7 @@ function runsim(currentGear, fullLogs) {
 
     var secondOpts = getOptions();
     var start = new Date();
-    simulate(iters, dur, numClTargets, currentGear, secondOpts, ["Adaptive"], 0, false, (out) => {
+    simulate(iters, dur, numClTargets, currentGear, secondOpts, [AGENT_TYPES.ADAPTIVE], 0, false, (out) => {
         var end = new Date();
         console.log(`The sim took ${end - start} ms`);
         var stats = out[0];
@@ -413,9 +427,9 @@ function hastedRotations(currentGear) {
 
     var hastes = [0, 50, 100, 200, 300, 400, 500, 600, 700, 788];
     var agentTypes = [
-				"Fixed4LB1CL",
-				"Fixed5LB1CL",
-				"Fixed6LB1CL",
+				AGENT_TYPES.FIXED_4LB_1CL,
+				AGENT_TYPES.FIXED_5LB_1CL,
+				AGENT_TYPES.FIXED_6LB_1CL,
     ];
 
     // TODO: Fix this to match the new return values now that process is done in go WASM code.
@@ -457,7 +471,7 @@ function calcStatWeights(gear) {
     var dur = parseInt(document.getElementById("swdur").value);
     var numClTargets = parseInt(document.getElementById("swnumClTargets").value);
     var opts = getOptions();
-		opts.agenttype = "Adaptive";
+		opts.agenttype = AGENT_TYPES.ADAPTIVE;
 
     var baseDPS = 0.0;
     var baseConf = 0.0;
@@ -739,7 +753,7 @@ function showGearRecommendations(weights) {
                 var dur = parseInt(document.getElementById("swdur").value);
                 var numClTargets = parseInt(document.getElementById("swnumClTargets").value);
                 var opts = getOptions();
-                simulate(iters, dur, numClTargets, cleanGear(newgear), opts, ["Adaptive"], null, false, (res) => {
+                simulate(iters, dur, numClTargets, cleanGear(newgear), opts, [AGENT_TYPES.ADAPTIVE], null, false, (res) => {
                     var statistics = res[0];
                     col4.innerText = Math.round(statistics.dps).toString() + " +/- " + Math.round(statistics.dev).toString();
                 });
@@ -914,7 +928,7 @@ function updateGearStats(gearlist) {
     });
 
     var opts = getOptions();
-		opts.agenttype = "Adaptive";
+		opts.agenttype = AGENT_TYPES.ADAPTIVE;
     computeStats(cleanedGear, opts, (result) => {
         currentFinalStats = result.Stats;
         var sets = result.Sets;

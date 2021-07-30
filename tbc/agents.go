@@ -115,19 +115,20 @@ func NewAdaptiveAgent(sim *Simulation) *AdaptiveAgent {
 	}
 }
 
-type AgentType string
+type AgentType int
 
+// This must be kept in sync with the enum in ui.js
 const (
-	AGENT_TYPE_FIXED_3LB_1CL AgentType = "Fixed3LB1CL"
-	AGENT_TYPE_FIXED_4LB_1CL AgentType = "Fixed4LB1CL"
-	AGENT_TYPE_FIXED_5LB_1CL AgentType = "Fixed5LB1CL"
-	AGENT_TYPE_FIXED_6LB_1CL AgentType = "Fixed6LB1CL"
-	AGENT_TYPE_FIXED_7LB_1CL AgentType = "Fixed7LB1CL"
-	AGENT_TYPE_FIXED_8LB_1CL AgentType = "Fixed8LB1CL"
-	AGENT_TYPE_FIXED_9LB_1CL AgentType = "Fixed9LB1CL"
-	AGENT_TYPE_FIXED_10LB_1CL AgentType = "Fixed10LB1CL"
-	AGENT_TYPE_FIXED_LB_ONLY AgentType = "FixedLBOnly"
-	AGENT_TYPE_ADAPTIVE AgentType = "Adaptive"
+	AGENT_TYPE_FIXED_3LB_1CL AgentType = iota
+	AGENT_TYPE_FIXED_4LB_1CL
+	AGENT_TYPE_FIXED_5LB_1CL
+	AGENT_TYPE_FIXED_6LB_1CL
+	AGENT_TYPE_FIXED_7LB_1CL
+	AGENT_TYPE_FIXED_8LB_1CL
+	AGENT_TYPE_FIXED_9LB_1CL
+	AGENT_TYPE_FIXED_10LB_1CL
+	AGENT_TYPE_FIXED_LB_ONLY
+	AGENT_TYPE_ADAPTIVE
 )
 
 var ALL_AGENT_TYPES = []AgentType{

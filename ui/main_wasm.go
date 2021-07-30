@@ -267,7 +267,7 @@ func parseOptions(val js.Value) tbc.Options {
 		ExitOnOOM:    val.Get("exitoom").Truthy(),
 		NumBloodlust: val.Get("buffbl").Int(),
 		NumDrums:     val.Get("buffdrums").Int(),
-		AgentType:    tbc.AgentType(val.Get("agenttype").String()),
+		AgentType:    tbc.AgentType(val.Get("agenttype").Int()),
 		Buffs: tbc.Buffs{
 			ArcaneInt:                val.Get("buffai").Truthy(),
 			GiftOftheWild:            val.Get("buffgotw").Truthy(),
@@ -331,13 +331,13 @@ func parseOptions(val js.Value) tbc.Options {
 func parseAgentTypes(val js.Value) []tbc.AgentType {
 	out := []tbc.AgentType{}
 	for i := 0; i < val.Length(); i++ {
-		out = append(out, tbc.AgentType(val.Index(i).String()))
+		out = append(out, tbc.AgentType(val.Index(i).Int()))
 	}
 	return out
 }
 
 type SimResult struct {
-	AgentType    string
+	AgentType    int
 	SimSeconds   int
 	RealDuration float64
 	Logs         string
@@ -369,7 +369,7 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, durationS
 		simMetrics := SimResult{
 			DPSHist:  map[int]int{},
 			Casts:    map[int32]CastMetric{},
-			AgentType: string(agentType),
+			AgentType: int(agentType),
 		}
 		st := time.Now()
 		rseed := time.Now().Unix()
