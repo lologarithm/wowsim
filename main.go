@@ -30,7 +30,7 @@ func main() {
 
 	var isDebug = flag.Bool("debug", false, "Include --debug to spew the entire simulation log.")
 	var noopt = flag.Bool("noopt", false, "If included it will disable optimization.")
-	var agentType = flag.String("agentType", "", "Custom comma separated agent type to simulate.\n\tFor Example: --rotation=Fixed3LB1CL")
+	var agentTypeStr = flag.String("agentType", "", "Custom comma separated agent type to simulate.\n\tFor Example: --rotation=3LB1CL")
 	var duration = flag.Int("duration", 300, "Custom fight duration in seconds.")
 	var iterations = flag.Int("iter", 10000, "Custom number of iterations for the sim to run.")
 	var runWebUI = flag.Bool("web", false, "Use to run sim in web interface instead of in terminal")
@@ -135,10 +135,23 @@ func main() {
 		opt.Debug = true
 	}
 
-	if agentType == nil || len(*agentType) == 0 {
+	agentTypesMap := map[string]tbc.AgentType {
+		"3LB1CL": tbc.AGENT_TYPE_FIXED_3LB_1CL,
+		"4LB1CL": tbc.AGENT_TYPE_FIXED_4LB_1CL,
+		"5LB1CL": tbc.AGENT_TYPE_FIXED_5LB_1CL,
+		"6LB1CL": tbc.AGENT_TYPE_FIXED_6LB_1CL,
+		"7LB1CL": tbc.AGENT_TYPE_FIXED_7LB_1CL,
+		"8LB1CL": tbc.AGENT_TYPE_FIXED_8LB_1CL,
+		"9LB1CL": tbc.AGENT_TYPE_FIXED_9LB_1CL,
+		"10LB1CL": tbc.AGENT_TYPE_FIXED_10LB_1CL,
+		"LB": tbc.AGENT_TYPE_FIXED_LB_ONLY,
+		"Adaptive": tbc.AGENT_TYPE_ADAPTIVE,
+	}
+
+	if agentTypeStr == nil {
 		opt.AgentType = tbc.AGENT_TYPE_ADAPTIVE
 	} else {
-		opt.AgentType = tbc.AgentType(*agentType)
+		opt.AgentType = agentTypesMap[*agentTypeStr]
 	}
 
 	results := runTBCSim(gear, opt, *duration, *iterations, *noopt)
