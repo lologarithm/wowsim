@@ -4,6 +4,12 @@ import (
 	"fmt"
 )
 
+/**
+ * Controls the spell rotation, can be thought of as the 'player'.
+ *
+ * TODO: Decide what should count as a spell, so we can have agents do other things (drop 
+ * totems? cast lust? melee attacks?). One idea: anything on the GCD counts as a spell.
+ */
 type Agent interface {
 	// Returns the spell this Agent would like to cast next. Should never return nil.
 	ChooseSpell(*Simulation, bool) *Cast
