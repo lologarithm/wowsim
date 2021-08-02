@@ -6,12 +6,12 @@ import (
 )
 
 type Options struct {
-	SpellOrder []string
+	SpellOrder   []string
 	NumClTargets int
-	UseAI      bool // when set true, the AI will modulate the rotations to maximize DPS and mana.
-	RSeed      int64
-	ExitOnOOM  bool
-	GCD        float64 // sets the GCD
+	UseAI        bool // when set true, the AI will modulate the rotations to maximize DPS and mana.
+	RSeed        int64
+	ExitOnOOM    bool
+	GCD          float64 // sets the GCD
 
 	NumBloodlust int
 	NumDrums     int
@@ -86,7 +86,7 @@ func (tt Totems) AddStats(s Stats) Stats {
 }
 
 type Talents struct {
-	LightningOverload   int
+	LightningOverload  int
 	ElementalPrecision int
 	NaturesGuidance    int
 	TidalMastery       int
@@ -261,7 +261,7 @@ func (b Buffs) AddStats(s Stats) Stats {
 		s[StatMP5] += 50
 	}
 	if b.Race == RaceBonusDraenei {
-		s[StatSpellHit] += 15.76 // 1% hit
+		s[StatSpellHit] += 12.60 // 1% hit
 	}
 	s[StatMP5] += float64(b.SpriestDPS) * 0.25
 
