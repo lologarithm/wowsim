@@ -64,12 +64,12 @@ func init() {
 type Cast struct {
 	Spell *Spell
 	// Caster ... // Needed for onstruck effects?
-	IsLO bool // stupid hack
+	IsLO       bool // stupid hack
 	IsClBounce bool // stupider hack
 
 	// Pre-hit Mutatable State
-	CastTime       float64 // time in seconds to cast the spell
-	ManaCost       float64
+	CastTime float64 // time in seconds to cast the spell
+	ManaCost float64
 
 	Hit        float64 // Direct % bonus... 0.1 == 10%
 	Crit       float64 // Direct % bonus... 0.1 == 10%
@@ -103,7 +103,7 @@ func NewCast(sim *Simulation, sp *Spell) *Cast {
 		castTime -= 0.5 // Talent Lightning Mastery
 	}
 	castTime /= (1 + ((sim.Stats[StatHaste] + sim.Buffs[StatHaste]) / 1576)) // 15.76 rating grants 1% spell haste
-	castTime = math.Max(castTime, sim.Options.GCD) // can't cast faster than GCD
+	castTime = math.Max(castTime, sim.Options.GCD)                           // can't cast faster than GCD
 	cast.CastTime = castTime
 
 	if itsElectric {

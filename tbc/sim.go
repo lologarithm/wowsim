@@ -61,17 +61,16 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 	}
 
 	sim := &Simulation{
-		Stats:         stats,
-		Options:       options,
-		CDs:           make([]int, MagicIDLen),
-		Buffs:         Stats{StatLen: 0},
-		Auras:         []Aura{},
-		Equip:         equip,
-		rseed:         options.RSeed,
-		rando:         rand.New(rand.NewSource(options.RSeed)),
-		Debug:         nil,
+		Stats:   stats,
+		Options: options,
+		CDs:     make([]int, MagicIDLen),
+		Buffs:   Stats{StatLen: 0},
+		Auras:   []Aura{},
+		Equip:   equip,
+		rseed:   options.RSeed,
+		rando:   rand.New(rand.NewSource(options.RSeed)),
+		Debug:   nil,
 	}
-
 
 	if options.Debug {
 		sim.Debug = debugFunc(sim)
@@ -225,7 +224,6 @@ func (sim *Simulation) addAura(a Aura) {
 // This will activate any auras around casting, calculate hit/crit and add to sim metrics.
 func (sim *Simulation) Cast(cast *Cast) {
 	if sim.Debug != nil {
-		sim.Debug("Start Casting %s Cast Time: %0.1fs\n", cast.Spell.Name, cast.CastTime)
 		sim.Debug("Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
 	}
 	sim.CurrentMana -= cast.ManaCost
@@ -471,12 +469,16 @@ func (sim *Simulation) Spellcasting() {
 	}
 
 	// Choose next spell
-	castingSpell := sim.Agent.ChooseSpell(sim, didPot);
+	castingSpell := sim.Agent.ChooseSpell(sim, didPot)
 	if castingSpell == nil {
 		panic("Agent returned nil casting spell")
 	}
 
 	if sim.CurrentMana >= castingSpell.ManaCost {
+		if sim.Debug != nil {
+			sim.Debug("Start Casting %s Cast Time: %0.1fs\n", cast.Spell.Name, cast.CastTime)
+		}
+
 		ticksUntilCast := int(castingSpell.CastTime*float64(TicksPerSecond)) + 1 // round up
 		sim.Advance(ticksUntilCast)
 		sim.Cast(castingSpell)
@@ -496,8 +498,8 @@ func (sim *Simulation) Spellcasting() {
 func (sim *Simulation) Advance(ticks int) {
 	// MP5 regen
 	sim.CurrentMana = math.Min(
-			sim.Stats[StatMana],
-			sim.CurrentMana + sim.manaRegen() * float64(ticks))
+		sim.Stats[StatMana],
+		sim.CurrentMana+sim.manaRegen()*float64(ticks))
 
 	// CDS
 	for k := range sim.CDs {

@@ -305,7 +305,7 @@ func parseOptions(val js.Value) tbc.Options {
 			DarkRune:                 val.Get("condr").Truthy(),
 		},
 		Talents: tbc.Talents{
-			LightningOverload:   5,
+			LightningOverload:  5,
 			ElementalPrecision: 3,
 			NaturesGuidance:    3,
 			TidalMastery:       5,
@@ -367,8 +367,8 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, durationS
 
 	for _, agentType := range agentTypes {
 		simMetrics := SimResult{
-			DPSHist:  map[int]int{},
-			Casts:    map[int32]CastMetric{},
+			DPSHist:   map[int]int{},
+			Casts:     map[int32]CastMetric{},
 			AgentType: int(agentType),
 		}
 		st := time.Now()
