@@ -628,13 +628,13 @@ addEventListener('message', async (e) => {
 	} else if (msg == "simulate") {
 		var resultJSON;
 		// temp workaround to keep it like how it was.
-		if (payload.rots == null && payload.fullLogs == null) {
+		if (payload.agentTypes == null && payload.fullLogs == null) {
 			resultJSON = simulate(
 				payload.iters, payload.dur, payload.numClTargets, payload.gearlist, payload.opts
 			)
 		} else {
 			resultJSON = simulate(
-				payload.iters, payload.dur, payload.numClTargets, payload.gearlist, payload.opts, payload.rots, payload.haste, payload.fullLogs
+				payload.iters, payload.dur, payload.numClTargets, payload.gearlist, payload.opts, payload.agentTypes, payload.haste, payload.fullLogs
 			)
 		}
 		var result = JSON.parse(resultJSON);

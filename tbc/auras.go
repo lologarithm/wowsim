@@ -510,7 +510,6 @@ func ActivateBloodlust(sim *Simulation) Aura {
 			if c.CastTime < sim.Options.GCD {
 				c.CastTime = sim.Options.GCD // can't cast faster than GCD
 			}
-			c.TicksUntilCast = int(c.CastTime*float64(TicksPerSecond)) + 1
 		},
 	}
 }
@@ -527,7 +526,6 @@ func ActivateBerserking(sim *Simulation, hasteBonus float64) Aura {
 			if c.CastTime < sim.Options.GCD {
 				c.CastTime = sim.Options.GCD // can't cast faster than GCD
 			}
-			c.TicksUntilCast = int(c.CastTime*float64(TicksPerSecond)) + 1
 		},
 	}
 }
