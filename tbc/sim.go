@@ -476,7 +476,7 @@ func (sim *Simulation) Spellcasting() {
 
 	if sim.CurrentMana >= castingSpell.ManaCost {
 		if sim.Debug != nil {
-			sim.Debug("Start Casting %s Cast Time: %0.1fs\n", cast.Spell.Name, cast.CastTime)
+			sim.Debug("Start Casting %s Cast Time: %0.1fs\n", castingSpell.Spell.Name, castingSpell.CastTime)
 		}
 
 		ticksUntilCast := int(castingSpell.CastTime*float64(TicksPerSecond)) + 1 // round up

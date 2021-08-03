@@ -260,7 +260,7 @@ func (b Buffs) AddStats(s Stats) Stats {
 		s[StatMP5] += 50
 	}
 	if b.Race == RaceBonusDraenei {
-		s[StatSpellHit] += 15.76 // 1% hit
+		s[StatSpellHit] += 12.60 // 1% hit
 	}
 	s[StatMP5] += float64(b.SpriestDPS) * 0.25
 
