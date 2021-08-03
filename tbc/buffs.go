@@ -6,11 +6,11 @@ import (
 )
 
 type Options struct {
-	AgentType AgentType
+	AgentType    AgentType
 	NumClTargets int
-	RSeed      int64
-	ExitOnOOM  bool
-	GCD        float64 // sets the GCD
+	RSeed        int64
+	ExitOnOOM    bool
+	GCD          float64 // sets the GCD
 
 	NumBloodlust int
 	NumDrums     int
@@ -85,7 +85,7 @@ func (tt Totems) AddStats(s Stats) Stats {
 }
 
 type Talents struct {
-	LightningOverload   int
+	LightningOverload  int
 	ElementalPrecision int
 	NaturesGuidance    int
 	TidalMastery       int

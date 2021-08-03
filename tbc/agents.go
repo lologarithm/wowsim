@@ -7,7 +7,7 @@ import (
 /**
  * Controls the spell rotation, can be thought of as the 'player'.
  *
- * TODO: Decide what should count as a spell, so we can have agents do other things (drop 
+ * TODO: Decide what should count as a spell, so we can have agents do other things (drop
  * totems? cast lust? melee attacks?). One idea: anything on the GCD counts as a spell.
  */
 type Agent interface {
@@ -25,7 +25,7 @@ type Agent interface {
 //                          FIXED ROTATION
 // ################################################################
 type FixedRotationAgent struct {
-	numLBsPerCL int  // If -1, uses LB only
+	numLBsPerCL       int // If -1, uses LB only
 	numLBsSinceLastCL int
 }
 
@@ -34,7 +34,7 @@ func (agent *FixedRotationAgent) ChooseSpell(sim *Simulation, didPot bool) *Cast
 		return NewCast(sim, spellmap[MagicIDLB12])
 	}
 
-	if sim.CDs[MagicIDCL6] < 1  && agent.numLBsSinceLastCL >= agent.numLBsPerCL {
+	if sim.CDs[MagicIDCL6] < 1 && agent.numLBsSinceLastCL >= agent.numLBsPerCL {
 		return NewCast(sim, spellmap[MagicIDCL6])
 	} else {
 		return NewCast(sim, spellmap[MagicIDLB12])
@@ -55,7 +55,7 @@ func (agent *FixedRotationAgent) Reset(sim *Simulation) {
 
 func NewFixedRotationAgent(sim *Simulation, numLBsPerCL int) *FixedRotationAgent {
 	return &FixedRotationAgent{
-		numLBsPerCL: numLBsPerCL,
+		numLBsPerCL:       numLBsPerCL,
 		numLBsSinceLastCL: numLBsPerCL, // This lets us cast CL first
 	}
 }
@@ -66,7 +66,7 @@ func NewFixedRotationAgent(sim *Simulation, numLBsPerCL int) *FixedRotationAgent
 type AdaptiveAgent struct {
 	LastMana  float64
 	LastCheck int
-	NumCasts int
+	NumCasts  int
 }
 
 func (agent *AdaptiveAgent) ChooseSpell(sim *Simulation, didPot bool) *Cast {
