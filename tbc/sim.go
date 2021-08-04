@@ -9,7 +9,7 @@ import (
 
 func debugFunc(sim *Simulation) func(string, ...interface{}) {
 	return func(s string, vals ...interface{}) {
-		fmt.Printf("[%0.1f] "+s, append([]interface{}{(float64(sim.CurrentTick) / float64(TicksPerSecond))}, vals...)...)
+		fmt.Printf("[%0.1f] "+s, append([]interface{}{sim.CurrentTime}, vals...)...)
 	}
 }
 
@@ -28,7 +28,7 @@ type Simulation struct {
 	Options           Options
 
 	// timeToRegen := 0
-	CDs   []int  // Map of MagicID to ticks until CD is done. 'Advance' counts down these
+	_CDs   []float64  // Map of MagicID to ticks until CD is done. 'Advance' counts down these
 	Auras []Aura // this is array instaed of map to speed up browser perf.
 
 	// Clears and regenerates on each Run call.
@@ -36,8 +36,8 @@ type Simulation struct {
 
 	rando       *rand.Rand
 	rseed       int64
-	CurrentTick int
-	endTick     int
+	CurrentTime float64
+	endTime     float64
 
 	Debug func(string, ...interface{})
 }
@@ -46,7 +46,7 @@ type SimMetrics struct {
 	TotalDamage    float64
 	ReportedDamage float64 // used when DPSReportTime is set
 	DamageAtOOM    float64
-	OOMAt          int
+	OOMAt          float64
 	Casts          []*Cast
 	ManaAtEnd      int
 	Rotation       []string
@@ -56,14 +56,14 @@ type SimMetrics struct {
 //   Technically we can calculate stats from equip/options but want the ability to override those stats
 //   mostly for stat weight purposes.
 func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
-	if options.GCD == 0 {
-		options.GCD = 0.75 // default to 0.75s GCD
+	if options.GCDMin == 0 {
+		options.GCDMin = 0.75 // default to 0.75s GCD
 	}
 
 	sim := &Simulation{
 		Stats:   stats,
 		Options: options,
-		CDs:     make([]int, MagicIDLen),
+		_CDs:     make([]float64, MagicIDLen),
 		Buffs:   Stats{StatLen: 0},
 		Auras:   []Aura{},
 		Equip:   equip,
@@ -105,10 +105,10 @@ func (sim *Simulation) reset() {
 
 	sim.destructionPotion = false
 	sim.bloodlustCasts = 0
-	sim.CurrentTick = 0
+	sim.CurrentTime = 0.0
 	sim.CurrentMana = sim.Stats[StatMana]
 	sim.Buffs = Stats{StatLen: 0}
-	sim.CDs = make([]int, MagicIDLen)
+	sim._CDs = make([]float64, MagicIDLen)
 	sim.Auras = []Aura{}
 	sim.metrics = SimMetrics{
 		Casts: make([]*Cast, 0, 1000),
@@ -152,11 +152,11 @@ func (sim *Simulation) reset() {
 
 // Run will run the simulation for number of seconds.
 // Returns metrics for what was cast and how much damage was done.
-func (sim *Simulation) Run(seconds int) SimMetrics {
-	sim.endTick = seconds * TicksPerSecond
+func (sim *Simulation) Run(durationSeconds float64) SimMetrics {
+	sim.endTime = durationSeconds
 	sim.reset()
 
-	for sim.CurrentTick < sim.endTick {
+	for sim.CurrentTime < sim.endTime {
 		sim.Spellcasting()
 
 		if sim.Options.ExitOnOOM && sim.metrics.OOMAt > 0 {
@@ -263,7 +263,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 			dmg *= critBonus
 			if cast.Spell.ID != MagicIDTLCLB {
 				// TLC does not proc focus.
-				sim.addAura(AuraElementalFocus(sim.CurrentTick))
+				sim.addAura(AuraElementalFocus(sim.CurrentTime))
 			}
 			if sim.Debug != nil {
 				dbgCast += " crit"
@@ -332,7 +332,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 	}
 
 	if cast.Spell.Cooldown > 0 {
-		sim.CDs[cast.Spell.ID] = cast.Spell.Cooldown * TicksPerSecond
+		sim.setCD(cast.Spell.ID, cast.Spell.Cooldown)
 	}
 
 	if sim.Debug != nil {
@@ -342,30 +342,8 @@ func (sim *Simulation) Cast(cast *Cast) {
 	sim.metrics.Casts = append(sim.metrics.Casts, cast)
 
 	sim.metrics.TotalDamage += cast.DidDmg
-	if sim.Options.DPSReportTime > 0 && sim.CurrentTick/TicksPerSecond <= sim.Options.DPSReportTime {
+	if sim.Options.DPSReportTime > 0 && sim.CurrentTime <= sim.Options.DPSReportTime {
 		sim.metrics.ReportedDamage += cast.DidDmg
-	}
-}
-
-func (sim *Simulation) ActivateRacial() {
-	switch v := sim.Options.Buffs.Race; v {
-	case RaceBonusOrc:
-		const spBonus = 143
-		const dur = 15
-		if sim.CDs[MagicIDOrcBloodFury] < 1 {
-			sim.Buffs[StatSpellDmg] += spBonus
-			sim.addAura(AuraStatRemoval(sim.CurrentTick, dur, spBonus, StatSpellDmg, MagicIDOrcBloodFury))
-			sim.CDs[MagicIDOrcBloodFury] = 120 * TicksPerSecond
-		}
-	case RaceBonusTroll10, RaceBonusTroll30:
-		hasteBonus := 1.1 // 10% haste
-		const dur = 10
-		if v == RaceBonusTroll30 {
-			hasteBonus = 1.3 // 30% haste
-		}
-		if sim.CDs[MagicIDTrollBerserking] < 1 {
-			sim.addAura(ActivateBerserking(sim, hasteBonus))
-		}
 	}
 }
 
@@ -393,80 +371,16 @@ func (sim *Simulation) ActivateSets() []string {
 // If not casting it will activate ablities/trinkets that are off CD and then choose a new spell to cast.
 // It will pop mana potions if needed.
 func (sim *Simulation) Spellcasting() {
-	if sim.Options.NumDrums > 0 && sim.CDs[MagicIDDrums] < 1 {
-		// We have drums in the sim, and the drums aura isn't turned on.
-		// Iterate our drum
-		for i, v := range []int32{MagicIDDrum1, MagicIDDrum2, MagicIDDrum3, MagicIDDrum4} {
-			if i == sim.Options.NumDrums {
-				break
-			}
-			if sim.CDs[v] < 1 {
-				sim.CDs[v] = 120 * TicksPerSecond // item goes on CD for 120s
-				sim.addAura(ActivateDrums(sim))
-				break
-			}
-		}
-	}
-	// Activate any specials
-	if sim.Options.NumBloodlust > sim.bloodlustCasts && sim.CDs[MagicIDBloodlust] < 1 {
-		sim.addAura(ActivateBloodlust(sim))
-		sim.bloodlustCasts++ // TODO: will this break anything?
-	}
-
-	if sim.Options.Talents.ElementalMastery && sim.CDs[MagicIDEleMastery] < 1 {
-		// Apply auras
-		sim.addAura(AuraEleMastery())
-	}
-
-	sim.ActivateRacial()
-
-	if sim.Options.Consumes.DestructionPotion && sim.CDs[MagicIDPotion] < 1 {
-		// Only use dest potion if not using mana or if we haven't used it once.
-		// If we are using mana, only use destruction potion on the pull.
-		if !sim.Options.Consumes.SuperManaPotion || !sim.destructionPotion {
-			sim.addAura(ActivateDestructionPotion(sim))
-		}
-	}
+	TryActivateDrums(sim)
+	TryActivateBloodlust(sim)
+	TryActivateEleMastery(sim)
+	TryActivateRacial(sim)
+	TryActivateDestructionPotion(sim)
+	sim.TryActivateEquipment()
 
 	didPot := false
-	totalRegen := (sim.Stats[StatMP5] + sim.Buffs[StatMP5])
-	// Pop potion before next cast if we have less than the mana provided by the potion minues 1mp5 tick.
-	if sim.Options.Consumes.DarkRune && sim.Stats[StatMana]-sim.CurrentMana+totalRegen >= 1500 && sim.CDs[MagicIDRune] < 1 {
-		// Restores 900 to 1500 mana. (2 Min Cooldown)
-		sim.CurrentMana += 900 + (sim.rando.Float64() * 600)
-		sim.CDs[MagicIDRune] = 120 * TicksPerSecond
-		didPot = true
-		if sim.Debug != nil {
-			sim.Debug("Used Dark Rune\n")
-		}
-	}
-	if sim.Options.Consumes.SuperManaPotion && sim.Stats[StatMana]-sim.CurrentMana+totalRegen >= 3000 && sim.CDs[MagicIDPotion] < 1 {
-		// Restores 1800 to 3000 mana. (2 Min Cooldown)
-		sim.CurrentMana += 1800 + (sim.rando.Float64() * 1200)
-		sim.CDs[MagicIDPotion] = 120 * TicksPerSecond
-		didPot = true
-		if sim.Debug != nil {
-			sim.Debug("Used Mana Potion\n")
-		}
-	}
-
-	// Pop any on-use trinkets
-	for _, item := range sim.activeEquip {
-		if item.Activate == nil || item.ActivateCD == -1 { // ignore non-activatable, and always active items.
-			continue
-		}
-		if sim.CDs[item.CoolID] > 0 {
-			continue
-		}
-		if item.Slot == EquipTrinket && sim.CDs[MagicIDAllTrinket] > 0 {
-			continue
-		}
-		sim.addAura(item.Activate(sim))
-		sim.CDs[item.CoolID] = item.ActivateCD * TicksPerSecond
-		if item.Slot == EquipTrinket {
-			sim.CDs[MagicIDAllTrinket] = 30 * TicksPerSecond
-		}
-	}
+	didPot = didPot || TryActivateDarkRune(sim)
+	didPot = didPot || TryActivateSuperManaPotion(sim)
 
 	// Choose next spell
 	castingSpell := sim.Agent.ChooseSpell(sim, didPot)
@@ -479,45 +393,78 @@ func (sim *Simulation) Spellcasting() {
 			sim.Debug("Start Casting %s Cast Time: %0.1fs\n", cast.Spell.Name, cast.CastTime)
 		}
 
-		ticksUntilCast := int(castingSpell.CastTime*float64(TicksPerSecond)) + 1 // round up
-		sim.Advance(ticksUntilCast)
+		sim.Agent.OnSpellAccepted(sim, castingSpell)
+		sim.Advance(castingSpell.CastTime)
 		sim.Cast(castingSpell)
 	} else {
 		// Not enough mana, wait until there is enough mana to cast the desired spell
 		if sim.metrics.OOMAt == 0 {
-			sim.metrics.OOMAt = sim.CurrentTick / TicksPerSecond
+			sim.metrics.OOMAt = sim.CurrentTime
 			sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
 		}
-		ticksUntilRegen := int(math.Ceil((castingSpell.ManaCost - sim.CurrentMana) / sim.manaRegen()))
-		sim.Advance(ticksUntilRegen)
+		timeUntilRegen := (castingSpell.ManaCost - sim.CurrentMana) / sim.manaRegen()
+		sim.Advance(timeUntilRegen)
 		// Don't actually cast; let the next iteration do the cast, so we recheck for pots/CDs/etc
 	}
 }
 
 // Advance moves time forward counting down auras, CDs, mana regen, etc
-func (sim *Simulation) Advance(ticks int) {
+func (sim *Simulation) Advance(elapsedTime float64) {
 	// MP5 regen
 	sim.CurrentMana = math.Min(
 		sim.Stats[StatMana],
-		sim.CurrentMana+sim.manaRegen()*float64(ticks))
+		sim.CurrentMana + sim.manaRegen() * elapsedTime)
 
 	// CDS
-	for k := range sim.CDs {
-		sim.CDs[k] -= ticks // CDs will go negative with this but that is OK
+	for k := range sim._CDs {
+		sim._CDs[k] = math.Max(0, sim._CDs[k] - elapsedTime)
 	}
 
 	todel := []int{}
 	for i := range sim.Auras {
-		if sim.Auras[i].Expires <= (sim.CurrentTick + ticks) {
+		if sim.Auras[i].Expires <= (sim.CurrentTime + elapsedTime) {
 			todel = append(todel, i)
 		}
 	}
 	for i := len(todel) - 1; i >= 0; i-- {
 		sim.cleanAura(todel[i])
 	}
-	sim.CurrentTick += ticks
+	sim.CurrentTime += elapsedTime
 }
 
+// Returns rate of mana regen, as mana / second
 func (sim *Simulation) manaRegen() float64 {
-	return ((sim.Stats[StatMP5] + sim.Buffs[StatMP5]) / 5.0) / float64(TicksPerSecond)
+	return ((sim.Stats[StatMP5] + sim.Buffs[StatMP5]) / 5.0)
+}
+
+func (sim *Simulation) isOnCD(magicID int32) bool {
+	return sim._CDs[magicID] > 0
+}
+
+func (sim *Simulation) getRemainingCD(magicID int32) float64 {
+	return sim._CDs[magicID]
+}
+
+func (sim *Simulation) setCD(magicID int32, newCD float64) {
+	sim._CDs[magicID] = newCD
+}
+
+// Pops any on-use trinkets / gear
+func (sim *Simulation) TryActivateEquipment() {
+	for _, item := range sim.activeEquip {
+		if item.Activate == nil || item.ActivateCD == -1 { // ignore non-activatable, and always active items.
+			continue
+		}
+		if sim.isOnCD(item.CoolID) {
+			continue
+		}
+		if item.Slot == EquipTrinket && sim.isOnCD(MagicIDAllTrinket) {
+			continue
+		}
+		sim.addAura(item.Activate(sim))
+		sim.setCD(item.CoolID, item.ActivateCD)
+		if item.Slot == EquipTrinket {
+			sim.setCD(MagicIDAllTrinket, 30)
+		}
+	}
 }

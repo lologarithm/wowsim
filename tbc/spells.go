@@ -7,7 +7,7 @@ type Spell struct {
 	ID         int32
 	Name       string
 	CastTime   float64
-	Cooldown   int
+	Cooldown   float64
 	Mana       float64
 	MinDmg     float64
 	MaxDmg     float64
@@ -80,7 +80,7 @@ type Cast struct {
 	DidHit  bool
 	DidCrit bool
 	DidDmg  float64
-	CastAt  int // simulation tick the spell cast
+	CastAt  float64 // simulation time the spell cast
 
 	Effects []AuraEffect // effects applied ONLY to this cast.
 }
@@ -103,7 +103,7 @@ func NewCast(sim *Simulation, sp *Spell) *Cast {
 		castTime -= 0.5 // Talent Lightning Mastery
 	}
 	castTime /= (1 + ((sim.Stats[StatHaste] + sim.Buffs[StatHaste]) / 1576)) // 15.76 rating grants 1% spell haste
-	castTime = math.Max(castTime, sim.Options.GCD)                           // can't cast faster than GCD
+	castTime = math.Max(castTime, sim.Options.GCDMin)                        // can't cast faster than GCD
 	cast.CastTime = castTime
 
 	if itsElectric {

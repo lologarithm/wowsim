@@ -6,13 +6,6 @@ import (
 	"strings"
 )
 
-var rotations = [][]string{
-	{"CL6", "LB12", "LB12", "LB12"},
-	{"CL6", "LB12", "LB12", "LB12", "LB12"},
-	{"LB12"}, // only LB
-	// {"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
-}
-
 type OptimalGemsResult struct {
 	Sims []EquipmentResult
 }
@@ -22,7 +15,7 @@ type EquipmentResult struct {
 	Equip   Equipment
 }
 
-func StatWeights(opts Options, equip Equipment, seconds int, numSims int) []float64 {
+func StatWeights(opts Options, equip Equipment, seconds float64, numSims int) []float64 {
 	type res struct {
 		s   Stat
 		val float64
@@ -50,9 +43,9 @@ func StatWeights(opts Options, equip Equipment, seconds int, numSims int) []floa
 			simdmg += metrics.TotalDamage
 			simmet = append(simmet, metrics)
 		}
-		results <- res{s: mod, val: value, m: simmet, d: simdmg / float64(numSims) / float64(seconds)}
+		results <- res{s: mod, val: value, m: simmet, d: simdmg / float64(numSims) / seconds}
 		if base == 0 {
-			base = simdmg / float64(numSims) / float64(seconds)
+			base = simdmg / float64(numSims) / seconds
 		}
 	}
 
@@ -86,7 +79,7 @@ func StatWeights(opts Options, equip Equipment, seconds int, numSims int) []floa
 // OptimalGems returns DPS for each equipment/gem set.
 //   1. All +sp power
 //   2. Follow colors to get socket bonuses
-func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) OptimalGemsResult {
+func OptimalGems(opts Options, equip Equipment, seconds float64, numSims int) OptimalGemsResult {
 	output := OptimalGemsResult{}
 
 	set1 := equip.Clone()
@@ -136,7 +129,7 @@ func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) Optima
 		simdmg += metrics.TotalDamage
 		simmet = append(simmet, metrics)
 	}
-	fmt.Printf("All Red Gems: %0.0f DPS\n", simdmg/float64(numSims)/float64(seconds))
+	fmt.Printf("All Red Gems: %0.0f DPS\n", simdmg/float64(numSims)/seconds)
 	output.Sims = append(output.Sims, EquipmentResult{Results: simmet, Equip: set1})
 
 	simdmg = 0.0
@@ -147,7 +140,7 @@ func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) Optima
 		simdmg += metrics.TotalDamage
 		simmet = append(simmet, metrics)
 	}
-	fmt.Printf("Matched Sockets: %0.0f DPS\n", simdmg/float64(numSims)/float64(seconds))
+	fmt.Printf("Matched Sockets: %0.0f DPS\n", simdmg/float64(numSims)/seconds)
 	output.Sims = append(output.Sims, EquipmentResult{Results: simmet, Equip: set2})
 
 	return output
@@ -155,7 +148,7 @@ func OptimalGems(opts Options, equip Equipment, seconds int, numSims int) Optima
 
 // Finds the optimal rotation for given parameters.
 // This might not be needed now that the AI basically does this but faster.
-func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, numSims int) ([]SimMetrics, string) {
+func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds float64, numSims int) ([]SimMetrics, string) {
 	topDmg := 0.0
 	bestAgent := AGENT_TYPE_FIXED_LB_ONLY
 	topMets := []SimMetrics{}
@@ -165,7 +158,7 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 			continue
 		}
 
-		oomat := 0
+		oomat := 0.0
 		numoom := 0
 		simdmg := 0.0
 		// fmt.Printf("Starting opt sim: %v\n", rotation)
@@ -200,7 +193,7 @@ func OptimalRotation(stats Stats, opts Options, equip Equipment, seconds int, nu
 
 }
 
-func PrintResult(metrics []SimMetrics, seconds int) {
+func PrintResult(metrics []SimMetrics, seconds float64) {
 	numSims := len(metrics)
 	simDmgs := make([]float64, 0, numSims)
 	for _, metric := range metrics {
@@ -224,8 +217,8 @@ func PrintResult(metrics []SimMetrics, seconds int) {
 	stdev := math.Sqrt(meanSq - mean*mean)
 
 	fmt.Printf("DPS:\n")
-	fmt.Printf("\tMean: %0.1f +/- %0.1f\n", (mean / float64(seconds)), stdev/float64(seconds))
-	fmt.Printf("\tMax: %0.1f\n", (max / float64(seconds)))
+	fmt.Printf("\tMean: %0.1f +/- %0.1f\n", (mean / seconds), stdev/seconds)
+	fmt.Printf("\tMax: %0.1f\n", (max / seconds))
 	fmt.Printf("Total Casts:\n")
 
 	// for k, v := range casts {

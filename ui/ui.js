@@ -189,7 +189,7 @@ function getOptions() {
     options.custom.custmana = parseInt(document.getElementById("custmana").value) || 0;
 
     options.dpsReportTime = 0;
-    options.gcd = parseFloat(document.getElementById("custgcd").value) || 0;
+    options.gcdMin = parseFloat(document.getElementById("custgcd").value) || 0;
 
     return options;
 }
