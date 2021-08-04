@@ -150,6 +150,25 @@ func (sim *Simulation) reset() {
 	sim.Agent.Reset(sim)
 }
 
+// Activates set bonuses, returning the list of active bonuses.
+func (sim *Simulation) ActivateSets() []string {
+	active := []string{}
+	// Activate Set Bonuses
+	for _, set := range sets {
+		itemCount := 0
+		for _, i := range sim.Equip {
+			if set.Items[i.Name] {
+				itemCount++
+				if bonus, ok := set.Bonuses[itemCount]; ok {
+					active = append(active, set.Name+" ("+strconv.Itoa(itemCount)+"pc)")
+					sim.addAura(bonus(sim))
+				}
+			}
+		}
+	}
+	return active
+}
+
 // Run will run the simulation for number of seconds.
 // Returns metrics for what was cast and how much damage was done.
 func (sim *Simulation) Run(durationSeconds float64) SimMetrics {
@@ -157,67 +176,48 @@ func (sim *Simulation) Run(durationSeconds float64) SimMetrics {
 	sim.reset()
 
 	for sim.CurrentTime < sim.endTime {
-		sim.Spellcasting()
+		TryActivateDrums(sim)
+		TryActivateBloodlust(sim)
+		TryActivateEleMastery(sim)
+		TryActivateRacial(sim)
+		TryActivateDestructionPotion(sim)
+		sim.TryActivateEquipment()
 
-		if sim.Options.ExitOnOOM && sim.metrics.OOMAt > 0 {
-			return sim.metrics
+		didPot := false
+		didPot = didPot || TryActivateDarkRune(sim)
+		didPot = didPot || TryActivateSuperManaPotion(sim)
+
+		// Choose next spell
+		castingSpell := sim.Agent.ChooseSpell(sim, didPot)
+		if castingSpell == nil {
+			panic("Agent returned nil casting spell")
 		}
-		if sim.CurrentMana < 0 {
-			panic("you should never have negative mana.")
+
+		if sim.CurrentMana >= castingSpell.ManaCost {
+			if sim.Debug != nil {
+				sim.Debug("Start Casting %s Cast Time: %0.1fs\n", castingSpell.Spell.Name, castingSpell.CastTime)
+			}
+
+			sim.Agent.OnSpellAccepted(sim, castingSpell)
+			sim.Advance(castingSpell.CastTime)
+			sim.Cast(castingSpell)
+		} else {
+			// Not enough mana, wait until there is enough mana to cast the desired spell
+			if sim.metrics.OOMAt == 0 {
+				sim.metrics.OOMAt = sim.CurrentTime
+				sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
+				if sim.Options.ExitOnOOM {
+					return sim.metrics
+				}
+			}
+			timeUntilRegen := (castingSpell.ManaCost - sim.CurrentMana) / sim.manaRegen()
+			sim.Advance(timeUntilRegen)
+			// Don't actually cast; let the next iteration do the cast, so we recheck for pots/CDs/etc
 		}
 	}
 	sim.metrics.ManaAtEnd = int(sim.CurrentMana)
 
 	return sim.metrics
-}
-
-// Remove an aura by its ID, searches through auras
-// and calls 'cleanAura'
-func (sim *Simulation) removeAuraByID(id int32) {
-	for i := range sim.Auras {
-		if sim.Auras[i].ID == id {
-			sim.cleanAura(i)
-			break
-		}
-	}
-}
-
-// cleanAura will remove the given aura from the sim and release all references
-// to prevent memory leaking.
-func (sim *Simulation) cleanAura(i int) {
-	if sim.Auras[i].OnExpire != nil {
-		sim.Auras[i].OnExpire(sim, nil)
-	}
-	// clean up mem
-	sim.Auras[i].OnCast = nil
-	sim.Auras[i].OnCastComplete = nil
-	sim.Auras[i].OnStruck = nil
-	sim.Auras[i].OnSpellHit = nil
-	sim.Auras[i].OnExpire = nil
-
-	if sim.Debug != nil {
-		sim.Debug(" -%s\n", AuraName(sim.Auras[i].ID))
-	}
-	sim.Auras = sim.Auras[:i+copy(sim.Auras[i:], sim.Auras[i+1:])]
-}
-
-// addAura will add a new aura to the simulation. If there is a matching aura ID
-// it will be replaced with the newer aura.
-// Auras with duration of 0 will be logged as activating but never added to simulation auras.
-func (sim *Simulation) addAura(a Aura) {
-	if sim.Debug != nil {
-		sim.Debug(" +%s\n", AuraName(a.ID))
-	}
-	if a.Expires == 0 {
-		return // no need to waste time adding aura that doesn't last.
-	}
-	for i := range sim.Auras {
-		if sim.Auras[i].ID == a.ID {
-			sim.Auras[i] = a // replace
-			return
-		}
-	}
-	sim.Auras = append(sim.Auras, a)
 }
 
 // Cast will actually cast and treat all casts as having no 'flight time'.
@@ -347,67 +347,6 @@ func (sim *Simulation) Cast(cast *Cast) {
 	}
 }
 
-// Activates set bonuses, returning the list of active bonuses.
-func (sim *Simulation) ActivateSets() []string {
-	active := []string{}
-	// Activate Set Bonuses
-	for _, set := range sets {
-		itemCount := 0
-		for _, i := range sim.Equip {
-			if set.Items[i.Name] {
-				itemCount++
-				if bonus, ok := set.Bonuses[itemCount]; ok {
-					active = append(active, set.Name+" ("+strconv.Itoa(itemCount)+"pc)")
-					sim.addAura(bonus(sim))
-				}
-			}
-		}
-	}
-	return active
-}
-
-// Spellcasting performs the core logic of the advancement of simulation state.
-// It will call 'Cast' on a spell ready to cast.
-// If not casting it will activate ablities/trinkets that are off CD and then choose a new spell to cast.
-// It will pop mana potions if needed.
-func (sim *Simulation) Spellcasting() {
-	TryActivateDrums(sim)
-	TryActivateBloodlust(sim)
-	TryActivateEleMastery(sim)
-	TryActivateRacial(sim)
-	TryActivateDestructionPotion(sim)
-	sim.TryActivateEquipment()
-
-	didPot := false
-	didPot = didPot || TryActivateDarkRune(sim)
-	didPot = didPot || TryActivateSuperManaPotion(sim)
-
-	// Choose next spell
-	castingSpell := sim.Agent.ChooseSpell(sim, didPot)
-	if castingSpell == nil {
-		panic("Agent returned nil casting spell")
-	}
-
-	if sim.CurrentMana >= castingSpell.ManaCost {
-		if sim.Debug != nil {
-			sim.Debug("Start Casting %s Cast Time: %0.1fs\n", castingSpell.Spell.Name, castingSpell.CastTime)
-		}
-
-		sim.Agent.OnSpellAccepted(sim, castingSpell)
-		sim.Advance(castingSpell.CastTime)
-		sim.Cast(castingSpell)
-	} else {
-		// Not enough mana, wait until there is enough mana to cast the desired spell
-		if sim.metrics.OOMAt == 0 {
-			sim.metrics.OOMAt = sim.CurrentTime
-			sim.metrics.DamageAtOOM = sim.metrics.TotalDamage
-		}
-		timeUntilRegen := (castingSpell.ManaCost - sim.CurrentMana) / sim.manaRegen()
-		sim.Advance(timeUntilRegen)
-		// Don't actually cast; let the next iteration do the cast, so we recheck for pots/CDs/etc
-	}
-}
-
 // Advance moves time forward counting down auras, CDs, mana regen, etc
 func (sim *Simulation) Advance(elapsedTime float64) {
 	// MP5 regen
@@ -430,6 +369,55 @@ func (sim *Simulation) Advance(elapsedTime float64) {
 		sim.cleanAura(todel[i])
 	}
 	sim.CurrentTime += elapsedTime
+}
+
+// Remove an aura by its ID, searches through auras
+// and calls 'cleanAura'
+func (sim *Simulation) removeAuraByID(id int32) {
+	for i := range sim.Auras {
+		if sim.Auras[i].ID == id {
+			sim.cleanAura(i)
+			break
+		}
+	}
+}
+
+// cleanAura will remove the given aura from the sim and release all references
+// to prevent memory leaking.
+func (sim *Simulation) cleanAura(i int) {
+	if sim.Auras[i].OnExpire != nil {
+		sim.Auras[i].OnExpire(sim, nil)
+	}
+	// clean up mem
+	sim.Auras[i].OnCast = nil
+	sim.Auras[i].OnCastComplete = nil
+	sim.Auras[i].OnStruck = nil
+	sim.Auras[i].OnSpellHit = nil
+	sim.Auras[i].OnExpire = nil
+
+	if sim.Debug != nil {
+		sim.Debug(" -%s\n", AuraName(sim.Auras[i].ID))
+	}
+	sim.Auras = sim.Auras[:i+copy(sim.Auras[i:], sim.Auras[i+1:])]
+}
+
+// addAura will add a new aura to the simulation. If there is a matching aura ID
+// it will be replaced with the newer aura.
+// Auras with duration of 0 will be logged as activating but never added to simulation auras.
+func (sim *Simulation) addAura(a Aura) {
+	if sim.Debug != nil {
+		sim.Debug(" +%s\n", AuraName(a.ID))
+	}
+	if a.Expires == 0 {
+		return // no need to waste time adding aura that doesn't last.
+	}
+	for i := range sim.Auras {
+		if sim.Auras[i].ID == a.ID {
+			sim.Auras[i] = a // replace
+			return
+		}
+	}
+	sim.Auras = append(sim.Auras, a)
 }
 
 // Returns rate of mana regen, as mana / second
