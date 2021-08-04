@@ -183,9 +183,7 @@ func (sim *Simulation) Run(durationSeconds float64) SimMetrics {
 		TryActivateDestructionPotion(sim)
 		sim.TryActivateEquipment()
 
-		didPot := false
-		didPot = didPot || TryActivateDarkRune(sim)
-		didPot = didPot || TryActivateSuperManaPotion(sim)
+		didPot := TryActivateDarkRune(sim) || TryActivateSuperManaPotion(sim)
 
 		// Choose next spell
 		castingSpell := sim.Agent.ChooseSpell(sim, didPot)
@@ -218,6 +216,30 @@ func (sim *Simulation) Run(durationSeconds float64) SimMetrics {
 	sim.metrics.ManaAtEnd = int(sim.CurrentMana)
 
 	return sim.metrics
+}
+
+// Advance moves time forward counting down auras, CDs, mana regen, etc
+func (sim *Simulation) Advance(elapsedTime float64) {
+	// MP5 regen
+	sim.CurrentMana = math.Min(
+		sim.Stats[StatMana],
+		sim.CurrentMana+sim.manaRegen()*elapsedTime)
+
+	// CDS
+	for k := range sim.CDs {
+		sim.CDs[k] = math.Max(0, sim.CDs[k]-elapsedTime)
+	}
+
+	todel := []int{}
+	for i := range sim.Auras {
+		if sim.Auras[i].Expires <= (sim.CurrentTime + elapsedTime) {
+			todel = append(todel, i)
+		}
+	}
+	for i := len(todel) - 1; i >= 0; i-- {
+		sim.cleanAura(todel[i])
+	}
+	sim.CurrentTime += elapsedTime
 }
 
 // Cast will actually cast and treat all casts as having no 'flight time'.
@@ -345,30 +367,6 @@ func (sim *Simulation) Cast(cast *Cast) {
 	if sim.Options.DPSReportTime > 0 && sim.CurrentTime <= sim.Options.DPSReportTime {
 		sim.metrics.ReportedDamage += cast.DidDmg
 	}
-}
-
-// Advance moves time forward counting down auras, CDs, mana regen, etc
-func (sim *Simulation) Advance(elapsedTime float64) {
-	// MP5 regen
-	sim.CurrentMana = math.Min(
-		sim.Stats[StatMana],
-		sim.CurrentMana+sim.manaRegen()*elapsedTime)
-
-	// CDS
-	for k := range sim.CDs {
-		sim.CDs[k] = math.Max(0, sim.CDs[k]-elapsedTime)
-	}
-
-	todel := []int{}
-	for i := range sim.Auras {
-		if sim.Auras[i].Expires <= (sim.CurrentTime + elapsedTime) {
-			todel = append(todel, i)
-		}
-	}
-	for i := len(todel) - 1; i >= 0; i-- {
-		sim.cleanAura(todel[i])
-	}
-	sim.CurrentTime += elapsedTime
 }
 
 // Remove an aura by its ID, searches through auras
