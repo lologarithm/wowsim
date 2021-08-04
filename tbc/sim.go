@@ -28,7 +28,7 @@ type Simulation struct {
 	Options           Options
 
 	// timeToRegen := 0
-	_CDs   []float64  // Map of MagicID to ticks until CD is done. 'Advance' counts down these
+	CDs   []float64  // Map of MagicID to ticks until CD is done. 'Advance' counts down these
 	Auras []Aura // this is array instaed of map to speed up browser perf.
 
 	// Clears and regenerates on each Run call.
@@ -63,7 +63,7 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 	sim := &Simulation{
 		Stats:   stats,
 		Options: options,
-		_CDs:     make([]float64, MagicIDLen),
+		CDs:     make([]float64, MagicIDLen),
 		Buffs:   Stats{StatLen: 0},
 		Auras:   []Aura{},
 		Equip:   equip,
@@ -108,7 +108,7 @@ func (sim *Simulation) reset() {
 	sim.CurrentTime = 0.0
 	sim.CurrentMana = sim.Stats[StatMana]
 	sim.Buffs = Stats{StatLen: 0}
-	sim._CDs = make([]float64, MagicIDLen)
+	sim.CDs = make([]float64, MagicIDLen)
 	sim.Auras = []Aura{}
 	sim.metrics = SimMetrics{
 		Casts: make([]*Cast, 0, 1000),
@@ -416,8 +416,8 @@ func (sim *Simulation) Advance(elapsedTime float64) {
 		sim.CurrentMana + sim.manaRegen() * elapsedTime)
 
 	// CDS
-	for k := range sim._CDs {
-		sim._CDs[k] = math.Max(0, sim._CDs[k] - elapsedTime)
+	for k := range sim.CDs {
+		sim.CDs[k] = math.Max(0, sim.CDs[k] - elapsedTime)
 	}
 
 	todel := []int{}
@@ -438,15 +438,15 @@ func (sim *Simulation) manaRegen() float64 {
 }
 
 func (sim *Simulation) isOnCD(magicID int32) bool {
-	return sim._CDs[magicID] > 0
+	return sim.CDs[magicID] > 0
 }
 
 func (sim *Simulation) getRemainingCD(magicID int32) float64 {
-	return sim._CDs[magicID]
+	return sim.CDs[magicID]
 }
 
 func (sim *Simulation) setCD(magicID int32, newCD float64) {
-	sim._CDs[magicID] = newCD
+	sim.CDs[magicID] = newCD
 }
 
 // Pops any on-use trinkets / gear
