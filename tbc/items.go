@@ -127,7 +127,7 @@ type Item struct {
 	// Since we activate all items on CD, this works fine for stuff like Quags Eye.
 	// TODO: is this the best design for this?
 	Activate   ItemActivation `json:"-"` // Activatable Ability, produces an aura
-	ActivateCD int            `json:"-"` // cooldown on activation, -1 means perm effect.
+	ActivateCD float64        `json:"-"` // cooldown on activation, -1 means perm effect.
 	CoolID     int32          `json:"-"` // ID used for cooldown
 }
 

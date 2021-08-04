@@ -34,7 +34,7 @@ func (agent *FixedRotationAgent) ChooseSpell(sim *Simulation, didPot bool) *Cast
 		return NewCast(sim, spellmap[MagicIDLB12])
 	}
 
-	if sim.CDs[MagicIDCL6] < 1 && agent.numLBsSinceLastCL >= agent.numLBsPerCL {
+	if !sim.isOnCD(MagicIDCL6) && agent.numLBsSinceLastCL >= agent.numLBsPerCL {
 		return NewCast(sim, spellmap[MagicIDCL6])
 	} else {
 		return NewCast(sim, spellmap[MagicIDLB12])
@@ -65,7 +65,7 @@ func NewFixedRotationAgent(sim *Simulation, numLBsPerCL int) *FixedRotationAgent
 // ################################################################
 type AdaptiveAgent struct {
 	LastMana  float64
-	LastCheck int
+	LastCheck float64
 	NumCasts  int
 }
 
@@ -77,19 +77,19 @@ func (agent *AdaptiveAgent) ChooseSpell(sim *Simulation, didPot bool) *Cast {
 	if didPot {
 		// Use Potion to reset the calculation...
 		agent.LastMana = sim.CurrentMana
-		agent.LastCheck = sim.CurrentTick
+		agent.LastCheck = sim.CurrentTime
 		agent.NumCasts = 0
 	}
 	// Always give a couple casts before we figure out mana drain.
-	if sim.CDs[MagicIDCL6] < 1 && agent.NumCasts > 3 {
+	if !sim.isOnCD(MagicIDCL6) && agent.NumCasts > 3 {
 		manaDrained := agent.LastMana - sim.CurrentMana
-		timePassed := sim.CurrentTick - agent.LastCheck
+		timePassed := sim.CurrentTime - agent.LastCheck
 		if timePassed == 0 {
 			timePassed = 1
 		}
-		rate := manaDrained / float64(timePassed)
-		timeRemaining := sim.endTick - sim.CurrentTick
-		totalManaDrain := rate * float64(timeRemaining)
+		rate := manaDrained / timePassed
+		timeRemaining := sim.endTime - sim.CurrentTime
+		totalManaDrain := rate * timeRemaining
 		buffer := spellmap[MagicIDCL6].Mana // mana buffer of 1 extra CL
 
 		if sim.Debug != nil {

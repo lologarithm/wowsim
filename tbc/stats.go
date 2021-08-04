@@ -4,8 +4,6 @@ import (
 	"strconv"
 )
 
-const TicksPerSecond = 60
-
 type Stats []float64
 
 type Stat byte

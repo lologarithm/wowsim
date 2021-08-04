@@ -108,7 +108,7 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 // (iterations, duration, gearlist, options, <optional, custom rotation)
 func StatWeight(this js.Value, args []js.Value) interface{} {
 	numSims := args[0].Int()
-	seconds := args[1].Int()
+	seconds := args[1].Float()
 	numClTargets := args[2].Int()
 	gear := getGear(args[3])
 	opts := parseOptions(args[4])
@@ -136,7 +136,7 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	sim := tbc.NewSim(tbc.CalculateTotalStats(opts, gear), gear, opts)
 	for ns := 0; ns < numSims; ns++ {
 		metrics := sim.Run(seconds)
-		dps := metrics.TotalDamage / float64(seconds)
+		dps := metrics.TotalDamage / seconds
 		simdmg += dps
 		simdmgsq += dps * dps
 		simmet = append(simmet, metrics)
@@ -189,7 +189,7 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 	if simi == 1 { // if single iteration, dump all logs to console.
 		opt.Debug = true
 	}
-	dur := args[1].Int()
+	dur := args[1].Float()
 	numClTargets := args[2].Int()
 	opt.NumClTargets = numClTargets
 	fullLogs := false
@@ -321,8 +321,8 @@ func parseOptions(val js.Value) tbc.Options {
 			Cyclone2PC:   val.Get("totcycl2p").Truthy(),
 			ManaStream:   val.Get("totms").Truthy(),
 		},
-		DPSReportTime: val.Get("dpsReportTime").Int(),
-		GCD:           val.Get("gcd").Float(),
+		DPSReportTime: val.Get("dpsReportTime").Float(),
+		GCDMin:        val.Get("gcdMin").Float(),
 	}
 
 	return opt
@@ -338,7 +338,7 @@ func parseAgentTypes(val js.Value) []tbc.AgentType {
 
 type SimResult struct {
 	AgentType    int
-	SimSeconds   int
+	SimSeconds   float64
 	RealDuration float64
 	Logs         string
 	DPSAvg       float64              `json:"dps"`
@@ -357,7 +357,7 @@ type CastMetric struct {
 	Crits int     `json:"crits"`
 }
 
-func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, durationSeconds int, numSims int, agentTypes []tbc.AgentType, fullLogs bool) []SimResult {
+func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, durationSeconds float64, numSims int, agentTypes []tbc.AgentType, fullLogs bool) []SimResult {
 	print("\nSim Duration:", durationSeconds)
 	print("\nNum Simulations: ", numSims)
 	print("\n")
@@ -382,11 +382,11 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, durationS
 		for ns := 0; ns < numSims; ns++ {
 			if fullLogs {
 				sim.Debug = func(s string, vals ...interface{}) {
-					logsBuffer.WriteString(fmt.Sprintf("[%0.1f] "+s, append([]interface{}{(float64(sim.CurrentTick) / float64(tbc.TicksPerSecond))}, vals...)...))
+					logsBuffer.WriteString(fmt.Sprintf("[%0.1f] "+s, append([]interface{}{sim.CurrentTime}, vals...)...))
 				}
 			}
 			metrics := sim.Run(durationSeconds)
-			dps := metrics.TotalDamage / float64(durationSeconds)
+			dps := metrics.TotalDamage / durationSeconds
 			if opts.DPSReportTime > 0 {
 				dps = metrics.ReportedDamage / float64(opts.DPSReportTime)
 			}
