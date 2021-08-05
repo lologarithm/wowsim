@@ -794,7 +794,7 @@ func ActivateSkyshatterImpLB(sim *Simulation) Aura {
 }
 
 func TryActivateDestructionPotion(sim *Simulation) {
-	if !sim.Options.Consumes.DestructionPotion || !sim.isOnCD(MagicIDPotion) {
+	if !sim.Options.Consumes.DestructionPotion || sim.isOnCD(MagicIDPotion) {
 		return
 	}
 
