@@ -183,7 +183,10 @@ func (sim *Simulation) Run(durationSeconds float64) SimMetrics {
 		TryActivateDestructionPotion(sim)
 		sim.TryActivateEquipment()
 
-		didPot := TryActivateDarkRune(sim) || TryActivateSuperManaPotion(sim)
+		didPot := TryActivateDarkRune(sim)
+		if TryActivateSuperManaPotion(sim) {
+			didPot = true
+		}
 
 		// Choose next spell
 		castingSpell := sim.Agent.ChooseSpell(sim, didPot)
