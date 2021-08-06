@@ -427,15 +427,15 @@ func (sim *Simulation) manaRegen() float64 {
 }
 
 func (sim *Simulation) isOnCD(magicID int32) bool {
-	return sim.CDs[magicID] > 0
+	return sim.CDs[magicID] > sim.CurrentTime
 }
 
 func (sim *Simulation) getRemainingCD(magicID int32) float64 {
-	return sim.CDs[magicID]
+	return math.Max(0, sim.CDs[magicID]-sim.CurrentTime)
 }
 
 func (sim *Simulation) setCD(magicID int32, newCD float64) {
-	sim.CDs[magicID] = newCD
+	sim.CDs[magicID] = sim.CurrentTime + newCD
 }
 
 // Pops any on-use trinkets / gear
