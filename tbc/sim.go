@@ -228,11 +228,6 @@ func (sim *Simulation) Advance(elapsedTime float64) {
 		sim.Stats[StatMana],
 		sim.CurrentMana + sim.manaRegen() * elapsedTime)
 
-	// CDS
-	for k := range sim.CDs {
-		sim.CDs[k] = math.Max(0, sim.CDs[k] - elapsedTime)
-	}
-
 	todel := []int{}
 	for i := range sim.Auras {
 		if sim.Auras[i].Expires <= (sim.CurrentTime + elapsedTime) {
@@ -427,15 +422,15 @@ func (sim *Simulation) manaRegen() float64 {
 }
 
 func (sim *Simulation) isOnCD(magicID int32) bool {
-	return sim.CDs[magicID] > 0
+	return sim.CDs[magicID] > sim.CurrentTime
 }
 
 func (sim *Simulation) getRemainingCD(magicID int32) float64 {
-	return sim.CDs[magicID]
+	return math.Max(0, sim.CDs[magicID] - sim.CurrentTime)
 }
 
 func (sim *Simulation) setCD(magicID int32, newCD float64) {
-	sim.CDs[magicID] = newCD
+	sim.CDs[magicID] = sim.CurrentTime + newCD
 }
 
 // Pops any on-use trinkets / gear

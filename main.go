@@ -154,10 +154,14 @@ func main() {
 		opt.AgentType = agentTypesMap[*agentTypeStr]
 	}
 
+	start := time.Now()
 	results := runTBCSim(gear, opt, *duration, *iterations, *noopt)
+	elapsed := time.Since(start)
+
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
+	fmt.Printf("Sim execution took %s", elapsed)
 }
 
 type input struct {
