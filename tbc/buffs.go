@@ -10,7 +10,7 @@ type Options struct {
 	NumClTargets int
 	RSeed        int64
 	ExitOnOOM    bool
-	GCD          float64 // sets the GCD
+	GCDMin       float64 // sets the minimum GCD
 
 	NumBloodlust int
 	NumDrums     int
@@ -20,7 +20,7 @@ type Options struct {
 	Talents  Talents
 	Totems   Totems
 
-	DPSReportTime int // how many seconds to calculate DPS for.
+	DPSReportTime float64 // how many seconds to calculate DPS for.
 
 	Debug bool // enables debug printing.
 	// TODO: could change this to be a func/stream consumer could provide,
