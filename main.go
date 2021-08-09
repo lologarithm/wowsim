@@ -31,7 +31,7 @@ func main() {
 	var isDebug = flag.Bool("debug", false, "Include --debug to spew the entire simulation log.")
 	var noopt = flag.Bool("noopt", false, "If included it will disable optimization.")
 	var agentTypeStr = flag.String("agentType", "", "Custom comma separated agent type to simulate.\n\tFor Example: --rotation=3LB1CL")
-	var duration = flag.Int("duration", 300, "Custom fight duration in seconds.")
+	var duration = flag.Float64("duration", 300, "Custom fight duration in seconds.")
 	var iterations = flag.Int("iter", 10000, "Custom number of iterations for the sim to run.")
 	var runWebUI = flag.Bool("web", false, "Use to run sim in web interface instead of in terminal")
 	var configFile = flag.String("config", "", "Specify an input configuration.")
@@ -154,10 +154,14 @@ func main() {
 		opt.AgentType = agentTypesMap[*agentTypeStr]
 	}
 
+	start := time.Now()
 	results := runTBCSim(gear, opt, *duration, *iterations, *noopt)
+	elapsed := time.Since(start)
+
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
+	fmt.Printf("Sim execution took %s", elapsed)
 }
 
 type input struct {
@@ -194,7 +198,7 @@ func getGear(val []byte) (tbc.Equipment, tbc.Options) {
 	return tbc.Equipment(gearSet), in.Options
 }
 
-func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, noopt bool) []string {
+func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds float64, numSims int, noopt bool) []string {
 	fmt.Printf("\nSim Duration: %d sec\nNum Simulations: %d\n", seconds, numSims)
 
 	stats := tbc.CalculateTotalStats(opt, equip)
@@ -240,15 +244,15 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, n
 	return results
 }
 
-func doSimMetrics(agentType tbc.AgentType, stats tbc.Stats, equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, statchan chan string) {
+func doSimMetrics(agentType tbc.AgentType, stats tbc.Stats, equip tbc.Equipment, opt tbc.Options, seconds float64, numSims int, statchan chan string) {
 	simDmgs := []float64{}
-	simOOMs := []int{}
+	simOOMs := []float64{}
 	histogram := map[int]int{}
 	casts := map[int32]int{}
 	manaSpent := 0.0
 	manaLeft := 0.0
 	oomdps := 0.0
-	ooms := 0
+	ooms := 0.0
 	numOoms := 0
 
 	rseed := time.Now().Unix()
@@ -318,9 +322,9 @@ func doSimMetrics(agentType tbc.AgentType, stats tbc.Stats, equip tbc.Equipment,
 	// extraCL := int(avgleft / 414) // 414 is cost of difference casting CL instead of LB
 	// output += fmt.Sprintf("Add CL: %d\n", extraCL)
 
-	avgoomSec := 0
+	avgoomSec := 0.0
 	if numOoms > 0 {
-		avgoomSec = ooms / numOoms
+		avgoomSec = ooms / float64(numOoms)
 	}
 	output += fmt.Sprintf("Went OOM: %d/%d sims\n", numOoms, numSims)
 	if numOoms > 0 {
