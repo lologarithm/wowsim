@@ -638,7 +638,7 @@ function calcStatWeights(gear) {
 
 function showGearRecommendations(weights) {
     var itemWeightsBySlot = {};
-    var curSlotWeights = {};
+    var curSlotWeights = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
     // 4 == dmg, 2 == crit
     var csdVal = (((currentFinalStats[4] * 0.795) + 603) * 2 * (currentFinalStats[2] / 2208) * 0.045) / 0.795;
     // process all items to find the weighted value.
