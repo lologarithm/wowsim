@@ -268,7 +268,7 @@ func ActivateChainLightningBounce(sim *Simulation) Aura {
 			if c.IsLO {
 				dmgCoeff = 0.5
 			}
-			for i := 1; i < sim.Options.NumClTargets; i++ {
+			for i := 1; i < sim.Options.Encounter.NumClTargets; i++ {
 				if sim.Options.Tidefury2Pc {
 					dmgCoeff *= 0.83
 				} else {

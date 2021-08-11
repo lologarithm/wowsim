@@ -4,7 +4,7 @@ import (
 	"strconv"
 )
 
-type Stats []float64
+type Stats [StatLen]float64
 
 type Stat byte
 
@@ -51,7 +51,7 @@ func (s Stat) StatName() string {
 }
 
 func (st Stats) Clone() Stats {
-	ns := make(Stats, StatLen)
+	ns := Stats{}
 	for i, v := range st {
 		ns[i] = v
 	}
@@ -111,8 +111,7 @@ func (st Stats) Print() string {
 
 // CalculatedTotal will add Mana and Crit from Int and return the new stats.
 func (s Stats) CalculatedTotal() Stats {
-	stats := make([]float64, len(s))
-	copy(stats, s)
+	stats := s
 
 	// Add crit/mana from int
 	stats[StatSpellCrit] += (stats[StatInt] / 80) * 22.08
@@ -151,7 +150,6 @@ func BaseStats(race RaceBonusType) Stats {
 		StatMana:      2678,   // level 70 shaman
 		StatSpirit:    135,    // lvl 70 shaman
 		StatSpellCrit: 48.576, // base crit for 70 sham
-		StatLen:       0,
 	}
 	// TODO: Find race int differences.
 	switch race {
