@@ -61,165 +61,148 @@
     },
     "Gear": [
         {
-            "Slot": 1,
-            "Name": "Tidefury Helm",
+            "NameOrId": "Tidefury Helm",
             "Gems": [
                 {
-                    "Name": "Chaotic Skyfire Diamond"
+                    "NameOrId": "Chaotic Skyfire Diamond"
                 },
                 {
-                    "Name": "Runed Living Ruby"
+                    "NameOrId": "Runed Living Ruby"
                 }
             ],
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 2,
-            "Name": "Eye of the Night",
+            "NameOrId": "Eye of the Night",
             "Gems": [],
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 3,
-            "Name": "Pauldrons of Wild Magic",
+            "NameOrId": "Pauldrons of Wild Magic",
             "Gems": [],
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 4,
-            "Name": "Shawl of Shifting Probabilities",
+            "NameOrId": "Shawl of Shifting Probabilities",
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 5,
-            "Name": "Tidefury Chestpiece",
+            "NameOrId": "Tidefury Chestpiece",
             "Gems": [
                 {
-                    "Name": "Runed Living Ruby"
+                    "NameOrId": "Runed Living Ruby"
                 },
                 {
-                    "Name": "Runed Living Ruby"
+                    "NameOrId": "Runed Living Ruby"
                 },
                 {
-                    "Name": "Runed Living Ruby"
+                    "NameOrId": "Runed Living Ruby"
                 }
             ],
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 6,
-            "Name": "World's End Bracers",
+            "NameOrId": "World's End Bracers",
             "Gems": [],
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 7,
-            "Name": "Earth Mantle Handwraps",
+            "NameOrId": "Earth Mantle Handwraps",
             "Gems": [
                 {
-                    "Name": "Runed Living Ruby"
+                    "NameOrId": "Runed Living Ruby"
                 },
                 {
-                    "Name": "Runed Living Ruby"
+                    "NameOrId": "Runed Living Ruby"
                 }
             ],
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 8,
-            "Name": "Netherstrike Belt",
+            "NameOrId": "Netherstrike Belt",
             "Gems": [
                 {
-                    "Name": "Runed Living Ruby"
+                    "NameOrId": "Runed Living Ruby"
                 },
                 {
-                    "Name": "Runed Living Ruby"
+                    "NameOrId": "Runed Living Ruby"
                 }
             ],
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 9,
-            "Name": "Stormsong Kilt",
+            "NameOrId": "Stormsong Kilt",
             "Gems": [
                 {
-                    "Name": "Runed Living Ruby"
+                    "NameOrId": "Runed Living Ruby"
                 },
                 {
-                    "Name": "Runed Living Ruby"
+                    "NameOrId": "Runed Living Ruby"
                 },
                 {
-                    "Name": "Runed Living Ruby"
+                    "NameOrId": "Runed Living Ruby"
                 }
             ],
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 10,
-            "Name": "Magma Plume Boots",
+            "NameOrId": "Magma Plume Boots",
             "Gems": [],
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 11,
-            "Name": "Cobalt Band of Tyrigosa",
+            "NameOrId": "Cobalt Band of Tyrigosa",
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 11,
-            "Name": "Sparking Arcanite Ring",
+            "NameOrId": "Sparking Arcanite Ring",
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 14,
-            "Name": "The Lightning Capacitor"
+            "NameOrId": "The Lightning Capacitor"
         },
         {
-            "Slot": 14,
-            "Name": "Icon of the Silver Crescent"
+            "NameOrId": "Icon of the Silver Crescent"
         },
         {
-            "Slot": 17,
-            "Name": "Gavel of Unearthed Secrets",
+            "NameOrId": "Gavel of Unearthed Secrets",
             "Gems": [],
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 18,
-            "Name": "Mazthoril Honor Shield",
+            "NameOrId": "Mazthoril Honor Shield",
             "Enchant": {
-                "Name": ""
+                "NameOrId": ""
             }
         },
         {
-            "Slot": 19,
-            "Name": "Totem of the Void"
+            "NameOrId": "Totem of the Void"
         }
     ]
 }

@@ -2,6 +2,7 @@ package tbc
 
 import (
 	"fmt"
+	"strconv"
 )
 
 var Gems = []Gem{
@@ -65,18 +66,18 @@ var Enchants = []Enchant{
 
 var ItemsByName = map[string]Item{}
 var ItemsByID = map[int32]Item{}
-var GemLookup = map[string]Gem{}
+var GemsByName = map[string]Gem{}
 var GemsByID = map[int32]Gem{}
-var EnchantLookup = map[string]Enchant{}
-var EnchantByID = map[int32]Enchant{}
+var EnchantsByName = map[string]Enchant{}
+var EnchantsByID = map[int32]Enchant{}
 
 func init() {
 	for _, v := range Enchants {
-		EnchantLookup[v.Name] = v
-		EnchantByID[v.ID] = v
+		EnchantsByName[v.Name] = v
+		EnchantsByID[v.ID] = v
 	}
 	for _, v := range Gems {
-		GemLookup[v.Name] = v
+		GemsByName[v.Name] = v
 		GemsByID[v.ID] = v
 	}
 	for _, v := range items {
@@ -207,34 +208,88 @@ func (gm GemColor) Intersects(o GemColor) bool {
 
 type ItemActivation func(*Simulation) Aura
 
-type Equipment []Item
+type Equipment [EquipTotem + 1]Item
 
-func NewEquipmentSet(names ...string) Equipment {
-	e := Equipment{EquipTotem: Item{}}
-	for _, v := range names {
-		item, ok := ItemsByName[v]
-		if !ok {
-			fmt.Printf("Unable to find item: '%s'\n", v)
-			continue
-		}
-		item.Gems = make([]Gem, len(item.GemSlots))
-		if item.Slot == EquipFinger {
-			if e[EquipFinger1].Name == "" {
-				e[EquipFinger1] = item
+// Structs used for looking up items/gems/enchants
+type ItemSpec struct {
+	NameOrId string
+	Enchant EnchantSpec
+	Gems []GemSpec
+}
+type GemSpec struct {
+	NameOrId string
+}
+type EnchantSpec struct {
+	NameOrId string
+}
+type EquipmentSpec [EquipTotem + 1]ItemSpec
+
+func NewEquipmentSet(equipSpec EquipmentSpec) Equipment {
+	equipment := Equipment{}
+
+	for _, itemSpec := range equipSpec {
+		item := Item{}
+		if foundItem, ok := ItemsByName[itemSpec.NameOrId]; ok {
+			item = foundItem
+		} else {
+			id, _ := strconv.Atoi(itemSpec.NameOrId)
+			if foundItem, ok := ItemsByID[int32(id)]; ok {
+				item = foundItem
 			} else {
-				e[EquipFinger2] = item
+				if itemSpec.NameOrId != "" {
+					panic("No item with name or id: " + itemSpec.NameOrId)
+				}
+				continue
+			}
+		}
+
+		if itemSpec.Enchant.NameOrId != "" {
+			if enchant, ok := EnchantsByName[itemSpec.Enchant.NameOrId]; ok {
+				item.Enchant = enchant
+			} else {
+				id, _ := strconv.Atoi(itemSpec.Enchant.NameOrId)
+				if enchant, ok := EnchantsByID[int32(id)]; ok {
+					item.Enchant = enchant
+				} else if itemSpec.Enchant.NameOrId != "" {
+					panic("No enchant with name or id: " + itemSpec.Enchant.NameOrId)
+				}
+			}
+		}
+
+		if len(itemSpec.Gems) > 0 {
+			item.Gems = make([]Gem, len(item.GemSlots))
+
+			for gemIdx, gemSpec := range itemSpec.Gems {
+				if gem, ok := GemsByName[gemSpec.NameOrId]; ok {
+					item.Gems[gemIdx] = gem
+				} else {
+					id, _ := strconv.Atoi(gemSpec.NameOrId)
+					if gem, ok := GemsByID[int32(id)]; ok {
+						item.Gems[gemIdx] = gem
+					} else if gemSpec.NameOrId != "" {
+						panic("No gem with name or id: " + gemSpec.NameOrId)
+					}
+				}
+			}
+		}
+
+		if item.Slot == EquipFinger {
+			if equipment[EquipFinger1].Name == "" {
+				equipment[EquipFinger1] = item
+			} else {
+				equipment[EquipFinger2] = item
 			}
 		} else if item.Slot == EquipTrinket {
-			if e[EquipTrinket1].Name == "" {
-				e[EquipTrinket1] = item
+			if equipment[EquipTrinket1].Name == "" {
+				equipment[EquipTrinket1] = item
 			} else {
-				e[EquipTrinket2] = item
+				equipment[EquipTrinket2] = item
 			}
 		} else {
-			e[item.Slot] = item
+			equipment[item.Slot] = item
 		}
 	}
-	return e
+	return equipment
 }
 
 // subslot consts
@@ -268,7 +323,7 @@ const (
 )
 
 func (e Equipment) Clone() Equipment {
-	ne := make(Equipment, len(e))
+	ne := Equipment{}
 	for i, v := range e {
 		vc := v
 		ne[i] = vc
@@ -277,7 +332,7 @@ func (e Equipment) Clone() Equipment {
 }
 
 func (e Equipment) Stats() Stats {
-	s := Stats{StatLen: 0}
+	s := Stats{}
 	for _, item := range e {
 		for k, v := range item.Stats {
 			s[k] += v
