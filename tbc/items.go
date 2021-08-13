@@ -2,7 +2,6 @@ package tbc
 
 import (
 	"fmt"
-	"strconv"
 )
 
 var Gems = []Gem{
@@ -212,15 +211,22 @@ type Equipment [EquipTotem + 1]Item
 
 // Structs used for looking up items/gems/enchants
 type ItemSpec struct {
-	NameOrId string
+	// Only name or ID needs to be set, not both
+	Name    string
+	ID      int32
+
 	Enchant EnchantSpec
-	Gems []GemSpec
+	Gems    []GemSpec
 }
 type GemSpec struct {
-	NameOrId string
+	// Only name or ID needs to be set, not both
+	Name    string
+	ID      int32
 }
 type EnchantSpec struct {
-	NameOrId string
+	// Only name or ID needs to be set, not both
+	Name    string
+	ID      int32
 }
 type EquipmentSpec [EquipTotem + 1]ItemSpec
 
@@ -229,30 +235,30 @@ func NewEquipmentSet(equipSpec EquipmentSpec) Equipment {
 
 	for _, itemSpec := range equipSpec {
 		item := Item{}
-		if foundItem, ok := ItemsByName[itemSpec.NameOrId]; ok {
+		if foundItem, ok := ItemsByName[itemSpec.Name]; ok {
+			item = foundItem
+		} else if foundItem, ok := ItemsByID[itemSpec.ID]; ok {
 			item = foundItem
 		} else {
-			id, _ := strconv.Atoi(itemSpec.NameOrId)
-			if foundItem, ok := ItemsByID[int32(id)]; ok {
-				item = foundItem
-			} else {
-				if itemSpec.NameOrId != "" {
-					panic("No item with name or id: " + itemSpec.NameOrId)
-				}
-				continue
+			if itemSpec.Name != "" {
+				panic("No item with name: " + itemSpec.Name)
+			} else if itemSpec.ID != 0 {
+				panic(fmt.Sprintf("No item with id: %d", itemSpec.ID))
 			}
+			continue
 		}
 
-		if itemSpec.Enchant.NameOrId != "" {
-			if enchant, ok := EnchantsByName[itemSpec.Enchant.NameOrId]; ok {
+		if itemSpec.Enchant.Name != "" {
+			if enchant, ok := EnchantsByName[itemSpec.Enchant.Name]; ok {
 				item.Enchant = enchant
 			} else {
-				id, _ := strconv.Atoi(itemSpec.Enchant.NameOrId)
-				if enchant, ok := EnchantsByID[int32(id)]; ok {
-					item.Enchant = enchant
-				} else if itemSpec.Enchant.NameOrId != "" {
-					panic("No enchant with name or id: " + itemSpec.Enchant.NameOrId)
-				}
+				panic("No enchant with name: " + itemSpec.Enchant.Name)
+			}
+		} else if itemSpec.Enchant.ID != 0 {
+			if enchant, ok := EnchantsByID[itemSpec.Enchant.ID]; ok {
+				item.Enchant = enchant
+			} else {
+				panic(fmt.Sprintf("No enchant with id: %d", itemSpec.Enchant.ID))
 			}
 		}
 
@@ -260,14 +266,15 @@ func NewEquipmentSet(equipSpec EquipmentSpec) Equipment {
 			item.Gems = make([]Gem, len(item.GemSlots))
 
 			for gemIdx, gemSpec := range itemSpec.Gems {
-				if gem, ok := GemsByName[gemSpec.NameOrId]; ok {
+				if gem, ok := GemsByName[gemSpec.Name]; ok {
+					item.Gems[gemIdx] = gem
+				} else if gem, ok := GemsByID[gemSpec.ID]; ok {
 					item.Gems[gemIdx] = gem
 				} else {
-					id, _ := strconv.Atoi(gemSpec.NameOrId)
-					if gem, ok := GemsByID[int32(id)]; ok {
-						item.Gems[gemIdx] = gem
-					} else if gemSpec.NameOrId != "" {
-						panic("No gem with name or id: " + gemSpec.NameOrId)
+					if gemSpec.Name == "" {
+						panic(fmt.Sprintf("No gem with id: %d", gemSpec.ID))
+					} else {
+						panic("No gem with name: " + gemSpec.Name)
 					}
 				}
 			}
