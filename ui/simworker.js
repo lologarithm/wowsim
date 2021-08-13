@@ -607,62 +607,20 @@ WebAssembly.instantiateStreaming(fetch("lib.wasm"), go.importObject).then(
 
 var workerID = "";
 
-var results = {};
-
 addEventListener('message', async (e) => {
-	var msg = e.data.msg;
-	var payload = e.data.payload;
+	const msg = e.data.msg;
+	const payload = e.data.payload;
 
-	if (msg == "getGearList") {
+	if (msg == "apiCall") {
+		const id = e.data.id;
+		var result = apiCall(JSON.stringify(payload))
 		postMessage({
-			msg: "getGearList",
-			payload: JSON.parse(gearlist()),
-		});
-	} else if (msg == "computeStats") {
-		var output = computestats(payload.gear, payload.opts)
-		postMessage({
-			msg: "computeStats",
-			id: e.data.id,
-			payload: JSON.parse(output),
-		});
-	} else if (msg == "simulate") {
-		var resultJSON;
-		// temp workaround to keep it like how it was.
-		if (payload.agentTypes == null && payload.fullLogs == null) {
-			resultJSON = simulate(
-				payload.iters, payload.dur, payload.numClTargets, payload.gearlist, payload.opts
-			)
-		} else {
-			resultJSON = simulate(
-				payload.iters, payload.dur, payload.numClTargets, payload.gearlist, payload.opts, payload.agentTypes, payload.haste, payload.fullLogs
-			)
-		}
-		var result = JSON.parse(resultJSON);
-		postMessage({
-			msg: "simulate",
-			id: e.data.id,
-			payload: result,
+			msg: "apiCall",
+			payload: JSON.parse(result),
+			id: id,
 		});
 	} else if (msg == "setID") {
 		workerID = payload;
 		postMessage({ msg: "idconfirm" })
-	} else if (msg == "statweight") {
-		var result = statweight(payload.iters, payload.dur, payload.numClTargets, payload.gearlist, payload.opts, payload.stat, payload.modVal);
-		postMessage({
-			msg: "statweight",
-			id: e.data.id,
-			payload: result,
-		});
-	} else if (msg == "packopt") {
-		var id = e.data.id;
-		results["res" + id] = new Uint8Array(128);
-		var num = packopts(payload.opt, "res" + id);
-		var result = results["res" + id].subarray(0, num);
-		results["res" + id] = null;
-		postMessage({
-			msg: "packopt",
-			id: id,
-			payload: result,
-		});
 	}
 }, false);
