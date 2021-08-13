@@ -858,7 +858,8 @@ function popgear(gearList) {
     });
 }
 
-// toGearSpec strips off all parts of gear that is non-changing. This lets us pass minimal data to sim and store in local storage.
+// toGearSpec returns a 'gear specification' which is the minimal amount of info needed
+// to specify a set of gear.
 function toGearSpec(gear) {
 		const gearSpec = [];
 		Object.values(gear).forEach(item => {
@@ -1126,7 +1127,7 @@ function importGearHandler() {
 }
 
 function importGear(inputVal) {
-    var gearCache = inputVal;
+    let gearCache = inputVal;
     if (inputVal[0] != "[") { // that is opening brace for a gear list in JSON, but not valid base64
         if (window.pako === undefined) {
             loadPako(() => {
@@ -1134,29 +1135,29 @@ function importGear(inputVal) {
             });
             return;
         } else {
-            var infdata = pakoInflate(inputVal);
+            const infdata = pakoInflate(inputVal);
             gearCache = infdata.gear;
             setOptions(infdata.buffs);
         }
     }
     if (gearCache && gearCache.length > 0) {
-        var parsedGear = JSON.parse(gearCache);
+        const parsedGear = JSON.parse(gearCache);
         if (parsedGear.length > 0) {
-            var currentGear = gearUI.updateEquipped(parsedGear);
+            const currentGear = gearUI.updateEquipped(parsedGear);
             updateGearStats(currentGear);
         }
     }
 }
 
 function pakoInflate(v) {
-    var binary = atob(v);
-    var bytes = new Uint8Array(binary.length);
+    const binary = atob(v);
+    const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < bytes.length; i++) {
         bytes[i] = binary.charCodeAt(i);
     }
     // var bytes = base2048.decode(v);
-    var dv = new DataView(bytes.buffer);
-    var leng = dv.getInt32(0);
+    const dv = new DataView(bytes.buffer);
+    const leng = dv.getInt32(0);
 
     return { gear: pako.inflate(bytes.subarray(4, leng + 4), { to: 'string' }), buffs: bytes.subarray(leng + 4, bytes.length) };
 }
@@ -1165,9 +1166,9 @@ function pakoInflate(v) {
 var currentHash = "";
 
 function exportGear(compressed) {
-    var cleanedGear = toGearSpec(gearUI.currentGear); // converts to array with minimal data for serialization.\
-    var box = document.getElementById("importexport");
-    var enc = JSON.stringify(cleanedGear);
+    const gearSpec = toGearSpec(gearUI.currentGear); // converts to array with minimal data for serialization.\
+    const box = document.getElementById("importexport");
+    const gearSpecStr = JSON.stringify(gearSpec);
     if (compressed) {
         if (window.pako === undefined) {
             loadPako(() => {
@@ -1175,13 +1176,13 @@ function exportGear(compressed) {
             });
             return;
         } else {
-            workerPool.packOptions({ Options: getOptions() }).then(r => {
-                var val = pako.deflate(enc, { to: 'string' });
-                var mergedArray = new Uint8Array(val.length + r.length + 4);
+            workerPool.packOptions({ Options: getOptions() }).then(packedOptions => {
+                const val = pako.deflate(gearSpecStr, { to: 'string' });
+                const mergedArray = new Uint8Array(val.length + packedOptions.length + 4);
                 var dv = new DataView(mergedArray.buffer);
                 dv.setInt32(0, val.length);
                 mergedArray.set(val, 4);
-                mergedArray.set(r, 4 + val.length);
+                mergedArray.set(packedOptions, 4 + val.length);
                 // var output = base2048.encode(mergedArray);
                 var output = btoa(String.fromCharCode(...mergedArray));
                 // console.log(`JSON Size: ${enc.length}, Bin Size: ${mergedArray.length}, b2048: ${output.length}`);    
@@ -1194,7 +1195,7 @@ function exportGear(compressed) {
             return;
         }
     }
-    box.value = enc;
+    box.value = gearSpecStr;
 }
 
 function getQueryVariable(variable) {

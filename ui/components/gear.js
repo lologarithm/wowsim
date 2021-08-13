@@ -183,21 +183,9 @@ class GearUI {
 
         // Take each item, find its slot
         newGear.forEach(item => {
-            var newID = item.ID;
-            var realItem;
-            if (newID === undefined) {
-                var inm = item.Name;
-                if (inm == "" || inm == "None") {
-                    return;
-                }
-                realItem = Object.assign({}, this.allitems[inm]);
-            } else {
-                realItem = Object.assign({}, this.itemsByID[newID]);
-            }
-            if (realItem == null || realItem.Name == null) {
-                return;
-            }
-            var slotid = slotToID[realItem.Slot];
+						const nameOrId = item.ID || item.Name || item.NameOrId;
+						const realItem = this.allitems[nameOrId] || this.itemsByID[nameOrId];
+            let slotid = slotToID[realItem.Slot];
     
             if (slotid == "equipfinger") {
                 if (!finger1done) {
@@ -214,29 +202,22 @@ class GearUI {
                     slotid = "equiptrinket2";
                 }
             }
-            if (item.Gems && item.Gems.length > 0) {
-                var gems = item.Gems;
-                realItem.Gems = [];
-                item.Gems.forEach((g, idx) => {
-                    var gem = this.allgems[g];
-                    if (gem == null) {
-                        gem = {}; // empty object for gem sentinal?
-                    }
-                    realItem.Gems.push(gem);
-                });
+
+						if (item.Gems) {
+							realItem.Gems = item.Gems.map(gem => {
+								if (typeof gem === 'string') {
+									return this.allgems[gem] || {};
+								}
+								return this.allgems[gem.NameOrId] || this.gemsByID[gem.NameOrId] || {};
+							});
+						}
+            if (item.g) {
+                realItem.Gems = item.g.map(gem => this.gemsByID[g] || {});
             }
-            if (item.g && item.g.length > 0) {
-                realItem.Gems = [];
-                item.g.forEach((g, idx) => {
-                    var gem = this.gemsByID[g];
-                    if (gem == null) {
-                        gem = {}; // empty object for gem sentinal?
-                    }
-                    realItem.Gems.push(gem);
-                });
-            }
-            if (item.Enchant && item.Enchant != "") {
-                realItem.Enchant = this.allenchants[item.Enchant];
+            if (item.Enchant) {
+                realItem.Enchant = this.allenchants[item.Enchant] 
+										|| this.allenchants[item.Enchant.NameOrId] 
+										|| this.enchantsByID[item.Enchant.NameOrId];
             }
             if (item.e && item.e > 0) {
                 realItem.Enchant = this.enchantsByID[item.e];
