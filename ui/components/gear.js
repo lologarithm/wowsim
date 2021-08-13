@@ -183,7 +183,7 @@ class GearUI {
 
         // Take each item, find its slot
         newGear.forEach(item => {
-						const nameOrId = item.ID || item.Name || item.NameOrId;
+						const nameOrId = item.ID || item.Name;
 						const realItem = this.allitems[nameOrId] || this.itemsByID[nameOrId];
             let slotid = slotToID[realItem.Slot];
     
@@ -208,7 +208,7 @@ class GearUI {
 								if (typeof gem === 'string') {
 									return this.allgems[gem] || {};
 								}
-								return this.allgems[gem.NameOrId] || this.gemsByID[gem.NameOrId] || {};
+								return this.allgems[gem.Name] || this.gemsByID[gem.ID] || {};
 							});
 						}
             if (item.g) {
@@ -216,8 +216,8 @@ class GearUI {
             }
             if (item.Enchant) {
                 realItem.Enchant = this.allenchants[item.Enchant] 
-										|| this.allenchants[item.Enchant.NameOrId] 
-										|| this.enchantsByID[item.Enchant.NameOrId];
+										|| this.allenchants[item.Enchant.Name] 
+										|| this.enchantsByID[item.Enchant.ID];
             }
             if (item.e && item.e > 0) {
                 realItem.Enchant = this.enchantsByID[item.e];

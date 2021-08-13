@@ -867,12 +867,12 @@ function toGearSpec(gear) {
 						return;
 				}
 				const itemSpec = {
-					NameOrId: item.Name,
+					Name: item.Name,
 					Enchant: {
-						NameOrId: (item.Enchant || {}).Name
+						Name: (item.Enchant || {}).Name
 					},
 					Gems: (item.Gems || []).map(gem => {
-						NameOrId: gem.Name
+						Name: gem.Name
 					})
 				};
 				gearSpec.push(itemSpec);
