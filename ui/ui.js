@@ -180,7 +180,7 @@ class WorkerPool {
 		});
 		const packOptionsResult = result["PackOptions"];
 
-		return new Uint8Array(packOptionsResult.Data, 0, packOptionsResult.Length);
+		return Uint8Array.from(atob(packOptionsResult.Data), c => c.charCodeAt(0));
 	}
 }
 
