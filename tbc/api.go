@@ -8,6 +8,9 @@ import (
 /**
  * Returns all items, enchants, and gems recognized by the sim.
  */
+func GetGearList(request GearListRequest) GearListResult {
+	return getGearListImpl(request)
+}
 type GearListRequest struct {
 }
 type GearListResult struct {
@@ -16,13 +19,12 @@ type GearListResult struct {
 	Gems     []Gem
 }
 
-func GetGearList(request GearListRequest) GearListResult {
-	return getGearListImpl(request)
-}
-
 /**
  * Returns character stats taking into account gear / buffs / consumes / etc
  */
+func ComputeStats(request ComputeStatsRequest) ComputeStatsResult {
+	return computeStatsImpl(request)
+}
 type ComputeStatsRequest struct {
 	Options     Options
 	Gear        EquipmentSpec
@@ -38,13 +40,12 @@ type ComputeStatsResult struct {
 	Sets []string
 }
 
-func ComputeStats(request ComputeStatsRequest) ComputeStatsResult {
-	return computeStatsImpl(request)
-}
-
 /**
  * Returns stat weights and EP values, with standard deviations, for all stats.
  */
+func StatWeights(request StatWeightsRequest) StatWeightsResult {
+	return statWeightsImpl(request)
+}
 type StatWeightsRequest struct {
 	Options     Options
 	Gear        EquipmentSpec
@@ -65,14 +66,12 @@ type StatWeightsResult struct {
 	EpValuesStDev Stats
 }
 
-func StatWeights(request StatWeightsRequest) StatWeightsResult {
-	return statWeightsImpl(request)
-}
-
-
 /**
  * Runs multiple iterations of the sim with a single set of options / gear.
  */
+func RunSimulation(request SimRequest) SimResult {
+	return runSimulationImpl(request)
+}
 type SimRequest struct {
 	Options     Options
 	Gear        EquipmentSpec
@@ -104,13 +103,12 @@ type CastMetric struct {
 	Crits int
 }
 
-func RunSimulation(request SimRequest) SimResult {
-	return runSimulationImpl(request)
-}
-
 /**
  * Runs separate SimRequests for each provided request, and returns results in the same order.
  */
+func RunBatchSimulation(request BatchSimRequest) BatchSimResult {
+	return runBatchSimulationImpl(request)
+}
 type BatchSimRequest struct {
 	Requests []SimRequest
 }
@@ -118,10 +116,11 @@ type BatchSimResult struct {
 	Results  []SimResult
 }
 
-func RunBatchSimulation(request BatchSimRequest) BatchSimResult {
-	return runBatchSimulationImpl(request)
+func PackOptions(request PackOptionsRequest) PackOptionsResult {
+	return PackOptionsResult{
+		Data: base64.StdEncoding.EncodeToString(request.Options.Pack()),
+	}
 }
-
 type PackOptionsRequest struct {
 	Options Options
 }
@@ -130,57 +129,44 @@ type PackOptionsResult struct {
 	Data string
 }
 
-func PackOptions(request PackOptionsRequest) PackOptionsResult {
-	return PackOptionsResult{
-		Data: base64.StdEncoding.EncodeToString(request.Options.Pack()),
-	}
-}
-
 type ApiRequest struct {
-	RequestType  string
-	GearList     GearListRequest
-	ComputeStats ComputeStatsRequest
-	StatWeights  StatWeightsRequest
-	Sim          SimRequest
-	BatchSim     BatchSimRequest
-	PackOptions  PackOptionsRequest
+	GearList     *GearListRequest
+	ComputeStats *ComputeStatsRequest
+	StatWeights  *StatWeightsRequest
+	Sim          *SimRequest
+	BatchSim     *BatchSimRequest
+	PackOptions  *PackOptionsRequest
 }
 
 type ApiResult struct {
-	GearList     GearListResult
-	ComputeStats ComputeStatsResult
-	StatWeights  StatWeightsResult
-	Sim          SimResult
-	BatchSim     BatchSimResult
-	PackOptions  PackOptionsResult
+	GearList     *GearListResult
+	ComputeStats *ComputeStatsResult
+	StatWeights  *StatWeightsResult
+	Sim          *SimResult
+	BatchSim     *BatchSimResult
+	PackOptions  *PackOptionsResult
 }
 
 func ApiCall(request ApiRequest) ApiResult {
-	if request.RequestType == "GearList" {
-		return ApiResult{
-			GearList: GetGearList(request.GearList),
-		}
-	} else if request.RequestType == "ComputeStats" {
-		return ApiResult{
-			ComputeStats: ComputeStats(request.ComputeStats),
-		}
-	} else if request.RequestType == "StatWeights" {
-		return ApiResult{
-			StatWeights: StatWeights(request.StatWeights),
-		}
-	} else if request.RequestType == "Sim" {
-		return ApiResult{
-			Sim: RunSimulation(request.Sim),
-		}
-	} else if request.RequestType == "BatchSim" {
-		return ApiResult{
-			BatchSim: RunBatchSimulation(request.BatchSim),
-		}
-	} else if request.RequestType == "PackOptions" {
-		return ApiResult{
-			PackOptions: PackOptions(request.PackOptions),
-		}
+	if request.GearList != nil {
+		result := GetGearList(*request.GearList)
+		return ApiResult{ GearList: &result }
+	} else if request.ComputeStats != nil {
+		result := ComputeStats(*request.ComputeStats)
+		return ApiResult{ ComputeStats: &result }
+	} else if request.StatWeights != nil {
+		result := StatWeights(*request.StatWeights)
+		return ApiResult{ StatWeights: &result }
+	} else if request.Sim != nil {
+		result := RunSimulation(*request.Sim)
+		return ApiResult{ Sim: &result }
+	} else if request.BatchSim != nil {
+		result := RunBatchSimulation(*request.BatchSim)
+		return ApiResult{ BatchSim: &result }
+	} else if request.PackOptions != nil {
+		result := PackOptions(*request.PackOptions)
+		return ApiResult{ PackOptions: &result }
 	} else {
-		panic("Invalid request type: " + request.RequestType)
+		panic("Empty API request!")
 	}
 }
