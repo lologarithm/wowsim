@@ -1,6 +1,10 @@
 // The interface to the sim. All interactions with the sim should go through this file.
 package tbc
 
+import (
+	"encoding/base64"
+)
+
 /**
  * Returns all items, enchants, and gems recognized by the sim.
  */
@@ -122,15 +126,13 @@ type PackOptionsRequest struct {
 	Options Options
 }
 type PackOptionsResult struct {
-	Data []byte
-	Length int // length of Data array
+	// base64-encoded binary data
+	Data string
 }
 
 func PackOptions(request PackOptionsRequest) PackOptionsResult {
-	data := request.Options.Pack()
 	return PackOptionsResult{
-		Data: data,
-		Length: len(data),
+		Data: base64.StdEncoding.EncodeToString(request.Options.Pack()),
 	}
 }
 
