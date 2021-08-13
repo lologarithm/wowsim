@@ -131,7 +131,7 @@ class WorkerPool {
 	 */
 	async getGearList() {
 		const result = await this.makeApiCall({
-			"RequestType": "GearList",
+			GearList: {},
 		});
 
 		return result["GearList"];
@@ -139,8 +139,7 @@ class WorkerPool {
 
 	async computeStats(computeStatsRequest) {
 		const result = await this.makeApiCall({
-			"RequestType": "ComputeStats",
-			"ComputeStats": computeStatsRequest,
+			ComputeStats: computeStatsRequest,
 		});
 
 		return result["ComputeStats"];
@@ -148,8 +147,7 @@ class WorkerPool {
 
 	async statWeights(statWeightsRequest) {
 		const result = await this.makeApiCall({
-			"RequestType": "StatWeights",
-			"StatWeights": statWeightsRequest,
+			StatWeights: statWeightsRequest,
 		});
 
 		return result["StatWeights"];
@@ -157,8 +155,7 @@ class WorkerPool {
 
 	async runSimulation(simRequest) {
 		const result = await this.makeApiCall({
-			"RequestType": "Sim",
-			"Sim": simRequest,
+			Sim: simRequest,
 		});
 
 		return result["Sim"];
@@ -166,8 +163,7 @@ class WorkerPool {
 
 	async runBatchSimulation(batchSimRequest) {
 		const result = await this.makeApiCall({
-			"RequestType": "BatchSim",
-			"BatchSim": batchSimRequest,
+			BatchSim: batchSimRequest,
 		});
 
 		return result["BatchSim"];
@@ -175,8 +171,7 @@ class WorkerPool {
 
 	async packOptions(packOptionsRequest) {
 		const result = await this.makeApiCall({
-			"RequestType": "PackOptions",
-			"PackOptions": packOptionsRequest,
+			PackOptions: packOptionsRequest,
 		});
 		const packOptionsResult = result["PackOptions"];
 
