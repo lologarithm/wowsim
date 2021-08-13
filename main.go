@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
 	"github.com/lologarithm/wowsim/tbc"
 )
 
@@ -95,7 +94,6 @@ var DEFAULT_OPTIONS = tbc.Options{
 // /script print(GetSpellBonusDamage(4))
 
 func main() {
-
 	// f, err := os.Create("profile2.cpu")
 	// if err != nil {
 	// 	log.Fatal("could not create CPU profile: ", err)
@@ -160,13 +158,17 @@ func runTBCSim(simRequest tbc.SimRequest, noopt bool) {
 	fmt.Printf("\nFinal Stats: %s\n", stats.Print())
 
 	if !noopt {
-		weights := tbc.StatWeights(simRequest)
+		statWeightsResult := tbc.StatWeights(tbc.StatWeightsRequest{
+			Options:    simRequest.Options,
+			Gear:       simRequest.Gear,
+			Iterations: simRequest.Iterations,
+		})
 		fmt.Printf("Weights: [\n")
-		for i, v := range weights {
-			if tbc.Stat(i) == tbc.StatStm {
+		for stat, weight := range statWeightsResult.Weights {
+			if tbc.Stat(stat) == tbc.StatStm {
 				continue
 			}
-			fmt.Printf("%s: %0.2f\t", tbc.Stat(i).StatName(), v)
+			fmt.Printf("%s: %0.2f\t", tbc.Stat(stat).StatName(), weight)
 		}
 		fmt.Printf("\n]\n")
 	}

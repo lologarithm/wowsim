@@ -5,8 +5,90 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"sync"
 	"time"
 )
+
+func getGearListImpl(request GearListRequest) GearListResult {
+	return GearListResult{
+		Items: items,
+		Enchants: Enchants,
+		Gems: Gems,
+	}
+}
+
+func computeStatsImpl(request ComputeStatsRequest) ComputeStatsResult {
+	equipment := NewEquipmentSet(request.Gear)
+
+	gearOnlyStats := equipment.Stats().CalculatedTotal()
+
+	request.Options.AgentType = AGENT_TYPE_ADAPTIVE
+	stats := CalculateTotalStats(request.Options, equipment)
+	fakeSim := NewSim(stats, equipment, request.Options)
+	sets := fakeSim.ActivateSets()
+
+	finalStats := stats
+	for stat, statValue := range fakeSim.Buffs {
+		finalStats[stat] += statValue
+	}
+
+	return ComputeStatsResult{
+		GearOnly: gearOnlyStats,
+		FinalStats: finalStats,
+		Sets: sets,
+	}
+}
+
+func statWeightsImpl(request StatWeightsRequest) StatWeightsResult {
+	request.Options.AgentType = AGENT_TYPE_ADAPTIVE
+
+	baselineSimRequest := SimRequest{
+		Options: request.Options,
+		Gear: request.Gear,
+		Iterations: request.Iterations,
+	}
+	baselineResult := RunSimulation(baselineSimRequest)
+
+	var waitGroup sync.WaitGroup
+	result := StatWeightsResult{}
+
+	doStat := func(stat Stat, value float64) {
+		defer waitGroup.Done()
+
+		simRequest := baselineSimRequest
+		simRequest.Options.Buffs.Custom[stat] += value
+
+		simResult := RunSimulation(simRequest)
+		result.Weights[stat] = (simResult.DpsAvg - baselineResult.DpsAvg) / value
+		// TODO: I think this equation is wrong
+		result.WeightsStDev[stat] = (simResult.DpsStDev - baselineResult.DpsStDev) / value
+	}
+
+	statsToTest := []Stat{StatInt, StatSpellDmg, StatSpellCrit, StatSpellHit, StatHaste, StatMP5}
+	for _, stat := range statsToTest {
+		waitGroup.Add(1)
+		go doStat(stat, 50)
+	}
+
+	waitGroup.Wait()
+
+	// If hit capped, just set weight for spell hit to 0
+	computeStatsResult := ComputeStats(ComputeStatsRequest{
+		Options: request.Options,
+		Gear: request.Gear,
+	})
+	if computeStatsResult.FinalStats[StatSpellHit] > 202 {
+		result.Weights[StatSpellHit] = 0
+		result.WeightsStDev[StatSpellHit] = 0
+	}
+
+	for _, stat := range statsToTest {
+		result.EpValues[stat] = result.Weights[stat] / result.Weights[StatSpellDmg]
+		// TODO: I think this equation is wrong
+		result.EpValuesStDev[stat] = result.WeightsStDev[stat] / result.WeightsStDev[StatSpellDmg]
+	}
+	return result
+}
 
 func runSimulationImpl(request SimRequest) SimResult {
 	equipment := NewEquipmentSet(request.Gear)
@@ -26,9 +108,29 @@ func runSimulationImpl(request SimRequest) SimResult {
 		aggregator.addMetrics(request.Options, sim.Run())
 	}
 
-	simResult := aggregator.getResult()
-	simResult.Logs = logsBuffer.String()
-	return simResult
+	result := aggregator.getResult()
+	result.Logs = logsBuffer.String()
+	return result
+}
+
+func runBatchSimulationImpl(request BatchSimRequest) BatchSimResult {
+	result := BatchSimResult{
+		Results: make([]SimResult, len(request.Requests)),
+	}
+
+	var waitGroup sync.WaitGroup
+	runSimOnce := func(idx int) {
+		defer waitGroup.Done()
+		result.Results[idx] = RunSimulation(request.Requests[idx])
+	}
+
+	for i := 0; i < len(request.Requests); i++ {
+		waitGroup.Add(1)
+		go runSimOnce(i)
+	}
+
+	waitGroup.Wait()
+	return result
 }
 
 type MetricsAggregator struct {

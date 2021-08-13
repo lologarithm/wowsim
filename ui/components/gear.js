@@ -1,7 +1,7 @@
 // Gear tab
 
 // converts a slot number to its string id. Useful for finding the slot in the UI for an item.
-var slotToID = [
+const slotToID = [
     "equipnone",
     "equiphead",
     "equipneck",
@@ -182,7 +182,7 @@ class GearUI {
         var trink1done = false;
 
         // Take each item, find its slot
-        newGear.forEach( (item) => {
+        newGear.forEach(item => {
             var newID = item.ID;
             var realItem;
             if (newID === undefined) {
@@ -214,7 +214,7 @@ class GearUI {
                     slotid = "equiptrinket2";
                 }
             }
-            if (item.Gems != null && item.Gems.length > 0) {
+            if (item.Gems && item.Gems.length > 0) {
                 var gems = item.Gems;
                 realItem.Gems = [];
                 item.Gems.forEach((g, idx) => {
@@ -225,7 +225,7 @@ class GearUI {
                     realItem.Gems.push(gem);
                 });
             }
-            if (item.g != null && item.g.length > 0) {
+            if (item.g && item.g.length > 0) {
                 realItem.Gems = [];
                 item.g.forEach((g, idx) => {
                     var gem = this.gemsByID[g];
@@ -235,10 +235,10 @@ class GearUI {
                     realItem.Gems.push(gem);
                 });
             }
-            if (item.Enchant != null && item.Enchant != "") {
+            if (item.Enchant && item.Enchant != "") {
                 realItem.Enchant = this.allenchants[item.Enchant];
             }
-            if (item.e != null && item.e > 0) {
+            if (item.e && item.e > 0) {
                 realItem.Enchant = this.enchantsByID[item.e];
             }
             this.updateItemSlot(realItem, slotid)
