@@ -123,15 +123,11 @@ class ItemComponent {
                         this.statpop.innerHTML += `<text style="font-size: 0.9em;">${statnames[i]}: ${v.toString()}</text><br />`;
                     }
                 });
-                var sockBonusActive = false;
+
+                const sockBonusActive = newItem.GemSlots && newItem.Gems && newItem.GemSlots.every((gemSlot, i) => 
+										newItem.Gems[i] && colorIntersects(gemSlot, newItem.Gems[i].Color));
+
                 if (newItem.GemSlots != null) {
-                    if (newItem.Gems != null && newItem.GemSlots.length == newItem.Gems.length) {
-                        sockBonusActive = true;
-                        // Check if gemslots match gems
-                        newItem.GemSlots.forEach((gs,i)=>{
-                            sockBonusActive = sockBonusActive && colorIntersects(gs, newItem.Gems[i].Color)
-                        })
-                    }
                     var sb = "Socket Bonus: ";
                     newItem.SocketBonus.forEach((v,i)=>{
                         if (v > 0) {
@@ -147,7 +143,7 @@ class ItemComponent {
                     this.statpop.appendChild(socktText);
                     this.statpop.appendChild(document.createElement("br"));
                 }
-                if (newItem.Enchant != null && newItem.Enchant.Name != "") {
+                if (newItem.Enchant && newItem.Enchant.Name) {
                     var enchText = document.createElement("text");
                     enchText.innerText = newItem.Enchant.Name;
                     enchText.style.fontSize = "0.6em";
@@ -247,7 +243,7 @@ class SocketsComponent {
                 });
 
                 // TODO: gotta be a cleaner way to do this... ill fix it later.
-                if (gems != null && gems != undefined) {
+                if (gems && gems[idx]) {
                     if (gems[idx].Name != null) {
                         var img = document.createElement("img")
                         img.src = gemToIcon[gems[idx].Color]
