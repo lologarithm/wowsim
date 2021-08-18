@@ -271,10 +271,10 @@ func NewEquipmentSet(equipSpec EquipmentSpec) Equipment {
 				} else if gem, ok := GemsByID[gemSpec.ID]; ok {
 					item.Gems[gemIdx] = gem
 				} else {
-					if gemSpec.Name == "" {
-						panic(fmt.Sprintf("No gem with id: %d", gemSpec.ID))
-					} else {
+					if gemSpec.Name != "" {
 						panic("No gem with name: " + gemSpec.Name)
+					} else if gemSpec.ID != 0 {
+						panic(fmt.Sprintf("No gem with id: %d", gemSpec.ID))
 					}
 				}
 			}
