@@ -205,6 +205,10 @@ class GearUI {
 
 						if (item.Gems) {
 							realItem.Gems = item.Gems.map(gem => {
+								if (!gem) {
+									return {};
+								}
+
 								if (typeof gem === 'string') {
 									return this.allgems[gem] || {};
 								}

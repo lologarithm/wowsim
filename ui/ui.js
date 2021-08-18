@@ -867,7 +867,9 @@ function toGearSpec(gear) {
 						Name: (item.Enchant || {}).Name
 					},
 					Gems: (item.Gems || []).map(gem => {
-						Name: gem.Name
+						return {
+							Name: gem.Name
+						};
 					})
 				};
 				gearSpec.push(itemSpec);
