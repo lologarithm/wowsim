@@ -86,7 +86,7 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 	}
 	opt := parseOptions(args[1])
 	stats := tbc.CalculateTotalStats(opt, gear)
-	opt.UseAI = true // stupid complaining sim...maybe I should just default AI on.
+	opt.AgentType = tbc.AGENT_TYPE_ADAPTIVE
 	fakesim := tbc.NewSim(stats, gear, opt)
 	sets := fakesim.ActivateSets()
 
@@ -108,17 +108,18 @@ func ComputeStats(this js.Value, args []js.Value) interface{} {
 // (iterations, duration, gearlist, options, <optional, custom rotation)
 func StatWeight(this js.Value, args []js.Value) interface{} {
 	numSims := args[0].Int()
-	seconds := args[1].Int()
-	gear := getGear(args[2])
-	opts := parseOptions(args[3])
-	stat := args[4].Int()
-	statModVal := args[5].Float()
+	seconds := args[1].Float()
+	numClTargets := args[2].Int()
+	gear := getGear(args[3])
+	opts := parseOptions(args[4])
+	stat := args[5].Int()
+	statModVal := args[6].Float()
 
 	if len(opts.Buffs.Custom) == 0 {
 		opts.Buffs.Custom = tbc.Stats{tbc.StatLen: 0}
 	}
 	opts.Buffs.Custom[tbc.Stat(stat)] += statModVal
-	opts.UseAI = true // use AI optimal rotation.
+	opts.AgentType = tbc.AGENT_TYPE_ADAPTIVE
 
 	if numSims == 1 {
 		opts.Debug = true
@@ -129,12 +130,13 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 	simmet := make([]tbc.SimMetrics, 0, numSims)
 
 	opts.RSeed = time.Now().Unix()
+	opts.NumClTargets = numClTargets
 
 	oomcount := 0
 	sim := tbc.NewSim(tbc.CalculateTotalStats(opts, gear), gear, opts)
 	for ns := 0; ns < numSims; ns++ {
 		metrics := sim.Run(seconds)
-		dps := metrics.TotalDamage / float64(seconds)
+		dps := metrics.TotalDamage / seconds
 		simdmg += dps
 		simdmgsq += dps * dps
 		simmet = append(simmet, metrics)
@@ -161,23 +163,23 @@ func StatWeight(this js.Value, args []js.Value) interface{} {
 // Simulate takes in number of iterations, duration, a gear list, and simulation options.
 // (iterations, duration, gearlist, options, <optional, custom rotation)
 func Simulate(this js.Value, args []js.Value) interface{} {
-	if len(args) < 4 {
-		print("Expected 4 min arguments:  (#iterations, duration, gearlist, options)")
+	if len(args) < 5 {
+		print("Expected 5 min arguments:  (#iterations, duration, numClTargets, gearlist, options)")
 		return `{"error": "invalid arguments supplied"}`
 	}
 
-	customRotation := [][]string{}
+	agentTypes := []tbc.AgentType{}
 	customHaste := 0.0
-	if len(args) >= 6 {
-		if args[4].Truthy() {
-			customRotation = parseRotation(args[4])
-		}
+	if len(args) >= 7 {
 		if args[5].Truthy() {
-			customHaste = args[5].Float()
+			agentTypes = parseAgentTypes(args[5])
+		}
+		if args[6].Truthy() {
+			customHaste = args[6].Float()
 		}
 	}
-	gear := getGear(args[2])
-	opt := parseOptions(args[3])
+	gear := getGear(args[3])
+	opt := parseOptions(args[4])
 	stats := tbc.CalculateTotalStats(opt, gear)
 	if customHaste != 0 {
 		stats[tbc.StatHaste] = customHaste
@@ -187,14 +189,16 @@ func Simulate(this js.Value, args []js.Value) interface{} {
 	if simi == 1 { // if single iteration, dump all logs to console.
 		opt.Debug = true
 	}
-	dur := args[1].Int()
+	dur := args[1].Float()
+	numClTargets := args[2].Int()
+	opt.NumClTargets = numClTargets
 	fullLogs := false
-	if len(args) > 6 {
-		fullLogs = args[6].Truthy()
+	if len(args) > 7 {
+		fullLogs = args[7].Truthy()
 		fmt.Printf("Building Full Log:%v\n", fullLogs)
 	}
 
-	results := runTBCSim(opt, stats, gear, dur, simi, customRotation, fullLogs)
+	results := runTBCSim(opt, stats, gear, dur, simi, agentTypes, fullLogs)
 	st := time.Now()
 	output, err := json.Marshal(results)
 	if err != nil {
@@ -263,7 +267,7 @@ func parseOptions(val js.Value) tbc.Options {
 		ExitOnOOM:    val.Get("exitoom").Truthy(),
 		NumBloodlust: val.Get("buffbl").Int(),
 		NumDrums:     val.Get("buffdrums").Int(),
-		UseAI:        val.Get("useai").Truthy(),
+		AgentType:    tbc.AgentType(val.Get("agenttype").Int()),
 		Buffs: tbc.Buffs{
 			ArcaneInt:                val.Get("buffai").Truthy(),
 			GiftOftheWild:            val.Get("buffgotw").Truthy(),
@@ -301,7 +305,7 @@ func parseOptions(val js.Value) tbc.Options {
 			DarkRune:                 val.Get("condr").Truthy(),
 		},
 		Talents: tbc.Talents{
-			LightninOverload:   5,
+			LightningOverload:  5,
 			ElementalPrecision: 3,
 			NaturesGuidance:    3,
 			TidalMastery:       5,
@@ -317,31 +321,24 @@ func parseOptions(val js.Value) tbc.Options {
 			Cyclone2PC:   val.Get("totcycl2p").Truthy(),
 			ManaStream:   val.Get("totms").Truthy(),
 		},
-		DPSReportTime: val.Get("dpsReportTime").Int(),
+		DPSReportTime: val.Get("dpsReportTime").Float(),
+		GCDMin:        val.Get("gcdMin").Float(),
 	}
 
 	return opt
 }
 
-func parseRotation(val js.Value) [][]string {
-
-	out := [][]string{}
-
+func parseAgentTypes(val js.Value) []tbc.AgentType {
+	out := []tbc.AgentType{}
 	for i := 0; i < val.Length(); i++ {
-		rot := []string{}
-		jsrot := val.Index(i)
-		for j := 0; j < jsrot.Length(); j++ {
-			rot = append(rot, jsrot.Index(j).String())
-		}
-		out = append(out, rot)
+		out = append(out, tbc.AgentType(val.Index(i).Int()))
 	}
-
 	return out
 }
 
 type SimResult struct {
-	Rotation     []string
-	SimSeconds   int
+	AgentType    int
+	SimSeconds   float64
 	RealDuration float64
 	Logs         string
 	DPSAvg       float64              `json:"dps"`
@@ -360,33 +357,24 @@ type CastMetric struct {
 	Crits int     `json:"crits"`
 }
 
-func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds int, numSims int, customRotation [][]string, fullLogs bool) []SimResult {
-	print("\nSim Duration:", seconds)
+func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, durationSeconds float64, numSims int, agentTypes []tbc.AgentType, fullLogs bool) []SimResult {
+	print("\nSim Duration:", durationSeconds)
 	print("\nNum Simulations: ", numSims)
 	print("\n")
 
-	spellOrders := [][]string{}
-	doingCustom := false
-	if len(customRotation) > 0 {
-		doingCustom = true
-		spellOrders = customRotation
-	}
 	results := []SimResult{}
 	logsBuffer := &strings.Builder{}
 
-	dosim := func(spells []string, simsec int) {
+	for _, agentType := range agentTypes {
 		simMetrics := SimResult{
-			DPSHist:  map[int]int{},
-			Casts:    map[int32]CastMetric{},
-			Rotation: spells,
-		}
-		if opts.UseAI {
-			simMetrics.Rotation = []string{"AI Optimized"}
+			DPSHist:   map[int]int{},
+			Casts:     map[int32]CastMetric{},
+			AgentType: int(agentType),
 		}
 		st := time.Now()
 		rseed := time.Now().Unix()
 		optNow := opts
-		optNow.SpellOrder = spells
+		optNow.AgentType = agentType
 		optNow.RSeed = rseed
 		sim := tbc.NewSim(stats, equip, optNow)
 
@@ -394,11 +382,11 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		for ns := 0; ns < numSims; ns++ {
 			if fullLogs {
 				sim.Debug = func(s string, vals ...interface{}) {
-					logsBuffer.WriteString(fmt.Sprintf("[%0.1f] "+s, append([]interface{}{(float64(sim.CurrentTick) / float64(tbc.TicksPerSecond))}, vals...)...))
+					logsBuffer.WriteString(fmt.Sprintf("[%0.1f] "+s, append([]interface{}{sim.CurrentTime}, vals...)...))
 				}
 			}
-			metrics := sim.Run(simsec)
-			dps := metrics.TotalDamage / float64(simsec)
+			metrics := sim.Run(durationSeconds)
+			dps := metrics.TotalDamage / durationSeconds
 			if opts.DPSReportTime > 0 {
 				dps = metrics.ReportedDamage / float64(opts.DPSReportTime)
 			}
@@ -442,17 +430,10 @@ func runTBCSim(opts tbc.Options, stats tbc.Stats, equip tbc.Equipment, seconds i
 		}
 
 		simMetrics.Logs = logsBuffer.String()
-		simMetrics.SimSeconds = simsec
+		simMetrics.SimSeconds = durationSeconds
 		simMetrics.RealDuration = time.Now().Sub(st).Seconds()
 		results = append(results, simMetrics)
 	}
 
-	if !doingCustom && opts.UseAI {
-		dosim([]string{"AI Optimized"}, seconds) // Let AI determine best possible DPS
-	} else {
-		for _, spells := range spellOrders {
-			dosim(spells, seconds)
-		}
-	}
 	return results
 }

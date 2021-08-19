@@ -1,23 +1,37 @@
 // Globals
 var defaultGear = [
-    {Name:"Shamanistic Helmet of Second Sight"},
-    {Name:"Brooch of Heightened Potential"},
-    {Name:"Pauldrons of Wild Magic"},
-    {Name:"Ogre Slayer's Cover"},
-    {Name:"Tidefury Chestpiece"},
-    {Name:"World's End Bracers"},
-    {Name:"Earth Mantle Handwraps"},
-    {Name:"Wave-Song Girdle"},
-    {Name:"Stormsong Kilt"},
-    {Name:"Magma Plume Boots"},
-    {Name:"Cobalt Band of Tyrigosa"},
-    {Name:"Scintillating Coral Band"},
-    {Name:"Totem of the Void"},
-    {Name:"Mazthoril Honor Shield"},
-    {Name:"Bleeding Hollow Warhammer"},
-    {Name:"Quagmirran's Eye"}, 
-    {Name:"Icon of the Silver Crescent"}
+    { Name: "Shamanistic Helmet of Second Sight" },
+    { Name: "Brooch of Heightened Potential" },
+    { Name: "Pauldrons of Wild Magic" },
+    { Name: "Ogre Slayer's Cover" },
+    { Name: "Tidefury Chestpiece" },
+    { Name: "World's End Bracers" },
+    { Name: "Earth Mantle Handwraps" },
+    { Name: "Wave-Song Girdle" },
+    { Name: "Stormsong Kilt" },
+    { Name: "Magma Plume Boots" },
+    { Name: "Cobalt Band of Tyrigosa" },
+    { Name: "Scintillating Coral Band" },
+    { Name: "Totem of the Void" },
+    { Name: "Mazthoril Honor Shield" },
+    { Name: "Bleeding Hollow Warhammer" },
+    { Name: "Quagmirran's Eye" },
+    { Name: "Icon of the Silver Crescent" }
 ];
+
+// This must be kept in sync with the enum in agents.go
+var AGENT_TYPES = {
+	"FIXED_3LB_1CL": 0,
+	"FIXED_4LB_1CL": 1,
+	"FIXED_5LB_1CL": 2,
+	"FIXED_6LB_1CL": 3,
+	"FIXED_7LB_1CL": 4,
+	"FIXED_8LB_1CL": 5,
+	"FIXED_9LB_1CL": 6,
+	"FIXED_10LB_1CL": 7,
+	"FIXED_LB_ONLY": 8,
+	"ADAPTIVE": 9
+};
 
 
 // This code is all for interacting with the workers.
@@ -29,8 +43,8 @@ var simlibBusy = false;
 simlib.onmessage = (event) => {
     var m = event.data.msg;
     if (m == "ready") {
-        simlib.postMessage({msg: "setID", payload: "1"});
-        simlib.postMessage({msg: "getGearList"});
+        simlib.postMessage({ msg: "setID", payload: "1" });
+        simlib.postMessage({ msg: "getGearList" });
     } else if (m == "getGearList") {
         // do something
         popgear(event.data.payload);
@@ -46,7 +60,7 @@ simlib.onmessage = (event) => {
 simlib2.onmessage = (event) => {
     var m = event.data.msg;
     if (m == "ready") {
-        simlib2.postMessage({msg: "setID", payload: "2"});
+        simlib2.postMessage({ msg: "setID", payload: "2" });
         return;
     }
     var onComp = simrequests[event.data.id];
@@ -56,7 +70,7 @@ simlib2.onmessage = (event) => {
 }
 
 var simrequests = {};
-function simulate(iters, dur, gearlist, opts, rots, haste, fullLogs, onComplete) {
+function simulate(iters, dur, numClTargets, gearlist, opts, agentTypes, haste, fullLogs, onComplete) {
     var id = makeid();
     simrequests[id] = onComplete
     var worker = simlib;
@@ -65,13 +79,22 @@ function simulate(iters, dur, gearlist, opts, rots, haste, fullLogs, onComplete)
     } else {
         simlibBusy = true;
     }
-    worker.postMessage({msg: "simulate", id: id, payload: {
-        iters: iters, dur: dur, gearlist: gearlist, opts: opts, rots: rots, haste: haste, fullLogs: fullLogs
-    }});
+    worker.postMessage({
+        msg: "simulate", id: id, payload: {
+            iters: iters,
+            dur: dur,
+            numClTargets: numClTargets,
+            gearlist: gearlist,
+            opts: opts,
+            agentTypes: agentTypes,
+            haste: haste,
+            fullLogs: fullLogs
+        }
+    });
 }
 
-var worker2 =  false;
-function statweight(iters, dur, gearlist, opts, statToMod, modAmount, onComplete) {
+var worker2 = false;
+function statweight(iters, dur, numClTargets, gearlist, opts, statToMod, modAmount, onComplete) {
     var id = makeid();
     simrequests[id] = onComplete
     var worker = simlib;
@@ -81,25 +104,35 @@ function statweight(iters, dur, gearlist, opts, statToMod, modAmount, onComplete
     } else {
         worker2 = true;
     }
-    worker.postMessage({msg: "statweight", id: id, payload: {
-        iters: iters, dur: dur, gearlist: gearlist, opts: opts, stat: statToMod, modVal: modAmount
-    }});
+    worker.postMessage({
+        msg: "statweight", id: id, payload: {
+            iters: iters,
+            dur: dur,
+            numClTargets: numClTargets,
+            gearlist: gearlist,
+            opts: opts,
+            stat: statToMod,
+            modVal: modAmount
+        }
+    });
 }
 
 function packOptions(opt, onComplete) {
     var id = makeid();
     simrequests[id] = onComplete
-    simlib.postMessage({msg: "packopt", id: id, payload: {
-        opt: opt,
-    }});
+    simlib.postMessage({
+        msg: "packopt", id: id, payload: {
+            opt: opt,
+        }
+    });
 }
 
 function makeid() {
-    var result           = '';
-    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     var charactersLength = characters.length;
-    for ( var i = 0; i < 16; i++ ) {
-       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    for (var i = 0; i < 16; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
 }
@@ -107,42 +140,42 @@ function makeid() {
 function computeStats(gear, opts, onComplete) {
     var id = makeid();
     simrequests[id] = onComplete
-    simlib.postMessage({msg: "computeStats", id: id, payload: {gear: gear, opts: opts}});
+    simlib.postMessage({ msg: "computeStats", id: id, payload: { gear: gear, opts: opts } });
 }
 
 // Pulls options from the input 'options' pane for use in sims.
 function getOptions() {
     var options = {};
+		options.agenttype = AGENT_TYPES.ADAPTIVE;
 
-
-    options.buffai =  document.getElementById("buffai").checked;
-    options.buffgotw =  document.getElementById("buffgotw").checked;
-    options.buffbk =  document.getElementById("buffbk").checked;
-    options.buffibow =  document.getElementById("buffibow").checked;
-    options.buffids =  document.getElementById("buffids").checked;
-    options.buffmoon =  document.getElementById("buffmoon").checked;
-    options.buffmoonrg =  document.getElementById("buffmoonrg").checked;
-    options.sbufws =  document.getElementById("sbufws").checked;
-    options.debuffjow =  document.getElementById("debuffjow").checked;
-    options.debuffisoc =  document.getElementById("debuffisoc").checked;
-    options.debuffmis =  document.getElementById("debuffmis").checked;
-    options.confbl =  document.getElementById("confbl").checked;
-    options.confmr =  document.getElementById("confmr").checked;
-    options.conbwo =  document.getElementById("conbwo").checked;
-    options.conmm =  document.getElementById("conmm").checked;
-    options.conbb =  document.getElementById("conbb").checked;
-    options.consmp =  document.getElementById("consmp").checked;
-    options.condp =  document.getElementById("condp").checked;
-    options.condr =  document.getElementById("condr").checked;
-    options.totms =  document.getElementById("totms").checked;
-    options.totwoa =  document.getElementById("totwoa").checked;
-    options.totcycl2p =  document.getElementById("totcycl2p").checked;
+    options.buffai = document.getElementById("buffai").checked;
+    options.buffgotw = document.getElementById("buffgotw").checked;
+    options.buffbk = document.getElementById("buffbk").checked;
+    options.buffibow = document.getElementById("buffibow").checked;
+    options.buffids = document.getElementById("buffids").checked;
+    options.buffmoon = document.getElementById("buffmoon").checked;
+    options.buffmoonrg = document.getElementById("buffmoonrg").checked;
+    options.sbufws = document.getElementById("sbufws").checked;
+    options.debuffjow = document.getElementById("debuffjow").checked;
+    options.debuffisoc = document.getElementById("debuffisoc").checked;
+    options.debuffmis = document.getElementById("debuffmis").checked;
+    options.confbl = document.getElementById("confbl").checked;
+    options.confmr = document.getElementById("confmr").checked;
+    options.conbwo = document.getElementById("conbwo").checked;
+    options.conmm = document.getElementById("conmm").checked;
+    options.conbb = document.getElementById("conbb").checked;
+    options.consmp = document.getElementById("consmp").checked;
+    options.condp = document.getElementById("condp").checked;
+    options.condr = document.getElementById("condr").checked;
+    options.totms = document.getElementById("totms").checked;
+    options.totwoa = document.getElementById("totwoa").checked;
+    options.totcycl2p = document.getElementById("totcycl2p").checked;
     options.buffeyenight = document.getElementById("buffeyenight").checked;
     options.bufftwilightowl = document.getElementById("bufftwilightowl").checked;
 
-    options.buffbl =  parseInt(document.getElementById("buffbl").value) || 0;
+    options.buffbl = parseInt(document.getElementById("buffbl").value) || 0;
     options.buffspriest = parseInt(document.getElementById("buffspriest").value) || 0;
-    options.totwr =  parseInt(document.getElementById("totwr").value) || 0;
+    options.totwr = parseInt(document.getElementById("totwr").value) || 0;
     options.buffdrums = parseInt(document.getElementById("buffdrums").value) || 0;
     options.sbufrace = parseInt(document.getElementById("sbufrace").value) || 0;
 
@@ -154,8 +187,9 @@ function getOptions() {
     options.custom.custha = parseInt(document.getElementById("custha").value) || 0;
     options.custom.custmp5 = parseInt(document.getElementById("custmp5").value) || 0;
     options.custom.custmana = parseInt(document.getElementById("custmana").value) || 0;
-    
+
     options.dpsReportTime = 0;
+    options.gcdMin = parseFloat(document.getElementById("custgcd").value) || 0;
 
     return options;
 }
@@ -164,50 +198,50 @@ function getOptions() {
 //  for some reason I wrote the writer in go and the parser here. 
 //  maybe its time to re-evaluate my life choices.
 function setOptions(data) {
-    
+
     document.getElementById("buffbl").selectedIndex = data[1];
     document.getElementById("buffdrums").selectedIndex = data[2];
-    
+
     var dst = new ArrayBuffer(data.byteLength);
     new Uint8Array(dst).set(new Uint8Array(data));
 
     var buffView = new DataView(dst, 3);
-    
+
     var idx = 0;
 
     var buffOpt1 = buffView.getUint8(idx, true); idx++;
     var buffOpt2 = buffView.getUint8(idx, true); idx++;
 
     document.getElementById("buffai").checked = (buffOpt1 & 1) == 1;
-    document.getElementById("buffgotw").checked = (buffOpt1 & 1<<1) == 1<<1;
-    document.getElementById("buffbk").checked = (buffOpt1 & 1<<2) == 1<<2;
-    document.getElementById("buffibow").checked = (buffOpt1 & 1<<3) == 1<<3;
-    document.getElementById("buffids").checked = (buffOpt1 & 1<<4) == 1<<4;
-    document.getElementById("buffmoon").checked = (buffOpt1 & 1<<5) == 1<<5;
-    document.getElementById("buffmoonrg").checked = (buffOpt1 & 1<<6) == 1<<6;
-    document.getElementById("buffeyenight").checked = (buffOpt1 & 1<<7) == 1<<7;
-    
+    document.getElementById("buffgotw").checked = (buffOpt1 & 1 << 1) == 1 << 1;
+    document.getElementById("buffbk").checked = (buffOpt1 & 1 << 2) == 1 << 2;
+    document.getElementById("buffibow").checked = (buffOpt1 & 1 << 3) == 1 << 3;
+    document.getElementById("buffids").checked = (buffOpt1 & 1 << 4) == 1 << 4;
+    document.getElementById("buffmoon").checked = (buffOpt1 & 1 << 5) == 1 << 5;
+    document.getElementById("buffmoonrg").checked = (buffOpt1 & 1 << 6) == 1 << 6;
+    document.getElementById("buffeyenight").checked = (buffOpt1 & 1 << 7) == 1 << 7;
+
     document.getElementById("bufftwilightowl").checked = (buffOpt2 & 1) == 1;
-    document.getElementById("sbufws").checked = (buffOpt2 & 1<<1) == 1<<1;
-    document.getElementById("debuffjow").checked = (buffOpt2 & 1<<2) == 1<<2;
-    document.getElementById("debuffisoc").checked = (buffOpt2 & 1<<3) == 1<<3;
-    document.getElementById("debuffmis").checked = (buffOpt2 & 1<<4) == 1<<4;
-    
+    document.getElementById("sbufws").checked = (buffOpt2 & 1 << 1) == 1 << 1;
+    document.getElementById("debuffjow").checked = (buffOpt2 & 1 << 2) == 1 << 2;
+    document.getElementById("debuffisoc").checked = (buffOpt2 & 1 << 3) == 1 << 3;
+    document.getElementById("debuffmis").checked = (buffOpt2 & 1 << 4) == 1 << 4;
+
     idx++; // water shield procs not implemented
-    document.getElementById("buffspriest").value = buffView.getUint16(idx, true); idx+=2;
+    document.getElementById("buffspriest").value = buffView.getUint16(idx, true); idx += 2;
     document.getElementById("sbufrace").selectedIndex = buffView.getUint8(idx, true); idx++;
 
     var numCustom = buffView.getUint8(idx, true); idx++;
     if (numCustom > 0) {
         document.getElementById("custint").value = buffView.getFloat64(7, true);
         // document.getElementById("custstm").value = buffView.getFloat64(7+8*1);
-        document.getElementById("custsc").value = buffView.getFloat64(7+8*2, true);
-        document.getElementById("custsh").value = buffView.getFloat64(7+8*3, true);
-        document.getElementById("custsp").value = buffView.getFloat64(7+8*4, true);
-        document.getElementById("custha").value = buffView.getFloat64(7+8*5, true);
-        document.getElementById("custmp5").value = buffView.getFloat64(7+8*6, true);
-        document.getElementById("custmana").value = buffView.getFloat64(7+8*7, true);
-        idx += numCustom*8;
+        document.getElementById("custsc").value = buffView.getFloat64(7 + 8 * 2, true);
+        document.getElementById("custsh").value = buffView.getFloat64(7 + 8 * 3, true);
+        document.getElementById("custsp").value = buffView.getFloat64(7 + 8 * 4, true);
+        document.getElementById("custha").value = buffView.getFloat64(7 + 8 * 5, true);
+        document.getElementById("custmp5").value = buffView.getFloat64(7 + 8 * 6, true);
+        document.getElementById("custmana").value = buffView.getFloat64(7 + 8 * 7, true);
+        idx += numCustom * 8;
     } else {
         document.getElementById("custint").value = 0;
         // document.getElementById("custstm").value = 0;
@@ -218,25 +252,25 @@ function setOptions(data) {
         document.getElementById("custmp5").value = 0;
         document.getElementById("custmana").value = 0;
     }
-    
+
     var consumOpt = buffView.getUint8(idx, true); idx++;
     document.getElementById("conbwo").checked = (consumOpt & 1) == 1;
-    document.getElementById("conmm").checked = (consumOpt & 1<<1) == 1<<1;
-    document.getElementById("confbl").checked = (consumOpt & 1<<2) == 1<<2;
-    document.getElementById("confmr").checked = (consumOpt & 1<<3) == 1<<3;
-    document.getElementById("conbb").checked = (consumOpt & 1<<4) == 1<<4;
-    document.getElementById("condp").checked = (consumOpt & 1<<5) == 1<<5;
-    document.getElementById("consmp").checked = (consumOpt & 1<<6) == 1<<6;
-    document.getElementById("condr").checked = (consumOpt & 1<<7) == 1<<7;
+    document.getElementById("conmm").checked = (consumOpt & 1 << 1) == 1 << 1;
+    document.getElementById("confbl").checked = (consumOpt & 1 << 2) == 1 << 2;
+    document.getElementById("confmr").checked = (consumOpt & 1 << 3) == 1 << 3;
+    document.getElementById("conbb").checked = (consumOpt & 1 << 4) == 1 << 4;
+    document.getElementById("condp").checked = (consumOpt & 1 << 5) == 1 << 5;
+    document.getElementById("consmp").checked = (consumOpt & 1 << 6) == 1 << 6;
+    document.getElementById("condr").checked = (consumOpt & 1 << 7) == 1 << 7;
 
     // talents
     idx += 9;
 
     document.getElementById("totwr").selectedIndex = buffView.getUint8(idx, true); idx++;
-	var totemOpt = buffView.getUint8(idx, true); idx++;
+    var totemOpt = buffView.getUint8(idx, true); idx++;
     document.getElementById("totwoa").checked = (totemOpt & 1) == 1;
-    document.getElementById("totms").checked = (totemOpt & 1<<1) == 1<<1;
-    document.getElementById("totcycl2p").checked = (totemOpt & 1<<2) == 1<<2;
+    document.getElementById("totms").checked = (totemOpt & 1 << 1) == 1 << 1;
+    document.getElementById("totcycl2p").checked = (totemOpt & 1 << 2) == 1 << 2;
 }
 
 var castIDToName = {
@@ -251,9 +285,9 @@ var castIDToName = {
 function runsim(currentGear, fullLogs) {
     if (fullLogs) {
         var dur = parseInt(document.getElementById("logdur").value);
+        var numClTargets = parseInt(document.getElementById("lognumClTargets").value);
         var firstOpts = getOptions();
-        firstOpts.useai = true;
-        simulate(1, dur, currentGear, firstOpts, null, null, true, (out) => { 
+        simulate(1, dur, numClTargets, currentGear, firstOpts, [AGENT_TYPES.ADAPTIVE], null, true, (out) => {
             var logdiv = document.getElementById("simlogs");
             logdiv.innerText = out[0].Logs;
         });
@@ -262,6 +296,7 @@ function runsim(currentGear, fullLogs) {
 
     var iters = parseInt(document.getElementById("iters").value);
     var dur = parseInt(document.getElementById("dur").value);
+    var numClTargets = parseInt(document.getElementById("numClTargets").value);
 
     var lbout = document.getElementById("simrotlb");
     var priout = document.getElementById("simrotpri");
@@ -275,8 +310,18 @@ function runsim(currentGear, fullLogs) {
 
     var firstOpts = getOptions();
     firstOpts.exitoom = true;
+    simulate(iters, 600, numClTargets, currentGear, firstOpts, [AGENT_TYPES.FIXED_LB_ONLY], 0, false, (out) => {
+        var stats = out[0];
+        var ttoom = stats.oomat;
+        if (ttoom == 0) {
+            ttoom = ">600";
+        } else {
+            ttoom = Math.round(ttoom);
+        }
+        lbout.innerHTML = `<div><h3>Mana</h3><text class="simnums">${ttoom}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(stats.dps)} DPS</text></div>`
+    });
     firstOpts.dpsReportTime = 30; // report dps for 30 seconds only.
-    simulate(iters, 600, currentGear, firstOpts, [["pri", "CL6","LB12"]], 0, false, (out) => { 
+    simulate(iters, 600, numClTargets, currentGear, firstOpts, [AGENT_TYPES.FIXED_3LB_1CL], 0, false, (out) => {
         var stats = out[0];
         var dps = Math.max(stats.dps, stats.dpsAtOOM);
         var oomat = stats.oomat;
@@ -287,25 +332,17 @@ function runsim(currentGear, fullLogs) {
         }
         priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(dps)}</text> dps<br /><text style="font-size:0.7em">${oomat}s to oom using CL on CD.</text></div>`
     });
-    firstOpts.dpsReportTime = 0; // reset dps report time.
-    simulate(iters, 600, currentGear, firstOpts, [["LB12"]], 0,false, (out) => {
-        var stats = out[0];
-        var ttoom = stats.oomat;
-        if (ttoom == 0) {
-            ttoom = ">600";
-        } else {
-            ttoom = Math.round(ttoom);
-        }
-        lbout.innerHTML = `<div><h3>Mana</h3><text class="simnums">${ttoom}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(stats.dps)} DPS</text></div>`
-    });
+
 
     var secondOpts = getOptions();
-    secondOpts.useai = true;
-    simulate(iters, dur, currentGear, secondOpts, null, 0, false, (out) => { 
+    var start = new Date();
+    simulate(iters, dur, numClTargets, currentGear, secondOpts, [AGENT_TYPES.ADAPTIVE], 0, false, (out) => {
+        var end = new Date();
+        console.log(`The sim took ${end - start} ms`);
         var stats = out[0];
         console.log("AI Stats: ", stats);
         aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> +/- ${Math.round(stats.dev)} dps<br /></div>`
-        
+
         var rotstats = document.getElementById("rotstats");
         rotstats.innerHTML = "";
         Object.entries(stats.casts).forEach((entry) => {
@@ -313,17 +350,17 @@ function runsim(currentGear, fullLogs) {
                 return;
             }
             var cstat = entry[1];
-            rotstats.innerHTML += `<text style="cursor:pointer" title="Avg Dmg: ${Math.round(cstat.dmg/cstat.count)} Crit: ${Math.round(cstat.crits/cstat.count*100)}%">${castIDToName[entry[0]]}: ${Math.round(cstat.count/iters)}</text>`;
+            rotstats.innerHTML += `<text style="cursor:pointer" title="Avg Dmg: ${Math.round(cstat.dmg / cstat.count)} Crit: ${Math.round(cstat.crits / cstat.count * 100)}%">${castIDToName[entry[0]]}: ${Math.round(cstat.count / iters)}</text>`;
         });
-        var percentoom = stats.numOOM/iters;
+        var percentoom = stats.numOOM / iters;
         if (percentoom > 0.02) {
             var dangerStyle = "";
             if (percentoom > 0.05 && percentoom <= 0.25) {
-                dangerStyle= "border-color: #FDFD96;"
+                dangerStyle = "border-color: #FDFD96;"
             } else if (percentoom > 0.25) {
-                dangerStyle= "border-color: #FF6961;"
+                dangerStyle = "border-color: #FF6961;"
             }
-            rotstats.innerHTML += `<text title="Downranking is not currently implemented." style="${dangerStyle};cursor: pointer">${Math.round(stats.numOOM/iters*100)}% of simulations went OOM.`
+            rotstats.innerHTML += `<text title="Downranking is not currently implemented." style="${dangerStyle};cursor: pointer">${Math.round(stats.numOOM / iters * 100)}% of simulations went OOM.`
         }
 
         var chartcanvas = document.createElement("canvas");
@@ -349,7 +386,7 @@ function runsim(currentGear, fullLogs) {
             if (val > min && val < max) {
                 colors.push('#1E87F0');
             } else {
-                colors.push('#FF6961');                
+                colors.push('#FF6961');
             }
         });
 
@@ -389,36 +426,38 @@ function hastedRotations(currentGear) {
     opts.buffdrum = 0;
 
     var hastes = [0, 50, 100, 200, 300, 400, 500, 600, 700, 788];
-    var rots = [
-        ["CL6", "LB12", "LB12", "LB12", "LB12"],
-        ["CL6", "LB12", "LB12", "LB12", "LB12", "LB12"],
-        ["CL6", "LB12", "LB12", "LB12", "LB12", "LB12", "LB12"]
+    var agentTypes = [
+				AGENT_TYPES.FIXED_4LB_1CL,
+				AGENT_TYPES.FIXED_5LB_1CL,
+				AGENT_TYPES.FIXED_6LB_1CL,
     ];
 
     // TODO: Fix this to match the new return values now that process is done in go WASM code.
 
     var hasteCounter = 0;
     var rows = document.getElementById("hasterots").firstElementChild.firstElementChild.children;
-    hastes.forEach( haste => {
+    hastes.forEach(haste => {
         hasteCounter++;
         var myCounter = hasteCounter;
         var row = rows[myCounter];
         row.children[1].innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
         row.children[2].innerText = "";
 
-        simulate(1000, 40, currentGear, opts, rots, haste, false, (output) => {
+        simulate(1000, 40, 1, currentGear, opts, agentTypes, haste, false, (output) => {
             var maxdmg = 0.0;
             var maxrot = {};
-    
-            output.forEach(out => {
+						var maxIdx = 0;
+
+            output.forEach((out, i) => {
                 if (maxdmg < out.dps) {
                     maxdmg = out.dps
                     maxrot = out;
+										maxIdx = i;
                 }
             });
-            
+
             var simdur = maxrot.SimSeconds;
-            var rotTitle = "CL / " + (maxrot.Rotation.length-1).toString() + "xLB";
+            var rotTitle = "CL / " + (maxIdx + 4).toString() + "xLB";
             row.children[0].innerText = haste;
             row.children[1].innerText = rotTitle;
             row.children[2].innerText = "" + Math.round(maxrot.dps) + " +/- " + Math.round(maxrot.dev);
@@ -430,8 +469,10 @@ function hastedRotations(currentGear) {
 function calcStatWeights(gear) {
     var iters = parseInt(document.getElementById("switer").value);
     var dur = parseInt(document.getElementById("swdur").value);
+    var numClTargets = parseInt(document.getElementById("swnumClTargets").value);
     var opts = getOptions();
-    
+		opts.agenttype = AGENT_TYPES.ADAPTIVE;
+
     var baseDPS = 0.0;
     var baseConf = 0.0;
 
@@ -441,22 +482,22 @@ function calcStatWeights(gear) {
     var modDPS = [0, 0, 0, 0, 0, 0]; // SP, Int, Crit, Hit, Haste, MP5
     var modConf = [0, 0, 0, 0, 0, 0]
     var weights = [0, 0, 0, 0, 0, 0, 0]; // Int, X, Crit, Hit, Dmg, Haste, MP5
-    modDPS.forEach((v, i)=>{
-        var cell = document.getElementById("w"+i.toString());
+    modDPS.forEach((v, i) => {
+        var cell = document.getElementById("w" + i.toString());
         cell.innerHTML = "<div uk-spinner=\"ratio: 1\"></div>";
     });
 
     // A base DPS without any modified stats.
-    statweight(iters, dur, gear, opts, 0, 0, (res) => {
+    statweight(iters, dur, numClTargets, gear, opts, 0, 0, (res) => {
         var resVals = res.split(",")
         baseDPS = parseFloat(resVals[0]);
         baseConf = parseFloat(resVals[2]);
         if (baseDPS < 1) {
             // we failed.
-            modDPS.forEach((v, i)=>{
-                var cell = document.getElementById("w"+i.toString());
+            modDPS.forEach((v, i) => {
+                var cell = document.getElementById("w" + i.toString());
                 cell.innerHTML = `<text style="color:#FF6961">OOM</text>`;
-            });        
+            });
             var uptab = document.getElementById("upgrades");
             var nr = document.createElement("text");
             nr.innerText = `Simulations went OOM and so weights will be incorrect as downranking is not yet implemented.`;
@@ -478,25 +519,25 @@ function calcStatWeights(gear) {
         var baseMax = baseDPS + baseConf
         var baseMin = baseDPS - baseConf
 
-        var ddpsMax = (modDPS[0]+modConf[0]) - baseMin;
-        var ddpsMin = (modDPS[0]-modConf[0]) - baseMax;
+        var ddpsMax = (modDPS[0] + modConf[0]) - baseMin;
+        var ddpsMin = (modDPS[0] - modConf[0]) - baseMax;
 
-        modDPS.forEach((v, i)=>{
+        modDPS.forEach((v, i) => {
             if (v == 0) {
                 return;
             }
-            var cell = document.getElementById("w"+i.toString());
-            var cellConf = document.getElementById("wc"+i.toString());
+            var cell = document.getElementById("w" + i.toString());
+            var cellConf = document.getElementById("wc" + i.toString());
             if (v == -1) {
                 cell.innerHTML = `<text style="color:#FF6961">OOM</text>`;
                 return;
             }
             // sphit uses different value;
             if (i == 3 && sp_hitModDPS != 0.0) {
-                var sphitMax = sp_hitModDPS+sp_hitModConf - baseMin;
-                var sphitMin = sp_hitModDPS-sp_hitModConf - baseMax;
-                
-                var wmax  = (v + modConf[i] - baseMin) / sphitMax;
+                var sphitMax = sp_hitModDPS + sp_hitModConf - baseMin;
+                var sphitMin = sp_hitModDPS - sp_hitModConf - baseMax;
+
+                var wmax = (v + modConf[i] - baseMin) / sphitMax;
                 var wmin = (v - modConf[i] - baseMax) / sphitMin;
                 var weight = (wmax + wmin) / 2;
                 if (weight < 0.01) {
@@ -509,17 +550,17 @@ function calcStatWeights(gear) {
                 weights[3] = weight;
                 cell.innerText = weight.toFixed(2);
                 cellConf.innerText = wmin.toFixed(2) + " - " + wmax.toFixed(2);
-                return; 
+                return;
             }
-            
-            var wmax  = (v + modConf[i] - baseMin) / ddpsMax;
+
+            var wmax = (v + modConf[i] - baseMin) / ddpsMax;
             var wmin = (v - modConf[i] - baseMax) / ddpsMin;
 
             var weight = (wmax + wmin) / 2;
             if (weight < 0.01) {
                 weight = 0.0;
             }
-            
+
             if (i == 0) {
                 weights[4] = weight;
             } else if (i == 1) {
@@ -551,48 +592,55 @@ function calcStatWeights(gear) {
         }
     };
 
-    statweight(iters, dur, gear, opts, 4, 20, (res) => {
+    statweight(iters, dur, numClTargets, gear, opts, 4, 20, (res) => {
         var resVals = res.split(",");
         sp_hitModDPS = parseFloat(resVals[0]);
         sp_hitModConf = parseFloat(resVals[2]);
-        onfinish();}); // sp
-    statweight(iters, dur, gear, opts, 3, 20, (res) => {
+        onfinish();
+    }); // sp
+    statweight(iters, dur, numClTargets, gear, opts, 3, 20, (res) => {
         var resVals = res.split(",");
         modConf[3] = parseFloat(resVals[2])
         modDPS[3] = parseFloat(resVals[0]);
-        onfinish();}); // hit
-    statweight(iters, dur, gear, opts, 4, 50, (res) => {
+        onfinish();
+    }); // hit
+    statweight(iters, dur, numClTargets, gear, opts, 4, 50, (res) => {
         var resVals = res.split(",");
         modConf[0] = parseFloat(resVals[2])
         modDPS[0] = parseFloat(resVals[0]);
-        onfinish();}); // sp
-    statweight(iters, dur, gear, opts, 0, 50, (res) => {
+        onfinish();
+    }); // sp
+    statweight(iters, dur, numClTargets, gear, opts, 0, 50, (res) => {
         var resVals = res.split(",");
         modConf[1] = parseFloat(resVals[2])
         modDPS[1] = parseFloat(resVals[0]);
-        onfinish();}); // int
-    statweight(iters, dur, gear, opts, 2, 50, (res) => {
+        onfinish();
+    }); // int
+    statweight(iters, dur, numClTargets, gear, opts, 2, 50, (res) => {
         var resVals = res.split(",");
         modConf[2] = parseFloat(resVals[2])
         modDPS[2] = parseFloat(resVals[0]);
-        onfinish();}); // crit
-    statweight(iters, dur, gear, opts, 5, 50, (res) => {
+        onfinish();
+    }); // crit
+    statweight(iters, dur, numClTargets, gear, opts, 5, 50, (res) => {
         var resVals = res.split(",");
         modConf[4] = parseFloat(resVals[2])
         modDPS[4] = parseFloat(resVals[0]);
-        onfinish();}); // haste
-    statweight(iters, dur, gear, opts, 6, 50, (res) => {
+        onfinish();
+    }); // haste
+    statweight(iters, dur, numClTargets, gear, opts, 6, 50, (res) => {
         var resVals = res.split(",");
         modConf[5] = parseFloat(resVals[2])
         modDPS[5] = parseFloat(resVals[0]);
-        onfinish();}); // mp5
+        onfinish();
+    }); // mp5
 }
 
 function showGearRecommendations(weights) {
     var itemWeightsBySlot = {};
-    var curSlotWeights = {};
+    var curSlotWeights = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
     // 4 == dmg, 2 == crit
-    var csdVal = (((currentFinalStats[4]*0.795)+603)*2 * (currentFinalStats[2]/2208) * 0.045) / 0.795;
+    var csdVal = (((currentFinalStats[4] * 0.795) + 603) * 2 * (currentFinalStats[2] / 2208) * 0.045) / 0.795;
     // process all items to find the weighted value.
     // find the value of each slots currently equipped item.
     Object.entries(gearUI.allitems).forEach((entry) => {
@@ -603,9 +651,9 @@ function showGearRecommendations(weights) {
         }
         var value = 0.0;
         if (item.Stats != null) {
-            weights.forEach((w, i)=>{
+            weights.forEach((w, i) => {
                 if (item.Stats[i] != null) {
-                    value += item.Stats[i]*w
+                    value += item.Stats[i] * w
                 }
             });
         }
@@ -630,14 +678,14 @@ function showGearRecommendations(weights) {
         if (curEquip != null && curEquip.Name == item.Name) {
             curSlotWeights[item.Slot] = value;
         }
-        itemWeightsBySlot[item.Slot].push({Name: item.Name, Weight: value});
-        itemWeightsBySlot[item.Slot] = itemWeightsBySlot[item.Slot].sort((a,b)=> b.Weight - a.Weight);
+        itemWeightsBySlot[item.Slot].push({ Name: item.Name, Weight: value });
+        itemWeightsBySlot[item.Slot] = itemWeightsBySlot[item.Slot].sort((a, b) => b.Weight - a.Weight);
     });
     var uptab = document.getElementById("upgrades");
     uptab.innerHTML = "";
-    
+
     var curSlot = -1;
-    Object.entries(itemWeightsBySlot).forEach((entry)=>{
+    Object.entries(itemWeightsBySlot).forEach((entry) => {
         if (entry[0] == 14) {
             // Skip trinkets for now. Trinkets will be separate
             return;
@@ -647,7 +695,7 @@ function showGearRecommendations(weights) {
             var col1 = document.createElement("td");
             slotToID[entry[0]].replace("equip", "");
             var title = slotToID[entry[0]].replace("equip", "");
-            col1.innerHTML = "<h3>" +title.charAt(0).toUpperCase() + title.substr(1)+"</h3>";
+            col1.innerHTML = "<h3>" + title.charAt(0).toUpperCase() + title.substr(1) + "</h3>";
 
             var col2 = document.createElement("td");
             var col3 = document.createElement("td");
@@ -662,7 +710,7 @@ function showGearRecommendations(weights) {
         entry[1].forEach((v) => {
             alt++;
             var row = document.createElement("tr");
-            if (alt%2 == 0) {
+            if (alt % 2 == 0) {
                 row.style.backgroundColor = "#808080";
             }
             var col1 = document.createElement("td");
@@ -674,27 +722,27 @@ function showGearRecommendations(weights) {
             var simbut = document.createElement("button");
             simbut.innerText = "Sim";
 
-            var item = Object.assign({Name: ""}, gearUI.allitems[v.Name]);
-            simbut.addEventListener("click", (e)=>{
+            var item = Object.assign({ Name: "" }, gearUI.allitems[v.Name]);
+            simbut.addEventListener("click", (e) => {
                 col4.innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
                 var newgear = {};
                 var slotID = slotToID[item.Slot];
                 if (slotID == "equipfinger") {
                     slotID = "equipfinger1"; // hardcode finger 1 replacement.
                 }
-                Object.entries(gearUI.currentGear).forEach((entry)=>{
+                Object.entries(gearUI.currentGear).forEach((entry) => {
                     if (entry[0] == slotID) {
                         // replace
                         newgear[entry[0]] = item;
                         if (item.GemSlots != null) {
                             item.Gems = [];
-                            item.GemSlots.forEach((color, i) => {             
+                            item.GemSlots.forEach((color, i) => {
                                 if (color == 1) {
                                     item.Gems[i] = gearUI.allgems["Chaotic Skyfire Diamond"];
                                 } else {
                                     item.Gems[i] = gearUI.allgems["Runed Living Ruby"];
-                                }                                    
-                            });    
+                                }
+                            });
                         }
                         item.Enchant = entry[1].Enchant;
                     } else {
@@ -703,9 +751,9 @@ function showGearRecommendations(weights) {
                 });
                 var iters = parseInt(document.getElementById("switer").value);
                 var dur = parseInt(document.getElementById("swdur").value);
+                var numClTargets = parseInt(document.getElementById("swnumClTargets").value);
                 var opts = getOptions();
-                opts.useai = true;
-                simulate(iters, dur, cleanGear(newgear), opts, null, null, false, (res)=>{
+                simulate(iters, dur, numClTargets, cleanGear(newgear), opts, [AGENT_TYPES.ADAPTIVE], null, false, (res) => {
                     var statistics = res[0];
                     col4.innerText = Math.round(statistics.dps).toString() + " +/- " + Math.round(statistics.dev).toString();
                 });
@@ -720,7 +768,7 @@ function showGearRecommendations(weights) {
     });
 }
 
-window.addEventListener('click', function(e){   
+window.addEventListener('click', function (e) {
     if (gearUI == null) {
         return;
     }
@@ -758,53 +806,53 @@ function popgear(gearList) {
 
     var currentGear = gearUI.currentGear;
 
-    gearUI.addChangeListener((item, slot)=>{
+    gearUI.addChangeListener((item, slot) => {
         updateGearStats(gearUI.currentGear);
     });
     updateGearStats(currentGear)
 
     var simlogrun = document.getElementById("simlogrun");
-    simlogrun.addEventListener("click", (event)=>{
+    simlogrun.addEventListener("click", (event) => {
         runsim(cleanGear(gearUI.currentGear), true);
     });
 
     var simrunbut = document.getElementById("simrunbut");
-    simrunbut.addEventListener("click", (event)=>{
+    simrunbut.addEventListener("click", (event) => {
         runsim(cleanGear(gearUI.currentGear));
     });
 
     var hastebut = document.getElementById("hastebut");
-    hastebut.addEventListener("click", (event)=>{
+    hastebut.addEventListener("click", (event) => {
         hastedRotations(cleanGear(gearUI.currentGear));
     });
 
     var caclweights = document.getElementById("calcstatweight");
-    caclweights.addEventListener("click", (event)=>{
+    caclweights.addEventListener("click", (event) => {
         calcStatWeights(cleanGear(gearUI.currentGear));
     });
 
     var inputs = document.querySelectorAll("#buffs input");
     for (var i = 0; i < inputs.length; i++) {
         var inp = inputs[i];
-        inp.addEventListener("input", (e)=>{
+        inp.addEventListener("input", (e) => {
             updateGearStats(gearUI.currentGear);
         });
     }
     var selects = document.querySelectorAll("#buffs select");
     for (var i = 0; i < selects.length; i++) {
         var sel = selects[i];
-        sel.addEventListener("change", (e)=>{
+        sel.addEventListener("change", (e) => {
             updateGearStats(gearUI.currentGear);
         })
     }
 
     updateGearSetList();
 
-    changePhaseFilter({target: document.getElementById("phasesel")});
-    changeQualityFilter({target: document.getElementById("qualsel")})
+    changePhaseFilter({ target: document.getElementById("phasesel") });
+    changeQualityFilter({ target: document.getElementById("qualsel") })
 
 
-    window.addEventListener('hashchange', ()=>{
+    window.addEventListener('hashchange', () => {
         var importVal = location.hash;
         if (importVal.length > 0) {
             importVal = importVal.substr(1);
@@ -812,14 +860,14 @@ function popgear(gearList) {
                 currentHash = importVal;
                 importGear(importVal);
             }
-        }    
+        }
     });
 }
 
 // clearGear strips off all parts of gear that is non-changing. This lets us pass minimal data to sim and store in local storage.
 function cleanGear(gear) {
     var cleanedGear = [];
-    Object.entries(gear).forEach((entry)=>{
+    Object.entries(gear).forEach((entry) => {
         if (entry == null || entry == undefined) {
             return;
         }
@@ -831,13 +879,13 @@ function cleanGear(gear) {
         }
         if (entry[1].Gems != null) {
             it.g = [];
-            entry[1].Gems.forEach((g)=>{
+            entry[1].Gems.forEach((g) => {
                 if (g == null) {
                     it.g.push(0);
                     return;
                 }
                 it.g.push(g.ID);
-            });    
+            });
         }
         if (entry[1].Enchant != null && entry[1].Enchant.ID > 0) {
             it.e = entry[1].Enchant.ID;
@@ -851,20 +899,20 @@ var currentFinalStats = {};
 
 var statToName = [
     "StatInt",
-	"StatStm",
-	"StatSpellCrit",
-	"StatSpellHit",
-	"StatSpellDmg",
-	"StatHaste",
-	"StatMP5",
-	"StatMana",
-	"StatSpellPen",
-	"StatSpirit",
+    "StatStm",
+    "StatSpellCrit",
+    "StatSpellHit",
+    "StatSpellDmg",
+    "StatHaste",
+    "StatMP5",
+    "StatMana",
+    "StatSpellPen",
+    "StatSpirit",
     "StatLen",
 ]
 // Updates the 'stats' pane in the viewport.
 function updateGearStats(gearlist) {
-    
+
     var cleanedGear = cleanGear(gearlist); // converts to array with minimal data for serialization.
 
     // TODO: Is this the best way?
@@ -880,25 +928,26 @@ function updateGearStats(gearlist) {
     });
 
     var opts = getOptions();
+		opts.agenttype = AGENT_TYPES.ADAPTIVE;
     computeStats(cleanedGear, opts, (result) => {
         currentFinalStats = result.Stats;
         var sets = result.Sets;
         var setlist = document.getElementById("setlist");
         setlist.innerHTML = sets.join("<br />");
         for (const [key, value] of Object.entries(currentFinalStats)) {
-            var lab = document.getElementById("f"+statToName[key].toLowerCase());
+            var lab = document.getElementById("f" + statToName[key].toLowerCase());
             if (key == 2) {
-                lab.innerText = value.toFixed(0).toString() + " ("  + (value/22.08).toFixed(1) + "%)";
+                lab.innerText = value.toFixed(0).toString() + " (" + (value / 22.08).toFixed(1) + "%)";
             } else if (key == 3) {
-                lab.innerText = value.toFixed(0).toString() + " ("  + (value/12.6).toFixed(1) + "%)";
+                lab.innerText = value.toFixed(0).toString() + " (" + (value / 12.6).toFixed(1) + "%)";
             } else if (key == 5) {
-                lab.innerText = value.toFixed(0).toString() + " ("  + (value/15.76).toFixed(1) + "%)";
+                lab.innerText = value.toFixed(0).toString() + " (" + (value / 15.76).toFixed(1) + "%)";
             } else if (lab == null) {
                 // do nothing...
             } else {
                 lab.innerText = value.toFixed(0);
             }
-        }    
+        }
     });
 
     exportGear(true); // this will update the URL
@@ -914,7 +963,7 @@ var inpanel = document.getElementById("inputdata");
 var outpanel = document.getElementById("calcdiv");
 var h = window.innerHeight;
 
-window.addEventListener("touchstart", (e)=>{
+window.addEventListener("touchstart", (e) => {
     if (panediv == null) {
         panediv = document.getElementById("panediv");
         calcpane = document.getElementById("calctabs");
@@ -926,11 +975,11 @@ window.addEventListener("touchstart", (e)=>{
         h = window.innerHeight;
         e.preventDefault();
     }
-    if( e.changedTouches.length > 1) {
+    if (e.changedTouches.length > 1) {
         panedrag = false;
     }
 });
-window.addEventListener("mousedown", (e)=>{
+window.addEventListener("mousedown", (e) => {
     if (panediv == null) {
         panediv = document.getElementById("panediv");
         inpanel = document.getElementById("inputdata");
@@ -943,27 +992,27 @@ window.addEventListener("mousedown", (e)=>{
         e.preventDefault();
     }
 });
-window.addEventListener("touchend", (e)=>{
+window.addEventListener("touchend", (e) => {
     panedrag = false;
 });
-window.addEventListener("mouseup", (e)=>{
+window.addEventListener("mouseup", (e) => {
     panedrag = false;
 });
 
-window.addEventListener("touchmove", (e)=>{
+window.addEventListener("touchmove", (e) => {
     if (panedrag) {
-        var percent = e.changedTouches[0].pageY / (h+60);
-        inpanel.style.height = "calc(" + (percent*100).toString() + "% - 100px)";
-        outpanel.style.height = "calc(" + (100-(percent*100)).toString() + "% - 100px)";
+        var percent = e.changedTouches[0].pageY / (h + 60);
+        inpanel.style.height = "calc(" + (percent * 100).toString() + "% - 100px)";
+        outpanel.style.height = "calc(" + (100 - (percent * 100)).toString() + "% - 100px)";
         e.preventDefault();
     }
 });
 
-window.addEventListener("mousemove", (e)=>{
+window.addEventListener("mousemove", (e) => {
     if (panedrag) {
-        var percent = e.pageY / (h+60);
-        inpanel.style.height = "calc(" + (percent*100).toString() + "% - 100px)";
-        outpanel.style.height = "calc(" + (100-(percent*100)).toString() + "% - 100px)";
+        var percent = e.pageY / (h + 60);
+        inpanel.style.height = "calc(" + (percent * 100).toString() + "% - 100px)";
+        outpanel.style.height = "calc(" + (100 - (percent * 100)).toString() + "% - 100px)";
         e.preventDefault();
     }
 });
@@ -974,7 +1023,7 @@ function toggletheme() {
         document.getElementById("themebulb").src = "../icons/light-bulb.svg";
         document.children[0].children[1].classList.remove("lighttheme")
         document.children[0].classList.remove("lighttheme")
-        
+
         document.children[0].classList.add("darktheme")
         document.children[0].children[1].classList.add("darktheme")
         document.children[0].children[1].classList.add("uk-light")
@@ -987,7 +1036,7 @@ function toggletheme() {
     } else {
         document.getElementById("themebulb").src = "../icons/lightbulb.svg";
 
-        document.children[0].children[1].classList.remove("uk-light") 
+        document.children[0].children[1].classList.remove("uk-light")
         document.children[0].classList.remove("darktheme")
         document.children[0].children[1].classList.remove("darktheme")
 
@@ -1004,7 +1053,7 @@ function toggletheme() {
 
 function toggleThemeClass(rm, rp) {
     var elements = document.getElementsByClassName(rm);
-    for (var i = elements.length-1; i >=0 ; i--) {
+    for (var i = elements.length - 1; i >= 0; i--) {
         var e = elements[i];
         e.classList.remove(rm);
         e.classList.add(rp);
@@ -1015,7 +1064,7 @@ var pulloutRight = -200;
 function pulloutToggle() {
     var root = document.getElementById('root');
     var po = document.getElementById('pullout');
-    
+
     if (pulloutRight < 0) {
         pulloutRight = 0;
         root.style.width = "calc(100% - 200px)";
@@ -1023,7 +1072,7 @@ function pulloutToggle() {
         pulloutRight = -200;
         root.style.width = "100%";
     }
-    
+
     po.style.right = pulloutRight.toString() + "px";
 }
 
@@ -1048,7 +1097,7 @@ function changeQualityFilter(e) {
 function saveGearSet() {
     var name = document.getElementById("gearname").value;
     var cleanedGear = cleanGear(gearUI.currentGear); // converts to array with minimal data for serialization.
-    localStorage.setItem("stored."+name, JSON.stringify(cleanedGear));
+    localStorage.setItem("stored." + name, JSON.stringify(cleanedGear));
 
     updateGearSetList();
 }
@@ -1069,7 +1118,7 @@ function updateGearSetList() {
 
 function loadGearSet(event) {
     var name = document.getElementById("gearloader").value;
-    var gearCache = localStorage.getItem("stored."+name);
+    var gearCache = localStorage.getItem("stored." + name);
     if (gearCache && gearCache.length > 0) {
         var parsedGear = JSON.parse(gearCache);
         if (parsedGear.length > 0) {
@@ -1081,7 +1130,7 @@ function loadGearSet(event) {
 
 function deleteGearSet() {
     var name = document.getElementById("gearloader").value;
-    localStorage.removeItem("stored."+name);
+    localStorage.removeItem("stored." + name);
     updateGearSetList();
 }
 
@@ -1094,7 +1143,7 @@ function importGear(inputVal) {
     var gearCache = inputVal;
     if (inputVal[0] != "[") { // that is opening brace for a gear list in JSON, but not valid base64
         if (window.pako === undefined) {
-            loadPako(()=>{
+            loadPako(() => {
                 importGear(inputVal); // try again
             });
             return;
@@ -1117,13 +1166,13 @@ function pakoInflate(v) {
     var binary = atob(v);
     var bytes = new Uint8Array(binary.length);
     for (let i = 0; i < bytes.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
+        bytes[i] = binary.charCodeAt(i);
     }
     // var bytes = base2048.decode(v);
     var dv = new DataView(bytes.buffer);
     var leng = dv.getInt32(0);
 
-    return {gear: pako.inflate(bytes.subarray(4, leng+4), {to:'string'}), buffs: bytes.subarray(leng+4, bytes.length)};
+    return { gear: pako.inflate(bytes.subarray(4, leng + 4), { to: 'string' }), buffs: bytes.subarray(leng + 4, bytes.length) };
 }
 
 
@@ -1135,18 +1184,18 @@ function exportGear(compressed) {
     var enc = JSON.stringify(cleanedGear);
     if (compressed) {
         if (window.pako === undefined) {
-            loadPako(()=>{
+            loadPako(() => {
                 exportGear(compressed); // try again
             });
             return;
         } else {
-            packOptions(getOptions(), (r)=>{
+            packOptions(getOptions(), (r) => {
                 var val = pako.deflate(enc, { to: 'string' });
-                var mergedArray = new Uint8Array(val.length + r.length+4);
+                var mergedArray = new Uint8Array(val.length + r.length + 4);
                 var dv = new DataView(mergedArray.buffer);
                 dv.setInt32(0, val.length);
                 mergedArray.set(val, 4);
-                mergedArray.set(r, 4+val.length);
+                mergedArray.set(r, 4 + val.length);
                 // var output = base2048.encode(mergedArray);
                 var output = btoa(String.fromCharCode(...mergedArray));
                 // console.log(`JSON Size: ${enc.length}, Bin Size: ${mergedArray.length}, b2048: ${output.length}`);    

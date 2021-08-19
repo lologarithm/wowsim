@@ -6,10 +6,11 @@ import (
 )
 
 type Options struct {
-	SpellOrder []string
-	UseAI      bool // when set true, the AI will modulate the rotations to maximize DPS and mana.
-	RSeed      int64
-	ExitOnOOM  bool
+	AgentType    AgentType
+	NumClTargets int
+	RSeed        int64
+	ExitOnOOM    bool
+	GCDMin       float64 // sets the minimum GCD
 
 	NumBloodlust int
 	NumDrums     int
@@ -19,11 +20,15 @@ type Options struct {
 	Talents  Talents
 	Totems   Totems
 
-	DPSReportTime int // how many seconds to calculate DPS for.
+	DPSReportTime float64 // how many seconds to calculate DPS for.
 
 	Debug bool // enables debug printing.
 	// TODO: could change this to be a func/stream consumer could provide,
 	// make it easier to integrate into different output systems.
+
+	// Hack indicating whether tidefury 2 piece bonus (CL bounce damage) is active
+	// This is only set from the aura, not from actual options
+	Tidefury2Pc bool
 }
 
 // Pack is how to convert all options/buffs/consumes/etc to reproduce the UI state
@@ -80,7 +85,7 @@ func (tt Totems) AddStats(s Stats) Stats {
 }
 
 type Talents struct {
-	LightninOverload   int
+	LightningOverload  int
 	ElementalPrecision int
 	NaturesGuidance    int
 	TidalMastery       int
@@ -97,7 +102,7 @@ func (t Talents) Pack() []byte {
 		elemast = 1
 	}
 	bytes := []byte{
-		byte(t.LightninOverload),
+		byte(t.LightningOverload),
 		byte(t.ElementalPrecision),
 		byte(t.NaturesGuidance),
 		byte(t.TidalMastery),
@@ -255,7 +260,7 @@ func (b Buffs) AddStats(s Stats) Stats {
 		s[StatMP5] += 50
 	}
 	if b.Race == RaceBonusDraenei {
-		s[StatSpellHit] += 15.76 // 1% hit
+		s[StatSpellHit] += 12.60 // 1% hit
 	}
 	s[StatMP5] += float64(b.SpriestDPS) * 0.25
 

@@ -9,7 +9,6 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/lologarithm/wowsim/tbc"
@@ -31,8 +30,8 @@ func main() {
 
 	var isDebug = flag.Bool("debug", false, "Include --debug to spew the entire simulation log.")
 	var noopt = flag.Bool("noopt", false, "If included it will disable optimization.")
-	var rotation = flag.String("rotation", "", "Custom comma separated rotation to simulate.\n\tFor Example: --rotation=CL6,LB12")
-	var duration = flag.Int("duration", 300, "Custom fight duration in seconds.")
+	var agentTypeStr = flag.String("agentType", "", "Custom comma separated agent type to simulate.\n\tFor Example: --rotation=3LB1CL")
+	var duration = flag.Float64("duration", 300, "Custom fight duration in seconds.")
 	var iterations = flag.Int("iter", 10000, "Custom number of iterations for the sim to run.")
 	var runWebUI = flag.Bool("web", false, "Use to run sim in web interface instead of in terminal")
 	var configFile = flag.String("config", "", "Specify an input configuration.")
@@ -106,7 +105,7 @@ func main() {
 			// DarkRune:             false,
 		},
 		Talents: tbc.Talents{
-			LightninOverload:   5,
+			LightningOverload:  5,
 			ElementalPrecision: 3,
 			NaturesGuidance:    3,
 			TidalMastery:       5,
@@ -135,15 +134,34 @@ func main() {
 		*iterations = 1
 		opt.Debug = true
 	}
-	rotArray := []string{}
-	if rotation != nil && len(*rotation) > 0 {
-		rotArray = strings.Split(*rotation, ",")
+
+	agentTypesMap := map[string]tbc.AgentType{
+		"3LB1CL":   tbc.AGENT_TYPE_FIXED_3LB_1CL,
+		"4LB1CL":   tbc.AGENT_TYPE_FIXED_4LB_1CL,
+		"5LB1CL":   tbc.AGENT_TYPE_FIXED_5LB_1CL,
+		"6LB1CL":   tbc.AGENT_TYPE_FIXED_6LB_1CL,
+		"7LB1CL":   tbc.AGENT_TYPE_FIXED_7LB_1CL,
+		"8LB1CL":   tbc.AGENT_TYPE_FIXED_8LB_1CL,
+		"9LB1CL":   tbc.AGENT_TYPE_FIXED_9LB_1CL,
+		"10LB1CL":  tbc.AGENT_TYPE_FIXED_10LB_1CL,
+		"LB":       tbc.AGENT_TYPE_FIXED_LB_ONLY,
+		"Adaptive": tbc.AGENT_TYPE_ADAPTIVE,
 	}
 
-	results := runTBCSim(gear, opt, *duration, *iterations, rotArray, *noopt)
+	if agentTypeStr == nil {
+		opt.AgentType = tbc.AGENT_TYPE_ADAPTIVE
+	} else {
+		opt.AgentType = agentTypesMap[*agentTypeStr]
+	}
+
+	start := time.Now()
+	results := runTBCSim(gear, opt, *duration, *iterations, *noopt)
+	elapsed := time.Since(start)
+
 	for _, res := range results {
 		fmt.Printf("\n%s\n", res)
 	}
+	fmt.Printf("Sim execution took %s", elapsed)
 }
 
 type input struct {
@@ -180,39 +198,27 @@ func getGear(val []byte) (tbc.Equipment, tbc.Options) {
 	return tbc.Equipment(gearSet), in.Options
 }
 
-func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, customRotation []string, noopt bool) []string {
+func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds float64, numSims int, noopt bool) []string {
 	fmt.Printf("\nSim Duration: %d sec\nNum Simulations: %d\n", seconds, numSims)
 
 	stats := tbc.CalculateTotalStats(opt, equip)
 
-	spellOrders := [][]string{
-		// {"CL6", "LB12", "LB12", "LB12"},
-		// {"CL6", "LB12", "LB12", "LB12", "LB12"},
-		// {"CL6", "LB12", "LB12", "LB12", "LB12", "LB12"},
-		// {"pri", "CL6", "LB12"}, // cast CL whenever off CD, otherwise LB
-		// {"LB12"},               // only LB
-	}
-	if len(customRotation) > 0 {
-		fmt.Printf("Using Custom Rotation: %v\n", customRotation)
-		spellOrders = [][]string{customRotation}
-	}
-
+	agentTypes := []tbc.AgentType{}
 	fmt.Printf("\nFinal Stats: %s\n", stats.Print())
 	statchan := make(chan string, 3)
-	for spi, spells := range spellOrders {
-		go doSimMetrics(spells, stats, equip, opt, seconds, numSims, statchan)
-		if opt.Debug && spi != len(spellOrders)-1 {
+	for agentTypeIdx, agentType := range agentTypes {
+		go doSimMetrics(agentType, stats, equip, opt, seconds, numSims, statchan)
+		if opt.Debug && agentTypeIdx != len(agentTypes)-1 {
 			time.Sleep(time.Second * 2)
 		}
 	}
 
 	results := []string{}
-	for i := 0; i < len(spellOrders); i++ {
+	for i := 0; i < len(agentTypes); i++ {
 		results = append(results, <-statchan)
 	}
 
-	opt.UseAI = true
-	go doSimMetrics([]string{"AI"}, stats, equip, opt, seconds, numSims, statchan)
+	go doSimMetrics(opt.AgentType, stats, equip, opt, seconds, numSims, statchan)
 	results = append(results, <-statchan)
 
 	if !noopt {
@@ -238,19 +244,19 @@ func runTBCSim(equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, c
 	return results
 }
 
-func doSimMetrics(spo []string, stats tbc.Stats, equip tbc.Equipment, opt tbc.Options, seconds int, numSims int, statchan chan string) {
+func doSimMetrics(agentType tbc.AgentType, stats tbc.Stats, equip tbc.Equipment, opt tbc.Options, seconds float64, numSims int, statchan chan string) {
 	simDmgs := []float64{}
-	simOOMs := []int{}
+	simOOMs := []float64{}
 	histogram := map[int]int{}
 	casts := map[int32]int{}
 	manaSpent := 0.0
 	manaLeft := 0.0
 	oomdps := 0.0
-	ooms := 0
+	ooms := 0.0
 	numOoms := 0
 
 	rseed := time.Now().Unix()
-	opt.SpellOrder = spo
+	opt.AgentType = agentType
 	opt.RSeed = rseed
 	sim := tbc.NewSim(stats, equip, opt)
 	for ns := 0; ns < numSims; ns++ {
@@ -300,7 +306,7 @@ func doSimMetrics(spo []string, stats tbc.Stats, equip tbc.Equipment, opt tbc.Op
 	stdev := math.Sqrt(meanSq - mean*mean)
 
 	output := ""
-	output += fmt.Sprintf("Spell Order: %v\n", spo)
+	output += fmt.Sprintf("Agent Type: %v\n", string(agentType))
 	output += fmt.Sprintf("DPS:")
 	output += fmt.Sprintf("\tMean: %0.1f +/- %0.1f\n", (mean / float64(seconds)), stdev/float64(seconds))
 	output += fmt.Sprintf("\tMax: %0.1f\n", (max / float64(seconds)))
@@ -316,9 +322,9 @@ func doSimMetrics(spo []string, stats tbc.Stats, equip tbc.Equipment, opt tbc.Op
 	// extraCL := int(avgleft / 414) // 414 is cost of difference casting CL instead of LB
 	// output += fmt.Sprintf("Add CL: %d\n", extraCL)
 
-	avgoomSec := 0
+	avgoomSec := 0.0
 	if numOoms > 0 {
-		avgoomSec = ooms / numOoms
+		avgoomSec = ooms / float64(numOoms)
 	}
 	output += fmt.Sprintf("Went OOM: %d/%d sims\n", numOoms, numSims)
 	if numOoms > 0 {
