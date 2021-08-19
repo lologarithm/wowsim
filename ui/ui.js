@@ -1,4 +1,8 @@
 // Globals
+
+// Set this to true to use item names instead of IDs in gear specs, for easier debugging.
+const USE_ITEM_NAMES = false;
+
 const defaultGear = [
     { Name: "Shamanistic Helmet of Second Sight" },
     { Name: "Brooch of Heightened Potential" },
@@ -861,18 +865,32 @@ function toGearSpec(gear) {
 				if (!item) {
 						return;
 				}
-				const itemSpec = {
-					Name: item.Name,
-					Enchant: {
-						Name: (item.Enchant || {}).Name
-					},
-					Gems: (item.Gems || []).map(gem => {
-						return {
-							Name: gem.Name
-						};
-					})
-				};
-				gearSpec.push(itemSpec);
+
+				if (USE_ITEM_NAMES) {
+					gearSpec.push({
+						Name: item.Name,
+						Enchant: {
+							Name: (item.Enchant || {}).Name
+						},
+						Gems: (item.Gems || []).map(gem => {
+							return {
+								Name: gem.Name
+							};
+						})
+					});
+				} else {
+					gearSpec.push({
+						ID: item.ID,
+						Enchant: {
+							ID: (item.Enchant || {}).ID
+						},
+						Gems: (item.Gems || []).map(gem => {
+							return {
+								ID: gem.ID
+							};
+						})
+					});
+				}
 		});
 		return gearSpec;
 }

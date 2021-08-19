@@ -185,6 +185,10 @@ class GearUI {
         newGear.forEach(item => {
 						const nameOrId = item.ID || item.Name;
 						const realItem = this.allitems[nameOrId] || this.itemsByID[nameOrId];
+						if (!realItem) {
+							return;
+						}
+
             let slotid = slotToID[realItem.Slot];
     
             if (slotid == "equipfinger") {
@@ -216,7 +220,7 @@ class GearUI {
 							});
 						}
             if (item.g) {
-                realItem.Gems = item.g.map(gem => this.gemsByID[g] || {});
+                realItem.Gems = item.g.map(gem => this.gemsByID[gem] || {});
             }
             if (item.Enchant) {
                 realItem.Enchant = this.allenchants[item.Enchant] 
