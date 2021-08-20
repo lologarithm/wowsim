@@ -4,6 +4,7 @@ package tbc
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"strings"
 	"sync"
 	"time"
@@ -11,9 +12,9 @@ import (
 
 func getGearListImpl(request GearListRequest) GearListResult {
 	return GearListResult{
-		Items: items,
+		Items:    items,
 		Enchants: Enchants,
-		Gems: Gems,
+		Gems:     Gems,
 	}
 }
 
@@ -33,9 +34,9 @@ func computeStatsImpl(request ComputeStatsRequest) ComputeStatsResult {
 	}
 
 	return ComputeStatsResult{
-		GearOnly: gearOnlyStats,
+		GearOnly:   gearOnlyStats,
 		FinalStats: finalStats,
-		Sets: sets,
+		Sets:       sets,
 	}
 }
 
@@ -43,14 +44,15 @@ func statWeightsImpl(request StatWeightsRequest) StatWeightsResult {
 	request.Options.AgentType = AGENT_TYPE_ADAPTIVE
 
 	baselineSimRequest := SimRequest{
-		Options: request.Options,
-		Gear: request.Gear,
+		Options:    request.Options,
+		Gear:       request.Gear,
 		Iterations: request.Iterations,
 	}
 	baselineResult := RunSimulation(baselineSimRequest)
 
 	var waitGroup sync.WaitGroup
 	result := StatWeightsResult{}
+	dpsHists := [StatLen]map[int]int{}
 
 	doStat := func(stat Stat, value float64) {
 		defer waitGroup.Done()
@@ -60,34 +62,84 @@ func statWeightsImpl(request StatWeightsRequest) StatWeightsResult {
 
 		simResult := RunSimulation(simRequest)
 		result.Weights[stat] = (simResult.DpsAvg - baselineResult.DpsAvg) / value
-		// TODO: I think this equation is wrong
-		result.WeightsStDev[stat] = (simResult.DpsStDev - baselineResult.DpsStDev) / value
+		dpsHists[stat] = simResult.DpsHist
 	}
 
-	statsToTest := []Stat{StatInt, StatSpellDmg, StatSpellCrit, StatSpellHit, StatHaste, StatMP5}
-	for _, stat := range statsToTest {
+	// Spell hit mod shouldn't go over hit cap.
+	computeStatsResult := ComputeStats(ComputeStatsRequest{
+		Options: request.Options,
+		Gear:    request.Gear,
+	})
+	spellHitMod := math.Max(0, math.Min(10, 202-computeStatsResult.FinalStats[StatSpellHit]))
+
+	statMods := Stats{
+		StatInt:       50,
+		StatSpellDmg:  50,
+		StatSpellCrit: 50,
+		StatSpellHit:  spellHitMod,
+		StatHaste:     50,
+		StatMP5:       50,
+	}
+
+	for stat, mod := range statMods {
+		if mod == 0 {
+			continue
+		}
+
 		waitGroup.Add(1)
-		go doStat(stat, 50)
+		go doStat(Stat(stat), mod)
 	}
 
 	waitGroup.Wait()
 
-	// If hit capped, just set weight for spell hit to 0
-	computeStatsResult := ComputeStats(ComputeStatsRequest{
-		Options: request.Options,
-		Gear: request.Gear,
-	})
-	if computeStatsResult.FinalStats[StatSpellHit] > 202 {
-		result.Weights[StatSpellHit] = 0
-		result.WeightsStDev[StatSpellHit] = 0
-	}
+	for stat, mod := range statMods {
+		if mod == 0 {
+			continue
+		}
 
-	for _, stat := range statsToTest {
 		result.EpValues[stat] = result.Weights[stat] / result.Weights[StatSpellDmg]
-		// TODO: I think this equation is wrong
-		result.EpValuesStDev[stat] = result.WeightsStDev[stat] / result.WeightsStDev[StatSpellDmg]
+
+		result.WeightsStDev[stat] = computeStDevFromHists(request.Iterations, statMods[stat], dpsHists[stat], baselineResult.DpsHist, nil, statMods[StatSpellDmg])
+		result.EpValuesStDev[stat] = computeStDevFromHists(request.Iterations, statMods[stat], dpsHists[stat], baselineResult.DpsHist, dpsHists[StatSpellDmg], statMods[StatSpellDmg])
 	}
 	return result
+}
+
+func computeStDevFromHists(iters int, modValue float64, moddedStatDpsHist map[int]int, baselineDpsHist map[int]int, spellDmgDpsHist map[int]int, spellDmgModValue float64) float64 {
+	sum := 0.0
+	sumSquared := 0.0
+	n := iters * 10
+	for i := 0; i < n; {
+		denominator := 1.0
+		if spellDmgDpsHist != nil {
+			denominator = float64(sampleFromDpsHist(spellDmgDpsHist, iters)-sampleFromDpsHist(baselineDpsHist, iters)) / spellDmgModValue
+		}
+
+		if denominator != 0 {
+			ep := (float64(sampleFromDpsHist(moddedStatDpsHist, iters)-sampleFromDpsHist(baselineDpsHist, iters)) / modValue) / denominator
+			sum += ep
+			sumSquared += ep * ep
+			i++
+		}
+	}
+	epAvg := sum / float64(n)
+	epStDev := math.Sqrt((sumSquared / float64(n)) - (epAvg * epAvg))
+	return epStDev
+}
+
+func sampleFromDpsHist(hist map[int]int, histNumSamples int) int {
+	r := rand.Float64()
+	sampleIdx := int(math.Floor(float64(histNumSamples) * r))
+
+	curSampleIdx := 0
+	for roundedDps, count := range hist {
+		curSampleIdx += count
+		if curSampleIdx >= sampleIdx {
+			return roundedDps
+		}
+	}
+
+	panic("Invalid dps histogram")
 }
 
 func runSimulationImpl(request SimRequest) SimResult {
@@ -134,26 +186,26 @@ func runBatchSimulationImpl(request BatchSimRequest) BatchSimResult {
 }
 
 type MetricsAggregator struct {
-	startTime       time.Time
-	numSims         int
+	startTime time.Time
+	numSims   int
 
-	dpsSum          float64
-	dpsSumSquared   float64
-	dpsMax          float64
-	dpsHist         map[int]int          // rounded DPS to count
+	dpsSum        float64
+	dpsSumSquared float64
+	dpsMax        float64
+	dpsHist       map[int]int // rounded DPS to count
 
-	numOom          int
-	oomAtSum        float64
-	dpsAtOomSum     float64
+	numOom      int
+	oomAtSum    float64
+	dpsAtOomSum float64
 
-	casts           map[int32]CastMetric
+	casts map[int32]CastMetric
 }
 
 func NewMetricsAggregator() *MetricsAggregator {
 	return &MetricsAggregator{
 		startTime: time.Now(),
-		dpsHist: make(map[int]int),
-		casts: make(map[int32]CastMetric),
+		dpsHist:   make(map[int]int),
+		casts:     make(map[int32]CastMetric),
 	}
 }
 
@@ -169,7 +221,7 @@ func (aggregator *MetricsAggregator) addMetrics(options Options, metrics SimMetr
 	aggregator.dpsSumSquared += dps * dps
 	aggregator.dpsMax = math.Max(aggregator.dpsMax, dps)
 
-	dpsRounded := int(math.Round(dps / 10) * 10)
+	dpsRounded := int(math.Round(dps/10) * 10)
 	aggregator.dpsHist[dpsRounded]++
 
 	if metrics.OOMAt > 0 {
@@ -200,16 +252,16 @@ func (aggregator *MetricsAggregator) getResult() SimResult {
 	result.ExecutionDurationMs = time.Since(aggregator.startTime).Milliseconds()
 
 	numSims := float64(aggregator.numSims)
-	result.DpsAvg      = aggregator.dpsSum / numSims
-	result.DpsStDev    = math.Sqrt((aggregator.dpsSumSquared / numSims) - (result.DpsAvg * result.DpsAvg))
-	result.DpsMax      = aggregator.dpsMax
-	result.DpsHist     = aggregator.dpsHist
+	result.DpsAvg = aggregator.dpsSum / numSims
+	result.DpsStDev = math.Sqrt((aggregator.dpsSumSquared / numSims) - (result.DpsAvg * result.DpsAvg))
+	result.DpsMax = aggregator.dpsMax
+	result.DpsHist = aggregator.dpsHist
 
-	result.NumOom      = aggregator.numOom
-	result.OomAtAvg    = aggregator.oomAtSum / numSims
+	result.NumOom = aggregator.numOom
+	result.OomAtAvg = aggregator.oomAtSum / numSims
 	result.DpsAtOomAvg = aggregator.dpsAtOomSum / numSims
 
-	result.Casts       = aggregator.casts
+	result.Casts = aggregator.casts
 
 	return result
 }

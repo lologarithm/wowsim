@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/lologarithm/wowsim/tbc"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
-	"github.com/lologarithm/wowsim/tbc"
 )
 
 // Maps agentType flag values to actual enum types
@@ -26,23 +26,23 @@ var agentTypesMap = map[string]tbc.AgentType{
 }
 
 var DEFAULT_EQUIPMENT = tbc.EquipmentSpec{
-	tbc.ItemSpec{ Name: "Tidefury Helm" },
-	tbc.ItemSpec{ Name: "Charlotte's Ivy" },
-	tbc.ItemSpec{ Name: "Pauldrons of Wild Magic" },
-	tbc.ItemSpec{ Name: "Ogre Slayer's Cover" },
-	tbc.ItemSpec{ Name: "Tidefury Chestpiece" },
-	tbc.ItemSpec{ Name: "World's End Bracers" },
-	tbc.ItemSpec{ Name: "Earth Mantle Handwraps" },
-	tbc.ItemSpec{ Name: "Netherstrike Belt" },
-	tbc.ItemSpec{ Name: "Stormsong Kilt" },
-	tbc.ItemSpec{ Name: "Magma Plume Boots" },
-	tbc.ItemSpec{ Name: "Cobalt Band of Tyrigosa" },
-	tbc.ItemSpec{ Name: "Sparking Arcanite Ring" },
-	tbc.ItemSpec{ Name: "Mazthoril Honor Shield" },
-	tbc.ItemSpec{ Name: "Gavel of Unearthed Secrets" },
-	tbc.ItemSpec{ Name: "Natural Alignment Crystal" },
-	tbc.ItemSpec{ Name: "Icon of the Silver Crescent" },
-	tbc.ItemSpec{ Name: "Totem of the Void" },
+	tbc.ItemSpec{Name: "Tidefury Helm"},
+	tbc.ItemSpec{Name: "Charlotte's Ivy"},
+	tbc.ItemSpec{Name: "Pauldrons of Wild Magic"},
+	tbc.ItemSpec{Name: "Ogre Slayer's Cover"},
+	tbc.ItemSpec{Name: "Tidefury Chestpiece"},
+	tbc.ItemSpec{Name: "World's End Bracers"},
+	tbc.ItemSpec{Name: "Earth Mantle Handwraps"},
+	tbc.ItemSpec{Name: "Netherstrike Belt"},
+	tbc.ItemSpec{Name: "Stormsong Kilt"},
+	tbc.ItemSpec{Name: "Magma Plume Boots"},
+	tbc.ItemSpec{Name: "Cobalt Band of Tyrigosa"},
+	tbc.ItemSpec{Name: "Sparking Arcanite Ring"},
+	tbc.ItemSpec{Name: "Mazthoril Honor Shield"},
+	tbc.ItemSpec{Name: "Gavel of Unearthed Secrets"},
+	tbc.ItemSpec{Name: "Natural Alignment Crystal"},
+	tbc.ItemSpec{Name: "Icon of the Silver Crescent"},
+	tbc.ItemSpec{Name: "Totem of the Void"},
 }
 
 var DEFAULT_OPTIONS = tbc.Options{
@@ -149,9 +149,9 @@ func main() {
 
 func runTBCSim(simRequest tbc.SimRequest, noopt bool) {
 	fmt.Printf(
-			"\nSim Duration: %0.1f sec\nNum Simulations: %d\n",
-			simRequest.Options.Encounter.Duration,
-			simRequest.Iterations)
+		"\nSim Duration: %0.1f sec\nNum Simulations: %d\n",
+		simRequest.Options.Encounter.Duration,
+		simRequest.Iterations)
 
 	equipment := tbc.NewEquipmentSet(simRequest.Gear)
 	stats := tbc.CalculateTotalStats(simRequest.Options, equipment)
@@ -186,7 +186,7 @@ func simResultsToString(request tbc.SimRequest, result tbc.SimResult) string {
 	output += fmt.Sprintf("Total Casts:\n")
 
 	for castId, cast := range result.Casts {
-		output += fmt.Sprintf("\t%s: %0.1f\n", tbc.AuraName(castId), float64(cast.Count) / float64(request.Iterations))
+		output += fmt.Sprintf("\t%s: %0.1f\n", tbc.AuraName(castId), float64(cast.Count)/float64(request.Iterations))
 	}
 
 	output += fmt.Sprintf("Went OOM: %d/%d sims\n", result.NumOom, request.Iterations)
@@ -194,6 +194,6 @@ func simResultsToString(request tbc.SimRequest, result tbc.SimResult) string {
 		output += fmt.Sprintf("Avg OOM Time: %0.1f seconds\n", result.OomAtAvg)
 		output += fmt.Sprintf("Avg DPS At OOM: %0.0f\n", result.DpsAtOomAvg)
 	}
-	output += fmt.Sprintf("Sim execution took %s", time.Duration(result.ExecutionDurationMs) * time.Millisecond)
+	output += fmt.Sprintf("Sim execution took %s", time.Duration(result.ExecutionDurationMs)*time.Millisecond)
 	return output
 }

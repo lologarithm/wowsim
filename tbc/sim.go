@@ -21,15 +21,15 @@ type Simulation struct {
 	Stats       Stats
 	Buffs       Stats     // temp increases
 	Equip       Equipment // Current Gear
-	activeEquip []Item // cache of gear that can activate.
+	activeEquip []Item    // cache of gear that can activate.
 
 	bloodlustCasts    int
 	destructionPotion bool
 	Options           Options
 
 	// timeToRegen := 0
-	CDs   []float64  // Map of MagicID to ticks until CD is done. 'Advance' counts down these
-	Auras []Aura // this is array instaed of map to speed up browser perf.
+	CDs   []float64 // Map of MagicID to ticks until CD is done. 'Advance' counts down these
+	Auras []Aura    // this is array instaed of map to speed up browser perf.
 
 	// Clears and regenerates on each Run call.
 	metrics SimMetrics
@@ -223,7 +223,7 @@ func (sim *Simulation) Advance(elapsedTime float64) {
 	// MP5 regen
 	sim.CurrentMana = math.Min(
 		sim.Stats[StatMana],
-		sim.CurrentMana + sim.manaRegen() * elapsedTime)
+		sim.CurrentMana+sim.manaRegen()*elapsedTime)
 
 	todel := []int{}
 	for i := range sim.Auras {
@@ -423,7 +423,7 @@ func (sim *Simulation) isOnCD(magicID int32) bool {
 }
 
 func (sim *Simulation) getRemainingCD(magicID int32) float64 {
-	return math.Max(0, sim.CDs[magicID] - sim.CurrentTime)
+	return math.Max(0, sim.CDs[magicID]-sim.CurrentTime)
 }
 
 func (sim *Simulation) setCD(magicID int32, newCD float64) {
