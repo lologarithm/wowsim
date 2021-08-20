@@ -56,7 +56,7 @@ class SimWorker {
 	constructor() {
 		this.numTasksRunning = 0;
 		this.taskIdsToPromiseFuncs = {};
-		this.worker = new window.Worker('simworker.js');
+		this.worker = new window.Worker('networker.js');
 
 		let resolveReady = null;
 		this.onReady = new Promise((_resolve, _reject) => {
