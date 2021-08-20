@@ -225,11 +225,6 @@ func (sim *Simulation) Advance(elapsedTime float64) {
 		sim.Stats[StatMana],
 		sim.CurrentMana+sim.manaRegen()*elapsedTime)
 
-	// CDS
-	for k := range sim.CDs {
-		sim.CDs[k] = math.Max(0, sim.CDs[k]-elapsedTime)
-	}
-
 	todel := []int{}
 	for i := range sim.Auras {
 		if sim.Auras[i].Expires <= (sim.CurrentTime + elapsedTime) {

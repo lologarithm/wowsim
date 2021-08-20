@@ -226,9 +226,9 @@ const (
 	MagicIDCataclysm4pc     // cyclone 4pc aura
 	MagicIDSkyshatter2pc    // skyshatter 2pc aura
 	MagicIDSkyshatter4pc    // skyshatter 4pc aura
+	MagicIDElderScribe      // elder scribe robe item aura
+	MagicIDElderScribeProc  // elder scribe robe temp buff
 	MagicIDTotemOfPulsingEarth
-	MagicIDElderScribe     // elder scribe robe item aura
-	MagicIDElderScribeProc // elder scribe robe temp buff
 
 	//Items
 	MagicIDISCTrink
