@@ -21,7 +21,7 @@ type Simulation struct {
 	Stats       Stats
 	Buffs       Stats     // temp increases
 	Equip       Equipment // Current Gear
-	activeEquip []Item // cache of gear that can activate.
+	activeEquip []Item    // cache of gear that can activate.
 
 	bloodlustCasts    int
 	destructionPotion bool

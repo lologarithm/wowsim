@@ -6,11 +6,11 @@ import (
 )
 
 type Options struct {
-	AgentType    AgentType
-	Encounter    Encounter
-	RSeed        int64
-	ExitOnOOM    bool
-	GCDMin       float64 // sets the minimum GCD
+	AgentType AgentType
+	Encounter Encounter
+	RSeed     int64
+	ExitOnOOM bool
+	GCDMin    float64 // sets the minimum GCD
 
 	NumBloodlust int
 	NumDrums     int
@@ -47,7 +47,7 @@ func (o Options) Pack() []byte {
 }
 
 type Encounter struct {
-	Duration float64
+	Duration     float64
 	NumClTargets int
 }
 

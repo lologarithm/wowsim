@@ -423,7 +423,7 @@ func ActivateQuagsEye(sim *Simulation) Aura {
 		ID:      MagicIDQuagsEye,
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
-			if lastActivation + internalCD < sim.CurrentTime && sim.rando.Float64() < 0.1 {
+			if lastActivation+internalCD < sim.CurrentTime && sim.rando.Float64() < 0.1 {
 				sim.Buffs[StatHaste] += hasteBonus
 				sim.addAura(AuraStatRemoval(sim.CurrentTime, 6.0, hasteBonus, StatHaste, MagicIDFungalFrenzy))
 				lastActivation = sim.CurrentTime
@@ -440,7 +440,7 @@ func ActivateNexusHorn(sim *Simulation) Aura {
 		ID:      MagicIDNexusHorn,
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
-			if lastActivation + internalCD < sim.CurrentTime && c.DidCrit && sim.rando.Float64() < 0.2 {
+			if lastActivation+internalCD < sim.CurrentTime && c.DidCrit && sim.rando.Float64() < 0.2 {
 				sim.Buffs[StatSpellDmg] += spellBonus
 				sim.addAura(AuraStatRemoval(sim.CurrentTime, 10.0, spellBonus, StatSpellDmg, MagicIDCallOfTheNexus))
 				lastActivation = sim.CurrentTime
@@ -490,7 +490,7 @@ func AuraStatRemoval(currentTime float64, duration float64, amount float64, stat
 }
 
 func TryActivateDrums(sim *Simulation) {
-	if sim.Options.NumDrums == 0  || sim.isOnCD(MagicIDDrums) {
+	if sim.Options.NumDrums == 0 || sim.isOnCD(MagicIDDrums) {
 		return
 	}
 
@@ -616,7 +616,7 @@ func ActivateIED(sim *Simulation) Aura {
 		ID:      MagicIDInsightfulEarthstorm,
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
-			if lastActivation + icd < sim.CurrentTime && sim.rando.Float64() < 0.04 {
+			if lastActivation+icd < sim.CurrentTime && sim.rando.Float64() < 0.04 {
 				lastActivation = sim.CurrentTime
 				if sim.Debug != nil {
 					sim.Debug(" *Insightful Earthstorm Mana Restore - 300\n")
@@ -635,7 +635,7 @@ func ActivateMSD(sim *Simulation) Aura {
 		ID:      MagicIDMysticSkyfire,
 		Expires: math.MaxInt32,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
-			if lastActivation + icd < sim.CurrentTime && sim.rando.Float64() < 0.15 {
+			if lastActivation+icd < sim.CurrentTime && sim.rando.Float64() < 0.15 {
 				sim.Buffs[StatHaste] += hasteBonus
 				sim.addAura(AuraStatRemoval(sim.CurrentTime, 4.0, hasteBonus, StatHaste, MagicIDMysticFocus))
 				lastActivation = sim.CurrentTime
@@ -705,7 +705,7 @@ func ActivateTLC(sim *Simulation) Aura {
 		ID:      MagicIDTLC,
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
-			if lastActivation + icd >= sim.CurrentTime {
+			if lastActivation+icd >= sim.CurrentTime {
 				return
 			}
 			if !c.DidCrit {
@@ -741,7 +741,7 @@ func ActivateChainTO(sim *Simulation) Aura {
 	}
 	return Aura{
 		ID:      MagicIDChainTO,
-		Expires: sim.CurrentTime + 30 * 60,
+		Expires: sim.CurrentTime + 30*60,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			c.Crit += 0.02
 		},
@@ -831,7 +831,7 @@ func TryActivateDarkRune(sim *Simulation) bool {
 
 	// Only pop if we have less than the max mana provided by the potion minus 1mp5 tick.
 	totalRegen := sim.manaRegen() * 5
-	if sim.Stats[StatMana] - (sim.CurrentMana + totalRegen) < 1500 {
+	if sim.Stats[StatMana]-(sim.CurrentMana+totalRegen) < 1500 {
 		return false
 	}
 
@@ -852,7 +852,7 @@ func TryActivateSuperManaPotion(sim *Simulation) bool {
 
 	// Only pop if we have less than the max mana provided by the potion minus 1mp5 tick.
 	totalRegen := sim.manaRegen() * 5
-	if sim.Stats[StatMana] - (sim.CurrentMana + totalRegen) < 3000 {
+	if sim.Stats[StatMana]-(sim.CurrentMana+totalRegen) < 3000 {
 		return false
 	}
 
@@ -874,7 +874,7 @@ func ActivateSextant(sim *Simulation) Aura {
 		ID:      MagicIDSextant,
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
-			if lastActivation + internalCD < sim.CurrentTime && c.DidCrit && sim.rando.Float64() < 0.2 {
+			if lastActivation+internalCD < sim.CurrentTime && c.DidCrit && sim.rando.Float64() < 0.2 {
 				sim.Buffs[StatSpellDmg] += spellBonus
 				sim.addAura(AuraStatRemoval(sim.CurrentTime, dur, spellBonus, StatSpellDmg, MagicIDUnstableCurrents))
 				lastActivation = sim.CurrentTime
@@ -919,7 +919,7 @@ func ActivateElderScribes(sim *Simulation) Aura {
 		Expires: math.MaxInt32,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
 			// This code is starting to look a lot like other ICD buff items. Perhaps we could DRY this out.
-			if lastActivation + internalCD < sim.CurrentTime && sim.rando.Float64() < proc {
+			if lastActivation+internalCD < sim.CurrentTime && sim.rando.Float64() < proc {
 				sim.Buffs[StatSpellDmg] += spellBonus
 				sim.addAura(AuraStatRemoval(sim.CurrentTime, dur, spellBonus, StatSpellDmg, MagicIDElderScribeProc))
 				lastActivation = sim.CurrentTime

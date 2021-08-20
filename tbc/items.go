@@ -212,21 +212,21 @@ type Equipment [EquipTotem + 1]Item
 // Structs used for looking up items/gems/enchants
 type ItemSpec struct {
 	// Only name or ID needs to be set, not both
-	Name    string
-	ID      int32
+	Name string
+	ID   int32
 
 	Enchant EnchantSpec
 	Gems    []GemSpec
 }
 type GemSpec struct {
 	// Only name or ID needs to be set, not both
-	Name    string
-	ID      int32
+	Name string
+	ID   int32
 }
 type EnchantSpec struct {
 	// Only name or ID needs to be set, not both
-	Name    string
-	ID      int32
+	Name string
+	ID   int32
 }
 type EquipmentSpec [EquipTotem + 1]ItemSpec
 
