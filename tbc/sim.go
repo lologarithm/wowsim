@@ -21,15 +21,15 @@ type Simulation struct {
 	Stats       Stats
 	Buffs       Stats     // temp increases
 	Equip       Equipment // Current Gear
-	activeEquip Equipment // cache of gear that can activate.
+	activeEquip []Item    // cache of gear that can activate.
 
 	bloodlustCasts    int
 	destructionPotion bool
 	Options           Options
 
 	// timeToRegen := 0
-	CDs   []float64  // Map of MagicID to ticks until CD is done. 'Advance' counts down these
-	Auras []Aura // this is array instaed of map to speed up browser perf.
+	CDs   []float64 // Map of MagicID to ticks until CD is done. 'Advance' counts down these
+	Auras []Aura    // this is array instaed of map to speed up browser perf.
 
 	// Clears and regenerates on each Run call.
 	metrics SimMetrics
@@ -37,7 +37,6 @@ type Simulation struct {
 	rando       *rand.Rand
 	rseed       int64
 	CurrentTime float64
-	endTime     float64
 
 	Debug func(string, ...interface{})
 }
@@ -49,7 +48,6 @@ type SimMetrics struct {
 	OOMAt          float64
 	Casts          []*Cast
 	ManaAtEnd      int
-	Rotation       []string
 }
 
 // New sim contructs a simulator with the given stats / equipment / options.
@@ -64,7 +62,7 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		Stats:   stats,
 		Options: options,
 		CDs:     make([]float64, MagicIDLen),
-		Buffs:   Stats{StatLen: 0},
+		Buffs:   Stats{},
 		Auras:   []Aura{},
 		Equip:   equip,
 		rseed:   options.RSeed,
@@ -107,7 +105,7 @@ func (sim *Simulation) reset() {
 	sim.bloodlustCasts = 0
 	sim.CurrentTime = 0.0
 	sim.CurrentMana = sim.Stats[StatMana]
-	sim.Buffs = Stats{StatLen: 0}
+	sim.Buffs = Stats{}
 	sim.CDs = make([]float64, MagicIDLen)
 	sim.Auras = []Aura{}
 	sim.metrics = SimMetrics{
@@ -125,7 +123,7 @@ func (sim *Simulation) reset() {
 	}
 
 	// Chain lightning bounces
-	if sim.Options.NumClTargets > 1 {
+	if sim.Options.Encounter.NumClTargets > 1 {
 		sim.addAura(ActivateChainLightningBounce(sim))
 	}
 
@@ -171,11 +169,10 @@ func (sim *Simulation) ActivateSets() []string {
 
 // Run will run the simulation for number of seconds.
 // Returns metrics for what was cast and how much damage was done.
-func (sim *Simulation) Run(durationSeconds float64) SimMetrics {
-	sim.endTime = durationSeconds
+func (sim *Simulation) Run() SimMetrics {
 	sim.reset()
 
-	for sim.CurrentTime < sim.endTime {
+	for sim.CurrentTime < sim.Options.Encounter.Duration {
 		TryActivateDrums(sim)
 		TryActivateBloodlust(sim)
 		TryActivateEleMastery(sim)
@@ -226,7 +223,7 @@ func (sim *Simulation) Advance(elapsedTime float64) {
 	// MP5 regen
 	sim.CurrentMana = math.Min(
 		sim.Stats[StatMana],
-		sim.CurrentMana + sim.manaRegen() * elapsedTime)
+		sim.CurrentMana+sim.manaRegen()*elapsedTime)
 
 	todel := []int{}
 	for i := range sim.Auras {
@@ -426,7 +423,7 @@ func (sim *Simulation) isOnCD(magicID int32) bool {
 }
 
 func (sim *Simulation) getRemainingCD(magicID int32) float64 {
-	return math.Max(0, sim.CDs[magicID] - sim.CurrentTime)
+	return math.Max(0, sim.CDs[magicID]-sim.CurrentTime)
 }
 
 func (sim *Simulation) setCD(magicID int32, newCD float64) {

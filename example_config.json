@@ -61,7 +61,6 @@
     },
     "Gear": [
         {
-            "Slot": 1,
             "Name": "Tidefury Helm",
             "Gems": [
                 {
@@ -76,7 +75,6 @@
             }
         },
         {
-            "Slot": 2,
             "Name": "Eye of the Night",
             "Gems": [],
             "Enchant": {
@@ -84,7 +82,6 @@
             }
         },
         {
-            "Slot": 3,
             "Name": "Pauldrons of Wild Magic",
             "Gems": [],
             "Enchant": {
@@ -92,14 +89,12 @@
             }
         },
         {
-            "Slot": 4,
             "Name": "Shawl of Shifting Probabilities",
             "Enchant": {
                 "Name": ""
             }
         },
         {
-            "Slot": 5,
             "Name": "Tidefury Chestpiece",
             "Gems": [
                 {
@@ -117,7 +112,6 @@
             }
         },
         {
-            "Slot": 6,
             "Name": "World's End Bracers",
             "Gems": [],
             "Enchant": {
@@ -125,7 +119,6 @@
             }
         },
         {
-            "Slot": 7,
             "Name": "Earth Mantle Handwraps",
             "Gems": [
                 {
@@ -140,7 +133,6 @@
             }
         },
         {
-            "Slot": 8,
             "Name": "Netherstrike Belt",
             "Gems": [
                 {
@@ -155,7 +147,6 @@
             }
         },
         {
-            "Slot": 9,
             "Name": "Stormsong Kilt",
             "Gems": [
                 {
@@ -173,7 +164,6 @@
             }
         },
         {
-            "Slot": 10,
             "Name": "Magma Plume Boots",
             "Gems": [],
             "Enchant": {
@@ -181,29 +171,24 @@
             }
         },
         {
-            "Slot": 11,
             "Name": "Cobalt Band of Tyrigosa",
             "Enchant": {
                 "Name": ""
             }
         },
         {
-            "Slot": 11,
             "Name": "Sparking Arcanite Ring",
             "Enchant": {
                 "Name": ""
             }
         },
         {
-            "Slot": 14,
             "Name": "The Lightning Capacitor"
         },
         {
-            "Slot": 14,
             "Name": "Icon of the Silver Crescent"
         },
         {
-            "Slot": 17,
             "Name": "Gavel of Unearthed Secrets",
             "Gems": [],
             "Enchant": {
@@ -211,14 +196,12 @@
             }
         },
         {
-            "Slot": 18,
             "Name": "Mazthoril Honor Shield",
             "Enchant": {
                 "Name": ""
             }
         },
         {
-            "Slot": 19,
             "Name": "Totem of the Void"
         }
     ]

@@ -1,5 +1,9 @@
 // Globals
-var defaultGear = [
+
+// Set this to true to use item names instead of IDs in gear specs, for easier debugging.
+const USE_ITEM_NAMES = false;
+
+const defaultGear = [
     { Name: "Shamanistic Helmet of Second Sight" },
     { Name: "Brooch of Heightened Potential" },
     { Name: "Pauldrons of Wild Magic" },
@@ -20,7 +24,7 @@ var defaultGear = [
 ];
 
 // This must be kept in sync with the enum in agents.go
-var AGENT_TYPES = {
+const AGENT_TYPES = {
 	"FIXED_3LB_1CL": 0,
 	"FIXED_4LB_1CL": 1,
 	"FIXED_5LB_1CL": 2,
@@ -33,163 +37,225 @@ var AGENT_TYPES = {
 	"ADAPTIVE": 9
 };
 
+// This must be kept in sync with the const values in stats.go
+const STAT_IDX = {
+	INT:        0,
+	STAM:       1,
+	SPELL_CRIT: 2,
+	SPELL_HIT:  3,
+	SPELL_DMG:  4,
+	HASTE:      5,
+	MP5:        6,
+	MANA:       7,
+	SPELL_PEN:  8,
+	SPIRIT:     9
+};
+const STATS_LEN = 10;
 
-// This code is all for interacting with the workers.
-var simlib = new window.Worker(`simworker.js`);
-var simlib2 = new window.Worker(`simworker.js`);
+class SimWorker {
+	constructor() {
+		this.numTasksRunning = 0;
+		this.taskIdsToPromiseFuncs = {};
+		this.worker = new window.Worker('simworker.js');
 
-var simlibBusy = false;
+		let resolveReady = null;
+		this.onReady = new Promise((_resolve, _reject) => {
+			resolveReady = _resolve;
+		});
 
-simlib.onmessage = (event) => {
-    var m = event.data.msg;
-    if (m == "ready") {
-        simlib.postMessage({ msg: "setID", payload: "1" });
-        simlib.postMessage({ msg: "getGearList" });
-    } else if (m == "getGearList") {
-        // do something
-        popgear(event.data.payload);
-    } else {
-        var onComp = simrequests[event.data.id];
-        if (onComp != null) {
-            onComp(event.data.payload);
-        }
-        simlibBusy = false;
-    }
+		this.worker.onmessage = event => {
+			if (event.data.msg == "ready") {
+					this.worker.postMessage({ msg: "setID", payload: "1" });
+					resolveReady();
+			} else if (event.data.msg == "idconfirm") {
+				// Do nothing
+			} else {
+					const id = event.data.id;
+					if (!this.taskIdsToPromiseFuncs[id]) {
+						console.warn("Unrecognized result id: " + id);
+						return;
+					}
+
+					const promiseFuncs = this.taskIdsToPromiseFuncs[id];
+					delete this.taskIdsToPromiseFuncs[id];
+					this.numTasksRunnning--;
+
+					promiseFuncs[0](event.data.payload);
+			}
+		};
+	}
+
+	makeTaskId() {
+			let id = '';
+			const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+			for (let i = 0; i < 16; i++) {
+					id += characters.charAt(Math.floor(Math.random() * characters.length));
+			}
+			return id;
+	}
+
+	async doApiCall(request) {
+		await this.onReady;
+
+		const taskPromise = new Promise((resolve, reject) => {
+			const id = this.makeTaskId();
+			this.taskIdsToPromiseFuncs[id] = [resolve, reject];
+			this.numTasksRunning++;
+			
+			this.worker.postMessage({
+				msg: "apiCall",
+				id: id,
+				payload: request
+			});
+		});
+		return await taskPromise;
+	}
 }
 
-simlib2.onmessage = (event) => {
-    var m = event.data.msg;
-    if (m == "ready") {
-        simlib2.postMessage({ msg: "setID", payload: "2" });
-        return;
-    }
-    var onComp = simrequests[event.data.id];
-    if (onComp != null) {
-        onComp(event.data.payload);
-    }
+class WorkerPool {
+	constructor(numWorkers) {
+		this.workers = [];
+		for (let i = 0; i < numWorkers; i++) {
+			this.workers.push(new SimWorker());
+		}
+	}
+
+	getLeastBusyWorker() {
+		return this.workers.reduce(
+				(curMinWorker, nextWorker) => curMinWorker.numTasksRunning < nextWorker.numTasksRunning ?
+						curMinWorker : nextWorker);
+	}
+
+	async makeApiCall(request) {
+		return await this.getLeastBusyWorker().doApiCall(request);
+	}
+
+	/**
+   * The following methods are convenience wrappers for calling each API function.
+	 */
+	async getGearList() {
+		const result = await this.makeApiCall({
+			GearList: {},
+		});
+
+		return result["GearList"];
+	}
+
+	async computeStats(computeStatsRequest) {
+		const result = await this.makeApiCall({
+			ComputeStats: computeStatsRequest,
+		});
+
+		return result["ComputeStats"];
+	}
+
+	async statWeights(statWeightsRequest) {
+		const result = await this.makeApiCall({
+			StatWeights: statWeightsRequest,
+		});
+
+		return result["StatWeights"];
+	}
+
+	async runSimulation(simRequest) {
+		const result = await this.makeApiCall({
+			Sim: simRequest,
+		});
+
+		return result["Sim"];
+	}
+
+	async runBatchSimulation(batchSimRequest) {
+		const result = await this.makeApiCall({
+			BatchSim: batchSimRequest,
+		});
+
+		return result["BatchSim"];
+	}
+
+	async packOptions(packOptionsRequest) {
+		const result = await this.makeApiCall({
+			PackOptions: packOptionsRequest,
+		});
+		const packOptionsResult = result["PackOptions"];
+
+		return Uint8Array.from(atob(packOptionsResult.Data), c => c.charCodeAt(0));
+	}
 }
 
-var simrequests = {};
-function simulate(iters, dur, numClTargets, gearlist, opts, agentTypes, haste, fullLogs, onComplete) {
-    var id = makeid();
-    simrequests[id] = onComplete
-    var worker = simlib;
-    if (simlibBusy) {
-        worker = simlib2;
-    } else {
-        simlibBusy = true;
-    }
-    worker.postMessage({
-        msg: "simulate", id: id, payload: {
-            iters: iters,
-            dur: dur,
-            numClTargets: numClTargets,
-            gearlist: gearlist,
-            opts: opts,
-            agentTypes: agentTypes,
-            haste: haste,
-            fullLogs: fullLogs
-        }
-    });
-}
-
-var worker2 = false;
-function statweight(iters, dur, numClTargets, gearlist, opts, statToMod, modAmount, onComplete) {
-    var id = makeid();
-    simrequests[id] = onComplete
-    var worker = simlib;
-    if (worker2) {
-        worker = simlib2;
-        worker2 = false;
-    } else {
-        worker2 = true;
-    }
-    worker.postMessage({
-        msg: "statweight", id: id, payload: {
-            iters: iters,
-            dur: dur,
-            numClTargets: numClTargets,
-            gearlist: gearlist,
-            opts: opts,
-            stat: statToMod,
-            modVal: modAmount
-        }
-    });
-}
-
-function packOptions(opt, onComplete) {
-    var id = makeid();
-    simrequests[id] = onComplete
-    simlib.postMessage({
-        msg: "packopt", id: id, payload: {
-            opt: opt,
-        }
-    });
-}
-
-function makeid() {
-    var result = '';
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for (var i = 0; i < 16; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-}
-
-function computeStats(gear, opts, onComplete) {
-    var id = makeid();
-    simrequests[id] = onComplete
-    simlib.postMessage({ msg: "computeStats", id: id, payload: { gear: gear, opts: opts } });
-}
+const workerPool = new WorkerPool(2);
+workerPool.getGearList().then(gearListResult => popgear(gearListResult));
 
 // Pulls options from the input 'options' pane for use in sims.
 function getOptions() {
+		// All of the names here need to match the corresponding properties in the Options struct in buffs.go
     var options = {};
-		options.agenttype = AGENT_TYPES.ADAPTIVE;
+		options.AgentType = AGENT_TYPES.ADAPTIVE;
+    options.NumBloodlust = parseInt(document.getElementById("buffbl").value) || 0;
+    options.NumDrums = parseInt(document.getElementById("buffdrums").value) || 0;
+    options.DPSReportTime = 0;
+    options.GCDMin = parseFloat(document.getElementById("custgcd").value) || 0;
 
-    options.buffai = document.getElementById("buffai").checked;
-    options.buffgotw = document.getElementById("buffgotw").checked;
-    options.buffbk = document.getElementById("buffbk").checked;
-    options.buffibow = document.getElementById("buffibow").checked;
-    options.buffids = document.getElementById("buffids").checked;
-    options.buffmoon = document.getElementById("buffmoon").checked;
-    options.buffmoonrg = document.getElementById("buffmoonrg").checked;
-    options.sbufws = document.getElementById("sbufws").checked;
-    options.debuffjow = document.getElementById("debuffjow").checked;
-    options.debuffisoc = document.getElementById("debuffisoc").checked;
-    options.debuffmis = document.getElementById("debuffmis").checked;
-    options.confbl = document.getElementById("confbl").checked;
-    options.confmr = document.getElementById("confmr").checked;
-    options.conbwo = document.getElementById("conbwo").checked;
-    options.conmm = document.getElementById("conmm").checked;
-    options.conbb = document.getElementById("conbb").checked;
-    options.consmp = document.getElementById("consmp").checked;
-    options.condp = document.getElementById("condp").checked;
-    options.condr = document.getElementById("condr").checked;
-    options.totms = document.getElementById("totms").checked;
-    options.totwoa = document.getElementById("totwoa").checked;
-    options.totcycl2p = document.getElementById("totcycl2p").checked;
-    options.buffeyenight = document.getElementById("buffeyenight").checked;
-    options.bufftwilightowl = document.getElementById("bufftwilightowl").checked;
+		options.Buffs = {};
+    options.Buffs.ArcaneInt = document.getElementById("buffai").checked;
+    options.Buffs.GiftOftheWild = document.getElementById("buffgotw").checked;
+    options.Buffs.BlessingOfKings = document.getElementById("buffbk").checked;
+    options.Buffs.ImprovedBlessingOfWisdom = document.getElementById("buffibow").checked;
+    options.Buffs.ImprovedDivineSpirit = document.getElementById("buffids").checked;
+    options.Buffs.Moonkin = document.getElementById("buffmoon").checked;
+    options.Buffs.MoonkinRavenGoddess = document.getElementById("buffmoonrg").checked;
+    options.Buffs.SpriestDPS = parseInt(document.getElementById("buffspriest").value) || 0;
+    options.Buffs.EyeOfNight = document.getElementById("buffeyenight").checked;
+    options.Buffs.TwilightOwl = document.getElementById("bufftwilightowl").checked;
+    options.Buffs.WaterShield = document.getElementById("sbufws").checked;
+    options.Buffs.Race = parseInt(document.getElementById("sbufrace").value) || 0;
 
-    options.buffbl = parseInt(document.getElementById("buffbl").value) || 0;
-    options.buffspriest = parseInt(document.getElementById("buffspriest").value) || 0;
-    options.totwr = parseInt(document.getElementById("totwr").value) || 0;
-    options.buffdrums = parseInt(document.getElementById("buffdrums").value) || 0;
-    options.sbufrace = parseInt(document.getElementById("sbufrace").value) || 0;
+		// Target debuffs
+    options.Buffs.JudgementOfWisdom = document.getElementById("debuffjow").checked;
+    options.Buffs.ImpSealOfCrusader = document.getElementById("debuffisoc").checked;
+    options.Buffs.Misery = document.getElementById("debuffmis").checked;
 
-    options.custom = {};
-    options.custom.custint = parseInt(document.getElementById("custint").value) || 0;
-    options.custom.custsp = parseInt(document.getElementById("custsp").value) || 0;
-    options.custom.custsc = parseInt(document.getElementById("custsc").value) || 0;
-    options.custom.custsh = parseInt(document.getElementById("custsh").value) || 0;
-    options.custom.custha = parseInt(document.getElementById("custha").value) || 0;
-    options.custom.custmp5 = parseInt(document.getElementById("custmp5").value) || 0;
-    options.custom.custmana = parseInt(document.getElementById("custmana").value) || 0;
+		options.Consumes = {};
+    options.Consumes.FlaskOfBlindingLight = document.getElementById("confbl").checked;
+    options.Consumes.FlaskOfMightyRestoration = document.getElementById("confmr").checked;
+    options.Consumes.BrilliantWizardOil = document.getElementById("conbwo").checked;
+    options.Consumes.MajorMageblood = document.getElementById("conmm").checked;
+    options.Consumes.BlackendBasilisk = document.getElementById("conbb").checked;
+    options.Consumes.SuperManaPotion = document.getElementById("consmp").checked;
+    options.Consumes.DestructionPotion = document.getElementById("condp").checked;
+    options.Consumes.DarkRune = document.getElementById("condr").checked;
 
-    options.dpsReportTime = 0;
-    options.gcdMin = parseFloat(document.getElementById("custgcd").value) || 0;
+		options.Totems = {};
+    options.Totems.TotemOfWrath = parseInt(document.getElementById("totwr").value) || 0;
+    options.Totems.WrathOfAir = document.getElementById("totwoa").checked;
+    options.Totems.Cyclone2PC = document.getElementById("totcycl2p").checked;
+    options.Totems.ManaStream = document.getElementById("totms").checked;
+
+    options.Buffs.Custom = new Array(STATS_LEN).fill(0);
+    options.Buffs.Custom[STAT_IDX.INT]        = parseInt(document.getElementById("custint").value) || 0;
+    options.Buffs.Custom[STAT_IDX.SPELL_DMG]  = parseInt(document.getElementById("custsp").value) || 0;
+    options.Buffs.Custom[STAT_IDX.SPELL_CRIT] = parseInt(document.getElementById("custsc").value) || 0;
+    options.Buffs.Custom[STAT_IDX.SPELL_HIT]  = parseInt(document.getElementById("custsh").value) || 0;
+    options.Buffs.Custom[STAT_IDX.HASTE]      = parseInt(document.getElementById("custha").value) || 0;
+    options.Buffs.Custom[STAT_IDX.MP5]        = parseInt(document.getElementById("custmp5").value) || 0;
+    options.Buffs.Custom[STAT_IDX.MANA]       = parseInt(document.getElementById("custmana").value) || 0;
+
+		options.Talents = {
+			LightningOverload:  5,
+			ElementalPrecision: 3,
+			NaturesGuidance:    3,
+			TidalMastery:       5,
+			ElementalMastery:   true,
+			UnrelentingStorm:   3,
+			CallOfThunder:      5,
+			Concussion:         5,
+			Convection:         5,
+		};
+
+		options.Encounter = {
+			Duration: 0,
+			NumClTargets: 1,
+		};
 
     return options;
 }
@@ -198,19 +264,23 @@ function getOptions() {
 //  for some reason I wrote the writer in go and the parser here. 
 //  maybe its time to re-evaluate my life choices.
 function setOptions(data) {
+		if (data.byteLength < 3) {
+			console.log('Empty options data loaded');
+			return;
+		}
 
     document.getElementById("buffbl").selectedIndex = data[1];
     document.getElementById("buffdrums").selectedIndex = data[2];
 
-    var dst = new ArrayBuffer(data.byteLength);
+    const dst = new ArrayBuffer(data.byteLength);
     new Uint8Array(dst).set(new Uint8Array(data));
 
-    var buffView = new DataView(dst, 3);
+    const buffView = new DataView(dst, 3);
 
-    var idx = 0;
+    let idx = 0;
 
-    var buffOpt1 = buffView.getUint8(idx, true); idx++;
-    var buffOpt2 = buffView.getUint8(idx, true); idx++;
+    const buffOpt1 = buffView.getUint8(idx, true); idx++;
+    const buffOpt2 = buffView.getUint8(idx, true); idx++;
 
     document.getElementById("buffai").checked = (buffOpt1 & 1) == 1;
     document.getElementById("buffgotw").checked = (buffOpt1 & 1 << 1) == 1 << 1;
@@ -231,7 +301,7 @@ function setOptions(data) {
     document.getElementById("buffspriest").value = buffView.getUint16(idx, true); idx += 2;
     document.getElementById("sbufrace").selectedIndex = buffView.getUint8(idx, true); idx++;
 
-    var numCustom = buffView.getUint8(idx, true); idx++;
+    const numCustom = buffView.getUint8(idx, true); idx++;
     if (numCustom > 0) {
         document.getElementById("custint").value = buffView.getFloat64(7, true);
         // document.getElementById("custstm").value = buffView.getFloat64(7+8*1);
@@ -253,7 +323,7 @@ function setOptions(data) {
         document.getElementById("custmana").value = 0;
     }
 
-    var consumOpt = buffView.getUint8(idx, true); idx++;
+    const consumOpt = buffView.getUint8(idx, true); idx++;
     document.getElementById("conbwo").checked = (consumOpt & 1) == 1;
     document.getElementById("conmm").checked = (consumOpt & 1 << 1) == 1 << 1;
     document.getElementById("confbl").checked = (consumOpt & 1 << 2) == 1 << 2;
@@ -267,13 +337,13 @@ function setOptions(data) {
     idx += 9;
 
     document.getElementById("totwr").selectedIndex = buffView.getUint8(idx, true); idx++;
-    var totemOpt = buffView.getUint8(idx, true); idx++;
+    const totemOpt = buffView.getUint8(idx, true); idx++;
     document.getElementById("totwoa").checked = (totemOpt & 1) == 1;
     document.getElementById("totms").checked = (totemOpt & 1 << 1) == 1 << 1;
     document.getElementById("totcycl2p").checked = (totemOpt & 1 << 2) == 1 << 2;
 }
 
-var castIDToName = {
+const castIDToName = {
     1: "LB",
     2: "CL",
     3: "TLC LB",
@@ -281,152 +351,188 @@ var castIDToName = {
     998: "CL Overload",
 }
 
+// Only works for POD-type objects
+function deepCopy(obj) {
+	return JSON.parse(JSON.stringify(obj));
+}
+
+function runSimWithLogs(gearSpec) {
+		const options = getOptions();
+		options.AgentType = AGENT_TYPES.ADAPTIVE;
+		options.Encounter.Duration = parseInt(document.getElementById("logdur").value);
+		options.Encounter.NumClTargets = parseInt(document.getElementById("lognumClTargets").value);
+
+		const simRequest = {
+			Options: options,
+			Gear: gearSpec,
+			Iterations: 1,
+			IncludeLogs: true,
+		};
+
+		workerPool.runSimulation(simRequest).then(simResult => {
+				const logdiv = document.getElementById("simlogs");
+				logdiv.innerText = simResult.Logs;
+		});
+}
+
 // Populates the 'Sim' tab in the results pane.
-function runsim(currentGear, fullLogs) {
-    if (fullLogs) {
-        var dur = parseInt(document.getElementById("logdur").value);
-        var numClTargets = parseInt(document.getElementById("lognumClTargets").value);
-        var firstOpts = getOptions();
-        simulate(1, dur, numClTargets, currentGear, firstOpts, [AGENT_TYPES.ADAPTIVE], null, true, (out) => {
-            var logdiv = document.getElementById("simlogs");
-            logdiv.innerText = out[0].Logs;
-        });
-        return;
-    }
+function runSim(gearSpec) {
+		const sharedOptions = getOptions();
+		sharedOptions.Encounter = {
+				Duration: parseInt(document.getElementById("dur").value),
+				NumClTargets: parseInt(document.getElementById("numClTargets").value),
+		};
 
-    var iters = parseInt(document.getElementById("iters").value);
-    var dur = parseInt(document.getElementById("dur").value);
-    var numClTargets = parseInt(document.getElementById("numClTargets").value);
+		const sharedSimRequest = {
+			Options: sharedOptions,
+			Gear: gearSpec,
+			Iterations: parseInt(document.getElementById("iters").value),
+		};
 
-    var lbout = document.getElementById("simrotlb");
-    var priout = document.getElementById("simrotpri");
-    var aiout = document.getElementById("simrotai");
+    const pendingMetricHTML = `<div id="runningsim" uk-spinner="ratio: 1.5" style="margin:26%"></div>`;
 
-    var metricHTML = `<div id="runningsim" uk-spinner="ratio: 1.5" style="margin:26%"></div>`;
+		{
+			const resultsElem = document.getElementById("simrotlb");
+			resultsElem.innerHTML = pendingMetricHTML;
+			
+			const simRequest = deepCopy(sharedSimRequest);
+			simRequest.Options.AgentType = AGENT_TYPES.FIXED_LB_ONLY;
+			simRequest.Options.Encounter.Duration = 600;
+			simRequest.Options.ExitOnOOM = true;
 
-    lbout.innerHTML = metricHTML;
-    priout.innerHTML = metricHTML;
-    aiout.innerHTML = metricHTML;
+			workerPool.runSimulation(simRequest).then(simResult => {
+					const oomAtText = simResult.oomAtAvg ? Math.round(simResult.oomAtAvg) : ">600";
+					resultsElem.innerHTML = `<div><h3>Mana</h3><text class="simnums">${oomAtText}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(simResult.DpsAvg)} DPS</text></div>`
+			});
+		}
 
-    var firstOpts = getOptions();
-    firstOpts.exitoom = true;
-    simulate(iters, 600, numClTargets, currentGear, firstOpts, [AGENT_TYPES.FIXED_LB_ONLY], 0, false, (out) => {
-        var stats = out[0];
-        var ttoom = stats.oomat;
-        if (ttoom == 0) {
-            ttoom = ">600";
-        } else {
-            ttoom = Math.round(ttoom);
-        }
-        lbout.innerHTML = `<div><h3>Mana</h3><text class="simnums">${ttoom}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(stats.dps)} DPS</text></div>`
-    });
-    firstOpts.dpsReportTime = 30; // report dps for 30 seconds only.
-    simulate(iters, 600, numClTargets, currentGear, firstOpts, [AGENT_TYPES.FIXED_3LB_1CL], 0, false, (out) => {
-        var stats = out[0];
-        var dps = Math.max(stats.dps, stats.dpsAtOOM);
-        var oomat = stats.oomat;
-        if (oomat == 0) {
-            oomat = ">600"
-        } else {
-            oomat = Math.round(oomat);
-        }
-        priout.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(dps)}</text> dps<br /><text style="font-size:0.7em">${oomat}s to oom using CL on CD.</text></div>`
-    });
+		{
+			const resultsElem = document.getElementById("simrotpri");
+			resultsElem.innerHTML = pendingMetricHTML;
 
+			const simRequest = deepCopy(sharedSimRequest);
+			simRequest.Options.AgentType = AGENT_TYPES.FIXED_3LB_1CL;
+			simRequest.Options.Encounter.Duration = 600;
+			simRequest.Options.DPSReportTime = 30;
 
-    var secondOpts = getOptions();
-    var start = new Date();
-    simulate(iters, dur, numClTargets, currentGear, secondOpts, [AGENT_TYPES.ADAPTIVE], 0, false, (out) => {
-        var end = new Date();
+			workerPool.runSimulation(simRequest).then(simResult => {
+					const oomAtText = simResult.oomAtAvg ? Math.round(simResult.oomAtAvg) : ">600";
+					const dps = Math.max(simResult.DpsAvg, simResult.DpsAtOomAvg);
+					resultsElem.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(dps)}</text> dps<br /><text style="font-size:0.7em">${oomAtText}s to oom using CL on CD.</text></div>`
+			});
+		}
+
+		const resultsElem = document.getElementById("simrotai");
+		resultsElem.innerHTML = pendingMetricHTML;
+
+		const simRequest = deepCopy(sharedSimRequest);
+		simRequest.Options.AgentType = AGENT_TYPES.ADAPTIVE;
+
+    const start = new Date();
+		workerPool.runSimulation(simRequest).then(simResult => {
+        const end = new Date();
         console.log(`The sim took ${end - start} ms`);
-        var stats = out[0];
-        console.log("AI Stats: ", stats);
-        aiout.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(stats.dps)}</text> +/- ${Math.round(stats.dev)} dps<br /></div>`
+        console.log("AI Stats: ", simResult);
+        resultsElem.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(simResult.DpsAvg)}</text> +/- ${Math.round(simResult.DpsStDev)} dps<br /></div>`
 
-        var rotstats = document.getElementById("rotstats");
+        const rotstats = document.getElementById("rotstats");
         rotstats.innerHTML = "";
-        Object.entries(stats.casts).forEach((entry) => {
-            if (entry[1].count == 0) {
+        Object.entries(simResult.Casts).forEach(castEntry => {
+						const castID = castEntry[0];
+						const cast = castEntry[1];
+            if (cast.Count == 0) {
                 return;
             }
-            var cstat = entry[1];
-            rotstats.innerHTML += `<text style="cursor:pointer" title="Avg Dmg: ${Math.round(cstat.dmg / cstat.count)} Crit: ${Math.round(cstat.crits / cstat.count * 100)}%">${castIDToName[entry[0]]}: ${Math.round(cstat.count / iters)}</text>`;
+            rotstats.innerHTML += `<text style="cursor:pointer" title="Avg Dmg: ${Math.round(cast.Dmg / cast.Count)} Crit: ${Math.round(cast.Crits / cast.Count * 100)}%">${castIDToName[castID]}: ${Math.round(cast.Count / simRequest.Iterations)}</text>`;
         });
-        var percentoom = stats.numOOM / iters;
-        if (percentoom > 0.02) {
+        const percentOom = simResult.NumOom / simRequest.Iterations;
+        if (percentOom > 0.02) {
             var dangerStyle = "";
-            if (percentoom > 0.05 && percentoom <= 0.25) {
+            if (percentOom > 0.05 && percentOom <= 0.25) {
                 dangerStyle = "border-color: #FDFD96;"
-            } else if (percentoom > 0.25) {
+            } else if (percentOom > 0.25) {
                 dangerStyle = "border-color: #FF6961;"
             }
-            rotstats.innerHTML += `<text title="Downranking is not currently implemented." style="${dangerStyle};cursor: pointer">${Math.round(stats.numOOM / iters * 100)}% of simulations went OOM.`
+            rotstats.innerHTML += `<text title="Downranking is not currently implemented." style="${dangerStyle};cursor: pointer">${Math.round(percentOom * 100)}% of simulations went OOM.`
         }
 
-        var chartcanvas = document.createElement("canvas");
-        var rotout = document.getElementById("rotout");
-        var bounds = rotout.getBoundingClientRect();
+        const rotout = document.getElementById("rotout");
+        const bounds = rotout.getBoundingClientRect();
+				const chartCanvas = createDpsChartFromSimResult(simResult, bounds);
 
-        var rotchart = document.getElementById("rotchart");
+        const rotchart = document.getElementById("rotchart");
         rotchart.innerHTML = "";
-        chartcanvas.height = bounds.height - 30;
-        chartcanvas.width = bounds.width;
-        var ctx = chartcanvas.getContext('2d');
-        rotchart.appendChild(chartcanvas);
-
-        var min = stats.dps - stats.dev;
-        var max = stats.dps + stats.dev;
-        var labels = Object.keys(stats.dpsHist)
-        var vals = [];
-        var colors = [];
-
-        labels.forEach((k, i) => {
-            vals.push(stats.dpsHist[k]);
-            var val = parseInt(k);
-            if (val > min && val < max) {
-                colors.push('#1E87F0');
-            } else {
-                colors.push('#FF6961');
-            }
-        });
-
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: vals,
-                    backgroundColor: colors,
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        display: false,
-                        labels: {}
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
+        rotchart.appendChild(chartCanvas);
     });
 }
 
-// Populates the 'Hasted Rotations' tab in results pane.
-function hastedRotations(currentGear) {
-    var opts = getOptions();
-    opts.buffbl = 0;
-    opts.buffdrum = 0;
+function createDpsChartFromSimResult(simResult, chartBounds) {
+		const chartCanvas = document.createElement("canvas");
+		const ctx = chartCanvas.getContext('2d');
+		chartCanvas.height = chartBounds.height - 30;
+		chartCanvas.width = chartBounds.width;
 
-    var hastes = [0, 50, 100, 200, 300, 400, 500, 600, 700, 788];
-    var agentTypes = [
+		const min = simResult.DpsAvg - simResult.DpsStDev;
+		const max = simResult.DpsAvg + simResult.DpsStDev;
+		const vals = [];
+		const colors = [];
+
+		const labels = Object.keys(simResult.DpsHist)
+		labels.forEach((k, i) => {
+				vals.push(simResult.DpsHist[k]);
+				const val = parseInt(k);
+				if (val > min && val < max) {
+						colors.push('#1E87F0');
+				} else {
+						colors.push('#FF6961');
+				}
+		});
+
+		const chart = new Chart(ctx, {
+				type: 'bar',
+				data: {
+						labels: labels,
+						datasets: [{
+								data: vals,
+								backgroundColor: colors,
+						}]
+				},
+				options: {
+						plugins: {
+								legend: {
+										display: false,
+										labels: {}
+								}
+						},
+						scales: {
+								y: {
+										beginAtZero: true,
+										ticks: {
+												display: false
+										}
+								}
+						}
+				}
+		});
+		return chartCanvas;
+}
+
+// Populates the 'Hasted Rotations' tab in results pane.
+function hastedRotations(gearSpec) {
+    const sharedOptions = getOptions();
+    sharedOptions.NumBloodlust = 0;
+    sharedOptions.NumDrums = 0;
+		sharedOptions.Encounter.Duration = 40;
+		sharedOptions.Buffs.Custom[STAT_IDX.HASTE] = 0;
+
+		const sharedSimRequest = {
+			Options: sharedOptions,
+			Gear: gearSpec,
+			Iterations: 1000,
+		};
+
+    const hastes = [0, 50, 100, 200, 300, 400, 500, 600, 700, 788];
+    const agentTypes = [
 				AGENT_TYPES.FIXED_4LB_1CL,
 				AGENT_TYPES.FIXED_5LB_1CL,
 				AGENT_TYPES.FIXED_6LB_1CL,
@@ -434,213 +540,95 @@ function hastedRotations(currentGear) {
 
     // TODO: Fix this to match the new return values now that process is done in go WASM code.
 
-    var hasteCounter = 0;
-    var rows = document.getElementById("hasterots").firstElementChild.firstElementChild.children;
-    hastes.forEach(haste => {
-        hasteCounter++;
-        var myCounter = hasteCounter;
-        var row = rows[myCounter];
-        row.children[1].innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
-        row.children[2].innerText = "";
+		workerPool.computeStats({
+				Options: sharedOptions,
+				Gear: gearSpec,
+		}).then(computeStatsResult => {
+				const finalHasteValue = computeStatsResult.FinalStats[STAT_IDX.HASTE];
+				const rows = document.getElementById("hasterots").firstElementChild.firstElementChild.children;
+				hastes.forEach((haste, i) => {
+						// Subtract haste from gear/etc
+						const hasteValue = haste - finalHasteValue;
 
-        simulate(1000, 40, 1, currentGear, opts, agentTypes, haste, false, (output) => {
-            var maxdmg = 0.0;
-            var maxrot = {};
-						var maxIdx = 0;
+						const row = rows[i];
+						row.children[1].innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
+						row.children[2].innerText = "";
 
-            output.forEach((out, i) => {
-                if (maxdmg < out.dps) {
-                    maxdmg = out.dps
-                    maxrot = out;
-										maxIdx = i;
-                }
-            });
+						const batchSimRequest = {
+								Requests: agentTypes.map(agentType => {
+										const simRequest = deepCopy(sharedSimRequest);
+										simRequest.Options.AgentType = agentType;
+										simRequest.Options.Buffs.Custom[STAT_IDX.HASTE] = hasteValue;
+										return simRequest;
+								}),
+						};
+						workerPool.runBatchSimulation(batchSimRequest).then(batchSimResult => {
+								let maxIdx = 0;
+								let bestResult = null;
+								batchSimResult.Results.forEach((simResult, idx) => {
+										if (!bestResult || simResult.DpsAvg > bestResult.DpsAvg) {
+												maxIdx = idx;
+												bestResult = simResult;
+										}
+								});
 
-            var simdur = maxrot.SimSeconds;
-            var rotTitle = "CL / " + (maxIdx + 4).toString() + "xLB";
-            row.children[0].innerText = haste;
-            row.children[1].innerText = rotTitle;
-            row.children[2].innerText = "" + Math.round(maxrot.dps) + " +/- " + Math.round(maxrot.dev);
-        });
-    });
+								const rotTitle = "CL / " + (maxIdx + 4).toString() + "xLB";
+								row.children[0].innerText = haste;
+								row.children[1].innerText = rotTitle;
+								row.children[2].innerText = Math.round(bestResult.DpsAvg) + " +/- " + Math.round(bestResult.DpsStDev);
+						});
+				});
+		});
+}
+
+function stDevToConf90(stDev, N) {
+	return 1.645 * stDev / Math.sqrt(N);
 }
 
 // Populates the 'Gear & Stat Weights' tab in results pane.
-function calcStatWeights(gear) {
-    var iters = parseInt(document.getElementById("switer").value);
-    var dur = parseInt(document.getElementById("swdur").value);
-    var numClTargets = parseInt(document.getElementById("swnumClTargets").value);
-    var opts = getOptions();
-		opts.agenttype = AGENT_TYPES.ADAPTIVE;
+function calcStatWeights(gearSpec) {
+		const statWeightsRequest = {
+			Options: getOptions(),
+			Gear: gearSpec,
+			Iterations: parseInt(document.getElementById("switer").value),
+		};
+		statWeightsRequest.Options.Encounter.Duration = parseInt(document.getElementById("swdur").value);
+		statWeightsRequest.Options.Encounter.NumClTargets = parseInt(document.getElementById("swnumClTargets").value);
 
-    var baseDPS = 0.0;
-    var baseConf = 0.0;
+		const statsTested = [
+				STAT_IDX.SPELL_DMG, 
+				STAT_IDX.INT,
+				STAT_IDX.SPELL_CRIT,
+				STAT_IDX.SPELL_HIT,
+				STAT_IDX.HASTE,
+				STAT_IDX.MP5,
+		];
+		const weightElems = statsTested.map((stat, i) => document.getElementById("w" + i.toString()));
+		const weightConfidenceElems = statsTested.map((stat, i) => document.getElementById("wc" + i.toString()));
 
-    var sp_hitModDPS = 0.0;
-    var sp_hitModConf = 0.0;
+		statsTested.forEach((stat, i) => {
+			weightElems[i].innerHTML = "<div uk-spinner=\"ratio: 1\"></div>";
+			weightConfidenceElems[i].innerHTML = "";
+		});
 
-    var modDPS = [0, 0, 0, 0, 0, 0]; // SP, Int, Crit, Hit, Haste, MP5
-    var modConf = [0, 0, 0, 0, 0, 0]
-    var weights = [0, 0, 0, 0, 0, 0, 0]; // Int, X, Crit, Hit, Dmg, Haste, MP5
-    modDPS.forEach((v, i) => {
-        var cell = document.getElementById("w" + i.toString());
-        cell.innerHTML = "<div uk-spinner=\"ratio: 1\"></div>";
-    });
+		workerPool.statWeights(statWeightsRequest).then(statWeightsResult => {
+				statsTested.forEach((stat, i) => {
+						const ep = statWeightsResult.EpValues[stat];
+						const epStDev = statWeightsResult.EpValuesStDev[stat];
+						const epConf90 = stDevToConf90(epStDev, statWeightsRequest.Iterations);
 
-    // A base DPS without any modified stats.
-    statweight(iters, dur, numClTargets, gear, opts, 0, 0, (res) => {
-        var resVals = res.split(",")
-        baseDPS = parseFloat(resVals[0]);
-        baseConf = parseFloat(resVals[2]);
-        if (baseDPS < 1) {
-            // we failed.
-            modDPS.forEach((v, i) => {
-                var cell = document.getElementById("w" + i.toString());
-                cell.innerHTML = `<text style="color:#FF6961">OOM</text>`;
-            });
-            var uptab = document.getElementById("upgrades");
-            var nr = document.createElement("text");
-            nr.innerText = `Simulations went OOM and so weights will be incorrect as downranking is not yet implemented.`;
-            uptab.appendChild(nr);
-        }
-        console.log(`Base DPS: ${baseDPS} +/- ${baseConf}`);
-    }); // base
+						weightElems[i].innerText = ep.toFixed(2);
+						weightConfidenceElems[i].innerText = (ep - epConf90).toFixed(2) + " - " + (ep + epConf90).toFixed(2);
+				});
 
-
-    var done = [];
-    var onfinish = () => {
-        done.push(true);
-        if (baseDPS < 1) {
-            return;
-        }
-        if (modDPS[0] == 0) {
-            return;
-        }
-        var baseMax = baseDPS + baseConf
-        var baseMin = baseDPS - baseConf
-
-        var ddpsMax = (modDPS[0] + modConf[0]) - baseMin;
-        var ddpsMin = (modDPS[0] - modConf[0]) - baseMax;
-
-        modDPS.forEach((v, i) => {
-            if (v == 0) {
-                return;
-            }
-            var cell = document.getElementById("w" + i.toString());
-            var cellConf = document.getElementById("wc" + i.toString());
-            if (v == -1) {
-                cell.innerHTML = `<text style="color:#FF6961">OOM</text>`;
-                return;
-            }
-            // sphit uses different value;
-            if (i == 3 && sp_hitModDPS != 0.0) {
-                var sphitMax = sp_hitModDPS + sp_hitModConf - baseMin;
-                var sphitMin = sp_hitModDPS - sp_hitModConf - baseMax;
-
-                var wmax = (v + modConf[i] - baseMin) / sphitMax;
-                var wmin = (v - modConf[i] - baseMax) / sphitMin;
-                var weight = (wmax + wmin) / 2;
-                if (weight < 0.01) {
-                    weight = 0.0;
-                }
-                if (currentFinalStats[3] > 202) {
-                    weight = 0.0; // Just going to force 0 weight if you are hit capped.
-                }
-
-                weights[3] = weight;
-                cell.innerText = weight.toFixed(2);
-                cellConf.innerText = wmin.toFixed(2) + " - " + wmax.toFixed(2);
-                return;
-            }
-
-            var wmax = (v + modConf[i] - baseMin) / ddpsMax;
-            var wmin = (v - modConf[i] - baseMax) / ddpsMin;
-
-            var weight = (wmax + wmin) / 2;
-            if (weight < 0.01) {
-                weight = 0.0;
-            }
-
-            if (i == 0) {
-                weights[4] = weight;
-            } else if (i == 1) {
-                weights[0] = weight;
-            } else if (i == 2) {
-                weights[2] = weight;
-            } else if (i == 4) {
-                weights[5] = weight;
-            } else if (i == 5) {
-                weights[6] = weight;
-            }
-            cell.innerText = weight.toFixed(2);
-            if (wmax != wmin) {
-                cellConf.innerText = wmin.toFixed(2) + " - " + wmax.toFixed(2);
-            }
-        });
-
-        if (done.length == 7) {
-            var oomed = true;
-            modDPS.forEach((v) => {
-                if (v > 0) {
-                    oomed = false;
-                }
-            });
-            if (oomed) {
-                return;
-            }
-            showGearRecommendations(weights);
-        }
-    };
-
-    statweight(iters, dur, numClTargets, gear, opts, 4, 20, (res) => {
-        var resVals = res.split(",");
-        sp_hitModDPS = parseFloat(resVals[0]);
-        sp_hitModConf = parseFloat(resVals[2]);
-        onfinish();
-    }); // sp
-    statweight(iters, dur, numClTargets, gear, opts, 3, 20, (res) => {
-        var resVals = res.split(",");
-        modConf[3] = parseFloat(resVals[2])
-        modDPS[3] = parseFloat(resVals[0]);
-        onfinish();
-    }); // hit
-    statweight(iters, dur, numClTargets, gear, opts, 4, 50, (res) => {
-        var resVals = res.split(",");
-        modConf[0] = parseFloat(resVals[2])
-        modDPS[0] = parseFloat(resVals[0]);
-        onfinish();
-    }); // sp
-    statweight(iters, dur, numClTargets, gear, opts, 0, 50, (res) => {
-        var resVals = res.split(",");
-        modConf[1] = parseFloat(resVals[2])
-        modDPS[1] = parseFloat(resVals[0]);
-        onfinish();
-    }); // int
-    statweight(iters, dur, numClTargets, gear, opts, 2, 50, (res) => {
-        var resVals = res.split(",");
-        modConf[2] = parseFloat(resVals[2])
-        modDPS[2] = parseFloat(resVals[0]);
-        onfinish();
-    }); // crit
-    statweight(iters, dur, numClTargets, gear, opts, 5, 50, (res) => {
-        var resVals = res.split(",");
-        modConf[4] = parseFloat(resVals[2])
-        modDPS[4] = parseFloat(resVals[0]);
-        onfinish();
-    }); // haste
-    statweight(iters, dur, numClTargets, gear, opts, 6, 50, (res) => {
-        var resVals = res.split(",");
-        modConf[5] = parseFloat(resVals[2])
-        modDPS[5] = parseFloat(resVals[0]);
-        onfinish();
-    }); // mp5
+				showGearRecommendations(statWeightsResult.EpValues);
+		});
 }
 
 function showGearRecommendations(weights) {
-    var itemWeightsBySlot = {};
-    var curSlotWeights = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-    // 4 == dmg, 2 == crit
-    var csdVal = (((currentFinalStats[4] * 0.795) + 603) * 2 * (currentFinalStats[2] / 2208) * 0.045) / 0.795;
+    const itemWeightsBySlot = {};
+    const curSlotWeights = new Array(20).fill(0);
+    const csdVal = (((currentFinalStats[STAT_IDX.SPELL_DMG] * 0.795) + 603) * 2 * (currentFinalStats[STAT_IDX.SPELL_CRIT] / 2208) * 0.045) / 0.795;
     // process all items to find the weighted value.
     // find the value of each slots currently equipped item.
     Object.entries(gearUI.allitems).forEach((entry) => {
@@ -652,7 +640,7 @@ function showGearRecommendations(weights) {
         var value = 0.0;
         if (item.Stats != null) {
             weights.forEach((w, i) => {
-                if (item.Stats[i] != null) {
+                if (item.Stats[i]) {
                     value += item.Stats[i] * w
                 }
             });
@@ -661,14 +649,14 @@ function showGearRecommendations(weights) {
             itemWeightsBySlot[item.Slot] = [];
         }
         if (item.GemSlots != null && item.GemSlots.length > 0) {
-            var numGems = item.GemSlots.length;
+            let numGems = item.GemSlots.length;
             if (item.GemSlots[0] == 1) {
                 numGems--;
                 // how to value a CSD
                 // ~ spellpower * crit chance * 0.09 = increased damage per cast.
                 value += csdVal;
             }
-            value += (numGems * 9) * weights[4]; // just for measuring use 9 spell power gems in every slot.
+            value += (numGems * 9) * weights[STAT_IDX.SPELL_DMG]; // just for measuring use 9 spell power gems in every slot.
         }
         var slotid = slotToID[item.Slot];
         if (slotid == "equipfinger") {
@@ -749,13 +737,18 @@ function showGearRecommendations(weights) {
                         newgear[entry[0]] = entry[1];
                     }
                 });
-                var iters = parseInt(document.getElementById("switer").value);
-                var dur = parseInt(document.getElementById("swdur").value);
-                var numClTargets = parseInt(document.getElementById("swnumClTargets").value);
-                var opts = getOptions();
-                simulate(iters, dur, numClTargets, cleanGear(newgear), opts, [AGENT_TYPES.ADAPTIVE], null, false, (res) => {
-                    var statistics = res[0];
-                    col4.innerText = Math.round(statistics.dps).toString() + " +/- " + Math.round(statistics.dev).toString();
+								const simRequest = {
+									Options: getOptions(),
+									Gear: toGearSpec(newgear),
+									Iterations: parseInt(document.getElementById("switer").value),
+								};
+								simRequest.Options.AgentType = AGENT_TYPES.ADAPTIVE;
+								simRequest.Options.Encounter = {
+									Duration: parseInt(document.getElementById("swdur").value),
+									NumClTargets: parseInt(document.getElementById("swnumClTargets").value),
+								};
+								workerPool.runSimulation(simRequest).then(simResult => {
+                    col4.innerText = Math.round(simResult.DpsAvg).toString() + " +/- " + Math.round(simResult.DpsStDev).toString();
                 });
             });
             col3.appendChild(simbut);
@@ -813,22 +806,22 @@ function popgear(gearList) {
 
     var simlogrun = document.getElementById("simlogrun");
     simlogrun.addEventListener("click", (event) => {
-        runsim(cleanGear(gearUI.currentGear), true);
+        runSimWithLogs(toGearSpec(gearUI.currentGear));
     });
 
     var simrunbut = document.getElementById("simrunbut");
     simrunbut.addEventListener("click", (event) => {
-        runsim(cleanGear(gearUI.currentGear));
+        runSim(toGearSpec(gearUI.currentGear));
     });
 
     var hastebut = document.getElementById("hastebut");
     hastebut.addEventListener("click", (event) => {
-        hastedRotations(cleanGear(gearUI.currentGear));
+        hastedRotations(toGearSpec(gearUI.currentGear));
     });
 
     var caclweights = document.getElementById("calcstatweight");
     caclweights.addEventListener("click", (event) => {
-        calcStatWeights(cleanGear(gearUI.currentGear));
+        calcStatWeights(toGearSpec(gearUI.currentGear));
     });
 
     var inputs = document.querySelectorAll("#buffs input");
@@ -864,35 +857,42 @@ function popgear(gearList) {
     });
 }
 
-// clearGear strips off all parts of gear that is non-changing. This lets us pass minimal data to sim and store in local storage.
-function cleanGear(gear) {
-    var cleanedGear = [];
-    Object.entries(gear).forEach((entry) => {
-        if (entry == null || entry == undefined) {
-            return;
-        }
-        if (entry[1] == null || entry[1] == undefined) {
-            return;
-        }
-        var it = {
-            ID: entry[1].ID
-        }
-        if (entry[1].Gems != null) {
-            it.g = [];
-            entry[1].Gems.forEach((g) => {
-                if (g == null) {
-                    it.g.push(0);
-                    return;
-                }
-                it.g.push(g.ID);
-            });
-        }
-        if (entry[1].Enchant != null && entry[1].Enchant.ID > 0) {
-            it.e = entry[1].Enchant.ID;
-        }
-        cleanedGear.push(it);
-    });
-    return cleanedGear
+// toGearSpec returns a 'gear specification' which is the minimal amount of info needed
+// to specify a set of gear.
+function toGearSpec(gear) {
+		const gearSpec = [];
+		Object.values(gear).forEach(item => {
+				if (!item) {
+						return;
+				}
+
+				if (USE_ITEM_NAMES) {
+					gearSpec.push({
+						Name: item.Name,
+						Enchant: {
+							Name: (item.Enchant || {}).Name
+						},
+						Gems: (item.Gems || []).map(gem => {
+							return {
+								Name: gem.Name
+							};
+						})
+					});
+				} else {
+					gearSpec.push({
+						ID: item.ID,
+						Enchant: {
+							ID: (item.Enchant || {}).ID
+						},
+						Gems: (item.Gems || []).map(gem => {
+							return {
+								ID: gem.ID
+							};
+						})
+					});
+				}
+		});
+		return gearSpec;
 }
 
 var currentFinalStats = {};
@@ -912,29 +912,33 @@ var statToName = [
 ]
 // Updates the 'stats' pane in the viewport.
 function updateGearStats(gearlist) {
-
-    var cleanedGear = cleanGear(gearlist); // converts to array with minimal data for serialization.
-
+    const gearSpec = toGearSpec(gearlist); // converts to array with minimal data for serialization.
     // TODO: Is this the best way?
-    localStorage.setItem("cachedGear.v2", JSON.stringify(cleanedGear));
+    localStorage.setItem("cachedGear.v2", JSON.stringify(gearSpec));
+    exportGear(true); // this will update the URL
 
-    computeStats(cleanedGear, null, (result) => {
-        for (const [key, value] of Object.entries(result)) {
+    const options = getOptions();
+		options.AgentType = AGENT_TYPES.ADAPTIVE;
+
+		const computeStatsRequest = {
+			Options: options,
+			Gear: gearSpec,
+		};
+
+		workerPool.computeStats(computeStatsRequest).then(computeStatsResult => {
+				currentFinalStats = computeStatsResult.FinalStats;
+
+        for (const [key, value] of Object.entries(computeStatsResult.GearOnly)) {
             var lab = document.getElementById(statToName[key].toLowerCase());
             if (lab != null) {
                 lab.innerText = value.toFixed(0);
             }
         }
-    });
 
-    var opts = getOptions();
-		opts.agenttype = AGENT_TYPES.ADAPTIVE;
-    computeStats(cleanedGear, opts, (result) => {
-        currentFinalStats = result.Stats;
-        var sets = result.Sets;
         var setlist = document.getElementById("setlist");
-        setlist.innerHTML = sets.join("<br />");
-        for (const [key, value] of Object.entries(currentFinalStats)) {
+        setlist.innerHTML = computeStatsResult.Sets.join("<br />");
+
+        for (const [key, value] of Object.entries(computeStatsResult.FinalStats)) {
             var lab = document.getElementById("f" + statToName[key].toLowerCase());
             if (key == 2) {
                 lab.innerText = value.toFixed(0).toString() + " (" + (value / 22.08).toFixed(1) + "%)";
@@ -948,9 +952,7 @@ function updateGearStats(gearlist) {
                 lab.innerText = value.toFixed(0);
             }
         }
-    });
-
-    exportGear(true); // this will update the URL
+		});
 }
 
 
@@ -1096,7 +1098,7 @@ function changeQualityFilter(e) {
 
 function saveGearSet() {
     var name = document.getElementById("gearname").value;
-    var cleanedGear = cleanGear(gearUI.currentGear); // converts to array with minimal data for serialization.
+    var cleanedGear = toGearSpec(gearUI.currentGear); // converts to array with minimal data for serialization.
     localStorage.setItem("stored." + name, JSON.stringify(cleanedGear));
 
     updateGearSetList();
@@ -1140,7 +1142,7 @@ function importGearHandler() {
 }
 
 function importGear(inputVal) {
-    var gearCache = inputVal;
+    let gearCache = inputVal;
     if (inputVal[0] != "[") { // that is opening brace for a gear list in JSON, but not valid base64
         if (window.pako === undefined) {
             loadPako(() => {
@@ -1148,29 +1150,29 @@ function importGear(inputVal) {
             });
             return;
         } else {
-            var infdata = pakoInflate(inputVal);
+            const infdata = pakoInflate(inputVal);
             gearCache = infdata.gear;
             setOptions(infdata.buffs);
         }
     }
     if (gearCache && gearCache.length > 0) {
-        var parsedGear = JSON.parse(gearCache);
+        const parsedGear = JSON.parse(gearCache);
         if (parsedGear.length > 0) {
-            var currentGear = gearUI.updateEquipped(parsedGear);
+            const currentGear = gearUI.updateEquipped(parsedGear);
             updateGearStats(currentGear);
         }
     }
 }
 
 function pakoInflate(v) {
-    var binary = atob(v);
-    var bytes = new Uint8Array(binary.length);
+    const binary = atob(v);
+    const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < bytes.length; i++) {
         bytes[i] = binary.charCodeAt(i);
     }
     // var bytes = base2048.decode(v);
-    var dv = new DataView(bytes.buffer);
-    var leng = dv.getInt32(0);
+    const dv = new DataView(bytes.buffer);
+    const leng = dv.getInt32(0);
 
     return { gear: pako.inflate(bytes.subarray(4, leng + 4), { to: 'string' }), buffs: bytes.subarray(leng + 4, bytes.length) };
 }
@@ -1179,9 +1181,9 @@ function pakoInflate(v) {
 var currentHash = "";
 
 function exportGear(compressed) {
-    var cleanedGear = cleanGear(gearUI.currentGear); // converts to array with minimal data for serialization.\
-    var box = document.getElementById("importexport");
-    var enc = JSON.stringify(cleanedGear);
+    const gearSpec = toGearSpec(gearUI.currentGear); // converts to array with minimal data for serialization.\
+    const box = document.getElementById("importexport");
+    const gearSpecStr = JSON.stringify(gearSpec);
     if (compressed) {
         if (window.pako === undefined) {
             loadPako(() => {
@@ -1189,13 +1191,13 @@ function exportGear(compressed) {
             });
             return;
         } else {
-            packOptions(getOptions(), (r) => {
-                var val = pako.deflate(enc, { to: 'string' });
-                var mergedArray = new Uint8Array(val.length + r.length + 4);
+            workerPool.packOptions({ Options: getOptions() }).then(packedOptions => {
+                const val = pako.deflate(gearSpecStr, { to: 'string' });
+                const mergedArray = new Uint8Array(val.length + packedOptions.length + 4);
                 var dv = new DataView(mergedArray.buffer);
                 dv.setInt32(0, val.length);
                 mergedArray.set(val, 4);
-                mergedArray.set(r, 4 + val.length);
+                mergedArray.set(packedOptions, 4 + val.length);
                 // var output = base2048.encode(mergedArray);
                 var output = btoa(String.fromCharCode(...mergedArray));
                 // console.log(`JSON Size: ${enc.length}, Bin Size: ${mergedArray.length}, b2048: ${output.length}`);    
@@ -1208,7 +1210,7 @@ function exportGear(compressed) {
             return;
         }
     }
-    box.value = enc;
+    box.value = gearSpecStr;
 }
 
 function getQueryVariable(variable) {

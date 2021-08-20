@@ -88,7 +88,7 @@ func (agent *AdaptiveAgent) ChooseSpell(sim *Simulation, didPot bool) *Cast {
 			timePassed = 1
 		}
 		rate := manaDrained / timePassed
-		timeRemaining := sim.endTime - sim.CurrentTime
+		timeRemaining := sim.Options.Encounter.Duration - sim.CurrentTime
 		totalManaDrain := rate * timeRemaining
 		buffer := spellmap[MagicIDCL6].Mana // mana buffer of 1 extra CL
 
