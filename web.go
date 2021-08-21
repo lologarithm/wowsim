@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/lologarithm/wowsim/tbc"
 )
@@ -17,7 +18,7 @@ import (
 var uifs embed.FS
 
 func main() {
-	var useFS = flag.Bool("usefs", false, "Use embedded file system and server. Set to false for dev")
+	var useFS = flag.Bool("usefs", false, "Use local file system and wasm. Set to true for dev")
 	flag.Parse()
 
 	var fs http.Handler
@@ -25,16 +26,8 @@ func main() {
 		log.Printf("Using local file system for development.")
 		fs = http.FileServer(http.Dir("."))
 	} else {
-		log.Printf("Embedded Server running.")
+		log.Printf("Embedded file server running.")
 		fs = http.FileServer(http.FS(uifs))
-
-		dir, err := uifs.ReadDir("ui/icons")
-		if err != nil {
-
-		}
-		for _, v := range dir {
-			log.Printf("%s (%s) (%v)", v.Name(), v.Type(), v.IsDir())
-		}
 	}
 
 	http.HandleFunc("/", func(resp http.ResponseWriter, req *http.Request) {
@@ -45,28 +38,31 @@ func main() {
 			var uijs []byte
 			var err error
 			if *useFS {
+				// read file straight off disk
 				uijs, err = ioutil.ReadFile("./ui/ui.js")
 			} else {
 				uijs, err = uifs.ReadFile("ui/ui.js")
+				// modify so that simworker is replaced with networker.
 				uijs = bytes.Replace(uijs, []byte(`this.worker = new window.Worker('simworker.js');`), []byte(`this.worker = new window.Worker('networker.js');`), 1)
 			}
 			if err != nil {
 				log.Printf("Failed to open file..., %s", err)
-				// log.Printf("FS: %s", uifs.ReadDir("."))
 			}
 			resp.Write(uijs)
 			return
 		}
-		log.Printf("Serving: %s", req.URL.String())
 		fs.ServeHTTP(resp, req)
 	})
 
 	http.HandleFunc("/api", handleAPI)
 
+	log.Printf("Launching interface on http://localhost:3333/ui")
+
 	log.Printf("Closing: %s", http.ListenAndServe(":3333", nil))
 }
 
 func handleAPI(w http.ResponseWriter, r *http.Request) {
+	st := time.Now()
 	// Assumes input is a JSON object as a string
 	request := tbc.ApiRequest{}
 	body, _ := ioutil.ReadAll(r.Body)
@@ -80,4 +76,6 @@ func handleAPI(w http.ResponseWriter, r *http.Request) {
 		panic("Error marshaling result: " + err.Error())
 	}
 	w.Write(resultData)
+
+	log.Printf("API request took %v", time.Since(st))
 }
