@@ -37,6 +37,8 @@ func AuraName(a int32) string {
 		return "Stormcaller"
 	case MagicIDBlessingSilverCrescent:
 		return "Blessing of the Silver Crescent"
+	case MagicIDDarkIronPipeweed:
+		return "Dark Iron Pipeweed"
 	case MagicIDQuagsEye:
 		return "Quags Eye"
 	case MagicIDFungalFrenzy:
@@ -66,9 +68,11 @@ func AuraName(a int32) string {
 	case MagicIDTLCLB:
 		return "TLC-LB"
 	case MagicIDISCTrink:
-		return "Trink"
+		return "Icon Trinket"
 	case MagicIDNACTrink:
-		return "NACTrink"
+		return "NAC Trinket"
+	case MagicIDDITrink:
+		return "Dark Iron Trinket"
 	case MagicIDPotion:
 		return "Potion"
 	case MagicIDRune:
@@ -157,7 +161,26 @@ func AuraName(a int32) string {
 		return "Essence of the Martyr Trinket"
 	case MagicIDEssSappTrink:
 		return "Restrained Essence of Sapphiron Trinket"
-
+	case MagicIDMisery:
+		return "Misery"
+	case MagicIDElderScribe:
+		return "Robes of the Elder Scribe"
+	case MagicIDElderScribeProc:
+		return "Power of Arcanagos"
+	case MagicIDEyeOfTheNightTrink:
+		return "EyeOfTheNight Trinket CD"
+	case MagicIDChainTOTrink:
+		return "ChainTO Trinket CD"
+	case MagicIDHexTrink:
+		return "Hex Trinket CD"
+	case MagicIDShiftingNaaruTrink:
+		return "ShiftingNaaru Trinket CD"
+	case MagicIDSkullGuldanTrink:
+		return "SkullGuldan Trinket CD"
+	case MagicIDRegainMana:
+		return "Fathom-Brooch Regain Mana"
+	case MagicIDAlchStone:
+		return "Alchemist's Stone"
 	}
 
 	return "<<TODO: Add Aura name to switch!!>>"
@@ -179,6 +202,7 @@ const (
 	MagicIDEleMastery
 	MagicIDStormcaller
 	MagicIDBlessingSilverCrescent
+	MagicIDDarkIronPipeweed
 	MagicIDQuagsEye
 	MagicIDFungalFrenzy
 	MagicIDBloodlust
@@ -229,8 +253,10 @@ const (
 	MagicIDElderScribe      // elder scribe robe item aura
 	MagicIDElderScribeProc  // elder scribe robe temp buff
 	MagicIDTotemOfPulsingEarth
+	MagicIDRegainMana // effect from fathom brooch
+	MagicIDAlchStone
 
-	//Items
+	// Items  (Usually individual trinket CDs)
 	MagicIDISCTrink
 	MagicIDNACTrink
 	MagicIDPotion
@@ -239,10 +265,6 @@ const (
 	MagicIDScryerTrink
 	MagicIDRubySerpentTrink
 	MagicIDXiriTrink
-	MagicIDDrum1 // Party drum item CDs
-	MagicIDDrum2
-	MagicIDDrum3
-	MagicIDDrum4
 	MagicIDEyeOfTheNightTrink
 	MagicIDChainTOTrink
 	MagicIDHexTrink
@@ -250,6 +272,7 @@ const (
 	MagicIDSkullGuldanTrink
 	MagicIDEssMartyrTrink
 	MagicIDEssSappTrink
+	MagicIDDITrink // Dark Iron pipe trinket CD
 
 	// Always at end so we know how many magic IDs there are.
 	MagicIDLen
@@ -700,7 +723,7 @@ func ActivateTLC(sim *Simulation) Aura {
 	const icd = 2.5
 
 	charges := 0
-	lastActivation := 0.0
+	lastActivation := -1000.0
 	return Aura{
 		ID:      MagicIDTLC,
 		Expires: math.MaxInt32,
@@ -857,7 +880,15 @@ func TryActivateSuperManaPotion(sim *Simulation) bool {
 	}
 
 	// Restores 1800 to 3000 mana. (2 Min Cooldown)
-	sim.CurrentMana += 1800 + (sim.rando.Float64() * 1200)
+	manaGain := 1800 + (sim.rando.Float64() * 1200)
+
+	// this is way slower check than I would like...
+	// but this is only checked when we are actually going to use a mana pot so very rarely called.
+	if sim.AuraActive(MagicIDAlchStone) {
+		manaGain *= 1.4
+	}
+
+	sim.CurrentMana += manaGain
 	sim.setCD(MagicIDPotion, 120)
 	if sim.Debug != nil {
 		sim.Debug("Used Mana Potion\n")
@@ -938,5 +969,37 @@ func ActivateTotemOfPulsingEarth(sim *Simulation) Aura {
 				c.ManaCost = math.Max(c.ManaCost-27, 0)
 			}
 		},
+	}
+}
+
+// ActivateFathomBrooch adds an aura that has a chance on cast of nature spell
+//  to restore 335 mana. 40s ICD
+func ActivateFathomBrooch(sim *Simulation) Aura {
+	const icd = 40.0
+	lastActivation := -math.MaxFloat64
+	return Aura{
+		ID:      MagicIDRegainMana,
+		Expires: math.MaxInt32,
+		OnCastComplete: func(sim *Simulation, c *Cast) {
+			if lastActivation+icd >= sim.CurrentTime {
+				return
+			}
+			if c.Spell.DamageType != DamageTypeNature {
+				return
+			}
+			if sim.rando.Float64() < 0.15 {
+				sim.CurrentMana += 335
+				lastActivation = sim.CurrentTime
+			}
+		},
+	}
+}
+
+// ActivateAlchStone adds the alch stone aura that has no effect on casts.
+//  The usage for this aura is in the potion usage function.
+func ActivateAlchStone(sim *Simulation) Aura {
+	return Aura{
+		ID:      MagicIDAlchStone,
+		Expires: math.MaxInt32,
 	}
 }
