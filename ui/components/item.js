@@ -9,7 +9,7 @@ class ItemComponent {
     innerdiv;
     img;
     maindiv;
-    statpop;
+    // statpop;
 
     // Sub Components
     selector;
@@ -21,51 +21,37 @@ class ItemComponent {
         this.selector = new SelectorComponent(slot, allgear);
 
         var name = document.createElement("p");
-        name.addEventListener("click", (e) => {this.showItemSelector(e)});
+        name.addEventListener("click", (e) => { this.showItemSelector(e) });
         name.innerText = "None";
-        
+
         this.socketComp = new SocketsComponent(slot, allgear.Enchants);
-        this.socketComp.addSelectListener((socket, e)=>{
+        this.socketComp.addSelectListener((socket, e) => {
             if (socket == -1) {
-                this.showEnchantSelector(event);
+                this.showEnchantSelector(e);
                 return;
             }
             this.showGemSelector(e, socket); ///ya ya ya, reversed parameters, ill deal with it later.
         });
-        this.socketComp.div.addEventListener("click", (e) => {});
+        this.socketComp.div.addEventListener("click", (e) => { });
 
         var innerdiv = document.createElement("div");
         innerdiv.classList.add("equiplabel");
         innerdiv.appendChild(name);
         innerdiv.appendChild(this.socketComp.div);
-    
-        this.statpop = document.createElement("div");
-        this.statpop.classList.add("statpop");
-        if (theme == "dark") {
-            this.statpop.classList.add("dtm"); 
-        } else {
-            this.statpop.classList.add("ltm"); 
-        }
-        this.statpop.style.display = "none";
 
         var img = document.createElement("img");
-        img.id = slot+"icon";
+        img.id = slot + "icon";
         img.src = "";
-        img.addEventListener("click", (e) => {this.showItemSelector(e)});
-        img.addEventListener("mouseenter", (e) => {
-            this.statpop.style.display = "block";
-        });
-        img.addEventListener("mouseleave", (e) => {
-            this.statpop.style.display = "none";
-        });
 
         var maindiv = document.createElement("div");
         maindiv.id = slot;
         maindiv.classList.add("equipslot");
-        maindiv.appendChild(img);
+
+        var imgLink = document.createElement("a");
+        imgLink.appendChild(img);
+        maindiv.appendChild(imgLink);
         maindiv.appendChild(innerdiv);
         maindiv.appendChild(this.selector.selectordiv);
-        maindiv.appendChild(this.statpop);
 
         this.name = name;
         this.innerdiv = innerdiv;
@@ -116,49 +102,26 @@ class ItemComponent {
                     this.name.style.color = "#B27300"
                     break;
             }
-            this.statpop.innerText = "";
-            if (newItem.Stats != null) {
-                newItem.Stats.forEach((v,i)=>{
-                    if (v > 0) {
-                        this.statpop.innerHTML += `<text style="font-size: 0.9em;">${statnames[i]}: ${v.toString()}</text><br />`;
+            var wowheadData = ""
+            if (newItem.Gems && newItem.Gems.length > 0) {
+                wowheadData += "gems=";
+                newItem.Gems.forEach((g, i) => {
+                    if (i != 0) {
+                        wowheadData += ":";
                     }
+                    wowheadData += g.ID;
                 });
-
-                const sockBonusActive = newItem.GemSlots && newItem.Gems && newItem.GemSlots.every((gemSlot, i) => 
-										newItem.Gems[i] && colorIntersects(gemSlot, newItem.Gems[i].Color));
-
-                if (newItem.GemSlots != null) {
-                    var sb = "Socket Bonus: ";
-                    newItem.SocketBonus.forEach((v,i)=>{
-                        if (v > 0) {
-                            sb += `${statnames[i]}: ${v.toString()}`;
-                        }
-                    });
-                    var socktText = document.createElement("text");
-                    socktText.innerText = sb;
-                    socktText.style.fontSize = "0.6em";
-                    if (sockBonusActive) {
-                        socktText.style.color = "green";
-                    }
-                    this.statpop.appendChild(socktText);
-                    this.statpop.appendChild(document.createElement("br"));
-                }
-                if (newItem.Enchant && newItem.Enchant.Name) {
-                    var enchText = document.createElement("text");
-                    enchText.innerText = newItem.Enchant.Name;
-                    enchText.style.fontSize = "0.6em";
-                    enchText.style.color = "green";
-                    this.statpop.appendChild(enchText);
-                    this.statpop.appendChild(document.createElement("br"));
-                }
             }
-            var source = newItem.SourceZone;
-            if (newItem.SourceDrop != "") {
-                source += " - " + newItem.SourceDrop;
+            if (newItem.Enchant) {
+                if (wowheadData.length > 0) {
+                    wowheadData += "&"
+                }
+                wowheadData += "ench=" + newItem.Enchant.EffectID;
             }
-            this.statpop.innerHTML += `<text style="font-size: 0.7em;">Source: ${source}</text>`
 
             this.img.src = slotToIcon[this.slot];
+            this.img.parentNode.setAttribute("href", "https://tbc.wowhead.com/item=" + newItem.ID);
+            this.img.parentNode.setAttribute("data-wowhead", wowheadData);
             // updates the selector UI with the current gems/enchants (later)
             this.selector.updateEquipped(newItem);
             this.socketComp.updateSockets(newItem.GemSlots, newItem.Gems);
@@ -170,7 +133,7 @@ class ItemComponent {
     }
 }
 
-var statnames = ["Int", "Stm","SpellCrit","SpellHit","SpellDmg","Haste","MP5","Mana","SpellPen"];
+var statnames = ["Int", "Stm", "SpellCrit", "SpellHit", "SpellDmg", "Haste", "MP5", "Mana", "SpellPen"];
 
 function moveSelector(box, x, y) {
     if (x < 0) {
@@ -179,7 +142,7 @@ function moveSelector(box, x, y) {
     if (y < 0) {
         y = 0;
     }
-    if (x > window.innerWidth-400) {
+    if (x > window.innerWidth - 400) {
         x = window.innerWidth - 400;
     }
     box.style.left = x;
@@ -190,7 +153,7 @@ function moveSelector(box, x, y) {
 function removeGear(event) {
     var ele = event.target;
     var slotid = ele.parentElement.parentElement.id;
-    currentGear[slotid] = {Name: "None"};
+    currentGear[slotid] = { Name: "None" };
     updateGear(currentGear);
 }
 
@@ -212,7 +175,7 @@ class SocketsComponent {
         this.enchants = enchants;
         this.div = document.createElement("div");
         this.div.style.height = "2.2em"; // so the text doesnt go right of the socket icons...
-        
+
         this.slot = slot;
         this.selectedSocket = 0;
         this.sockets = [];
@@ -235,11 +198,11 @@ class SocketsComponent {
                 }
                 var socketDiv = document.createElement("div");
                 socketDiv.classList.add("gemslot");
-                socketDiv.style.backgroundColor = color+",0.3)";
-                socketDiv.style.border = '1px solid ' + color+",0.8)";
-                
-                socketDiv.addEventListener("click", (event)=>{
-                    this.listeners.forEach((h)=>{ h(idx, event) });
+                socketDiv.style.backgroundColor = color + ",0.3)";
+                socketDiv.style.border = '1px solid ' + color + ",0.8)";
+
+                socketDiv.addEventListener("click", (event) => {
+                    this.listeners.forEach((h) => { h(idx, event) });
                 });
 
                 // TODO: gotta be a cleaner way to do this... ill fix it later.
@@ -248,7 +211,7 @@ class SocketsComponent {
                         var img = document.createElement("img")
                         img.src = gemToIcon[gems[idx].Color]
                         var text = gems[idx].Name;
-                        gems[idx].Stats.forEach((v,i)=>{
+                        gems[idx].Stats.forEach((v, i) => {
                             if (v > 0) {
                                 text += `\n${statnames[i]}: ${v.toString()}`;
                             }
@@ -265,7 +228,7 @@ class SocketsComponent {
         }
 
         var addedEnc = false;
-        this.enchants.forEach((e)=>{
+        this.enchants.forEach((e) => {
             if (addedEnc) { return; }
             var slot = this.slot;
             if (slot == "equipfinger1" || slot == "equipfinger2") {
@@ -274,8 +237,8 @@ class SocketsComponent {
             if (slotToID[e.Slot] == slot) {
                 var enchdiv = document.createElement("div");
                 enchdiv.classList.add("enchslot");
-                enchdiv.addEventListener("click", (event)=>{
-                    this.listeners.forEach((h)=>{ h(-1, event) });
+                enchdiv.addEventListener("click", (event) => {
+                    this.listeners.forEach((h) => { h(-1, event) });
                 });
                 this.div.appendChild(enchdiv);
                 addedEnc = true;
