@@ -1022,7 +1022,7 @@ window.addEventListener("mousemove", (e) => {
 var theme = "dark";
 function toggletheme() {
     if (theme == "light") {
-        document.getElementById("themebulb").src = "../icons/light-bulb.svg";
+        document.getElementById("themebulb").src = "icons/light-bulb.svg";
         document.children[0].children[1].classList.remove("lighttheme")
         document.children[0].classList.remove("lighttheme")
 
@@ -1036,7 +1036,7 @@ function toggletheme() {
 
         theme = "dark";
     } else {
-        document.getElementById("themebulb").src = "../icons/lightbulb.svg";
+        document.getElementById("themebulb").src = "icons/lightbulb.svg";
 
         document.children[0].children[1].classList.remove("uk-light")
         document.children[0].classList.remove("darktheme")

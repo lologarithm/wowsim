@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/lologarithm/wowsim/tbc"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"time"
+
+	"github.com/lologarithm/wowsim/tbc"
 )
 
 // Maps agentType flag values to actual enum types
@@ -109,14 +109,9 @@ func main() {
 	var agentTypeStr = flag.String("agentType", "", "Custom comma separated agent type to simulate.\n\tFor Example: --rotation=3LB1CL")
 	var duration = flag.Float64("duration", 300, "Custom fight duration in seconds.")
 	var iterations = flag.Int("iter", 10000, "Custom number of iterations for the sim to run.")
-	var runWebUI = flag.Bool("web", false, "Use to run sim in web interface instead of in terminal")
 	var configFile = flag.String("config", "", "Specify an input configuration.")
 
 	flag.Parse()
-
-	if *runWebUI {
-		log.Printf("Closing: %s", http.ListenAndServe(":3333", nil))
-	}
 
 	simRequest := tbc.SimRequest{}
 	if *configFile != "" {

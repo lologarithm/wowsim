@@ -302,12 +302,12 @@ class SocketsComponent {
 
 // For now hardcode an icon.
 var gemToIcon = {
-    1: "../icons/Gems/Gem_Diamond_07.png",
-    2: "../icons/Gems/Gem_BloodGem_02.png",
-    3: "../icons/Gems/Gem_AzureDraenite_02.png", // blue
-    4: "../icons/Gems/Gem_GoldenDraenite_02.png", // yellow
-    5: "../icons/Gems/Gem_DeepPeridot_02.png", // green
-    6: "../icons/Gems/Gem_FlameSpessarite_02.png", // orange
-    7: "../icons/Gems/Gem_EbonDraenite_02.png", // purple
+    1: "icons/Gems/Gem_Diamond_07.png",
+    2: "icons/Gems/Gem_BloodGem_02.png",
+    3: "icons/Gems/Gem_AzureDraenite_02.png", // blue
+    4: "icons/Gems/Gem_GoldenDraenite_02.png", // yellow
+    5: "icons/Gems/Gem_DeepPeridot_02.png", // green
+    6: "icons/Gems/Gem_FlameSpessarite_02.png", // orange
+    7: "icons/Gems/Gem_EbonDraenite_02.png", // purple
 }
 
