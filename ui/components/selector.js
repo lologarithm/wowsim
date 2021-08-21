@@ -163,11 +163,16 @@ class SelectorComponent {
     addItem(item) {
         var listItem = document.createElement("div");
         listItem.classList.add("equipselitem");
-        listItem.innerText = item.Name;
+        // listItem.innerText = item.Name;
         listItem.addEventListener("click", (e)=>{
             this.gearClickHandler(item.Name);
         });
 
+        var itemLink = document.createElement("a");
+        itemLink.innerText = item.Name;
+        // itemLink.setAttribute("href", "https://tbc.wowhead.com/item="+item.ID);
+        itemLink.setAttribute("data-wowhead", "item="+item.ID+"&domain=tbc")
+        listItem.appendChild(itemLink)
         
         this.selectorlist.appendChild(listItem);
         this.items.push(item);

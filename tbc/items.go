@@ -667,7 +667,7 @@ var items = []Item{
 	{ID: 29376, Slot: EquipTrinket, Name: "Essence of the Martyr", Phase: 1, Quality: ItemQualityRare, SourceZone: "G'eras", SourceDrop: "Badges", Stats: Stats{StatSpellDmg: 28}, Activate: createSpellDmgActivate(MagicIDSpellPower, 99, 20), ActivateCD: 120, CoolID: MagicIDEssMartyrTrink},
 	{ID: 38290, Slot: EquipTrinket, Name: "Dark Iron Smoking Pipe", Phase: 2, Quality: ItemQualityEpic, SourceZone: "Brewfest", SourceDrop: "Corin Direbrew", Stats: Stats{StatSpellDmg: 43}, Activate: createSpellDmgActivate(MagicIDDarkIronPipeweed, 155, 20), ActivateCD: 120, CoolID: MagicIDDITrink},
 	{ID: 30663, Slot: EquipTrinket, Name: "Fathom-Brooch of the Tidewalker", Phase: 2, Quality: ItemQualityEpic, SourceZone: "SSC", SourceDrop: "Fathom-Lord Karathress", Stats: Stats{}, Activate: ActivateFathomBrooch, ActivateCD: -1},
-	{ID: 47048, Slot: EquipTrinket, Name: "Sorcerer's Alchemist Stone", Phase: 5, Quality: ItemQualityEpic, SourceZone: "Shattered Sun Offensive", SourceDrop: "Exalted", Stats: Stats{StatSpellDmg: 63}, Activate: ActivateAlchStone, ActivateCD: -1},
+	{ID: 35749, Slot: EquipTrinket, Name: "Sorcerer's Alchemist Stone", Phase: 5, Quality: ItemQualityEpic, SourceZone: "Shattered Sun Offensive", SourceDrop: "Exalted", Stats: Stats{StatSpellDmg: 63}, Activate: ActivateAlchStone, ActivateCD: -1},
 
 	{ID: 24116, Slot: EquipNeck, Name: "Eye of the Night", Phase: 1, Quality: ItemQualityRare, SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatSpellCrit: 26, StatSpellHit: 16, StatSpellPen: 15}, Activate: func(sim *Simulation) Aura {
 		if sim.Options.Buffs.EyeOfNight {
