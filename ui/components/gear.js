@@ -76,6 +76,9 @@ class GearUI {
             itemComp.selector.addSelectedListener((change)=>{
                 if (change.item != null) {
                     var item = Object.assign({Name: ""},this.allitems[change.item]);
+                    // remove any pointers to the root item after cloning properties.
+                    item.Enchant = null; 
+                    item.Gems = null;
                     this.currentGear[slot] = item;
                     itemComp.updateEquipped(item);
                 } else if (change.gem != null) {

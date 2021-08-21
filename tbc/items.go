@@ -48,19 +48,23 @@ var Gems = []Gem{
 }
 
 var Enchants = []Enchant{
-	{ID: 29191, Name: "Glyph of Power", Bonus: Stats{StatSpellDmg: 22, StatSpellHit: 14}, Slot: EquipHead},
-	{ID: 28909, Name: "Greater Inscription of the Orb", Bonus: Stats{StatSpellDmg: 12, StatSpellCrit: 15}, Slot: EquipShoulder},
-	{ID: 28886, Name: "Greater Inscription of Discipline", Bonus: Stats{StatSpellDmg: 18, StatSpellCrit: 10}, Slot: EquipShoulder},
-	{ID: 24421, Name: "Zandalar Signet of Mojo", Bonus: Stats{StatSpellDmg: 18}, Slot: EquipShoulder},
-	{ID: 23545, Name: "Power of the Scourge", Bonus: Stats{StatSpellDmg: 15, StatSpellCrit: 14}, Slot: EquipShoulder},
-	{ID: 27960, Name: "Chest - Exceptional Stats", Bonus: Stats{StatStm: 6, StatInt: 6, StatSpirit: 6}, Slot: EquipChest},
-	{ID: 27917, Name: "Bracer - Spellpower", Bonus: Stats{StatSpellDmg: 15}, Slot: EquipWrist},
-	{ID: 33997, Name: "Gloves - Major Spellpower", Bonus: Stats{StatSpellDmg: 20}, Slot: EquipHands},
-	{ID: 24274, Name: "Runic Spellthread", Bonus: Stats{StatSpellDmg: 35, StatStm: 20}, Slot: EquipLegs},
-	{ID: 24273, Name: "Mystic Spellthread", Bonus: Stats{StatSpellDmg: 25, StatStm: 15}, Slot: EquipLegs},
-	{ID: 27975, Name: "Weapon - Major Spellpower", Bonus: Stats{StatSpellDmg: 40}, Slot: EquipWeapon},
-	{ID: 35445, Name: "Ring - Spellpower", Bonus: Stats{StatSpellDmg: 12}, Slot: EquipFinger},
-	{ID: 27945, Name: "Shield - Intellect", Bonus: Stats{StatInt: 12}, Slot: EquipOffhand},
+	{ID: 29191, EffectID: 3002, Name: "Glyph of Power", Bonus: Stats{StatSpellDmg: 22, StatSpellHit: 14}, Slot: EquipHead},
+	{ID: 28909, EffectID: 2995, Name: "Greater Inscription of the Orb", Bonus: Stats{StatSpellDmg: 12, StatSpellCrit: 15}, Slot: EquipShoulder},
+	{ID: 28886, EffectID: 2982, Name: "Greater Inscription of Discipline", Bonus: Stats{StatSpellDmg: 18, StatSpellCrit: 10}, Slot: EquipShoulder},
+	{ID: 24421, EffectID: 2605, Name: "Zandalar Signet of Mojo", Bonus: Stats{StatSpellDmg: 18}, Slot: EquipUnknown}, // This should no longer show up in the UI.
+	{ID: 20076, EffectID: 2605, Name: "Zandalar Signet of Mojo", Bonus: Stats{StatSpellDmg: 18}, Slot: EquipShoulder},
+	{ID: 23545, EffectID: 2721, Name: "Power of the Scourge", Bonus: Stats{StatSpellDmg: 15, StatSpellCrit: 14}, Slot: EquipShoulder},
+	{ID: 27960, EffectID: 2661, Name: "Chest - Exceptional Stats", Bonus: Stats{StatStm: 6, StatInt: 6, StatSpirit: 6}, Slot: EquipChest},
+	{ID: 27917, EffectID: 2650, Name: "Bracer - Spellpower", Bonus: Stats{StatSpellDmg: 15}, Slot: EquipUnknown}, // This should no longer show up in the UI.
+	{ID: 22534, EffectID: 2650, Name: "Bracer - Spellpower", Bonus: Stats{StatSpellDmg: 15}, Slot: EquipWrist},
+	{ID: 33997, EffectID: 2937, Name: "Gloves - Major Spellpower", Bonus: Stats{StatSpellDmg: 20}, Slot: EquipUnknown}, // This should no longer show up in the UI.
+	{ID: 28272, EffectID: 2937, Name: "Gloves - Major Spellpower", Bonus: Stats{StatSpellDmg: 20}, Slot: EquipHands},
+	{ID: 24274, EffectID: 2748, Name: "Runic Spellthread", Bonus: Stats{StatSpellDmg: 35, StatStm: 20}, Slot: EquipLegs},
+	{ID: 24273, EffectID: 2747, Name: "Mystic Spellthread", Bonus: Stats{StatSpellDmg: 25, StatStm: 15}, Slot: EquipLegs},
+	{ID: 27975, EffectID: 2669, Name: "Weapon - Major Spellpower", Bonus: Stats{StatSpellDmg: 40}, Slot: EquipUnknown}, // This should no longer show up in the UI.
+	{ID: 22555, EffectID: 2669, Name: "Weapon - Major Spellpower", Bonus: Stats{StatSpellDmg: 40}, Slot: EquipWeapon},
+	{ID: 35445, EffectID: 2928, Name: "Ring - Spellpower", Bonus: Stats{StatSpellDmg: 12}, Slot: EquipFinger},
+	{ID: 27945, EffectID: 2654, Name: "Shield - Intellect", Bonus: Stats{StatInt: 12}, Slot: EquipOffhand},
 }
 
 var ItemsByName = map[string]Item{}
@@ -142,10 +146,11 @@ const (
 )
 
 type Enchant struct {
-	ID    int32
-	Name  string
-	Bonus Stats
-	Slot  byte // which slot does the enchant go on.
+	ID       int32 // ID of the enchant item.
+	EffectID int32 // Used by UI to apply effect to tooltip
+	Name     string
+	Bonus    Stats
+	Slot     byte // which slot does the enchant go on.
 }
 
 type Gem struct {

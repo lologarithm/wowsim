@@ -13,10 +13,11 @@ class SelectorComponent {
     gemseldiv;
     gemsList; // List of gems to select when socket is selected.
     enchselector;
+    colorMatch;
 
     // Main Div
     selectordiv;
-    
+
     // State
     slot;
     filterLevel;
@@ -27,7 +28,7 @@ class SelectorComponent {
     highlighted; // currently highlighted item
     highText; // text of highlighted item
     items; // searchable items, mirrors selectorlist.children
-    
+
     // SubComp
     sockComp;
 
@@ -42,7 +43,7 @@ class SelectorComponent {
         this.currentItem = null;
         this.sockComp = new SocketsComponent(slot, []);
         this.gemsList = document.createElement("div");
-        this.sockComp.addSelectListener((socket)=>{
+        this.sockComp.addSelectListener((socket) => {
             if (socket == -1) {
                 return; // technically never happens because we dont give this comp an 'enchant socket'
             }
@@ -57,16 +58,29 @@ class SelectorComponent {
         var gemseldiv = document.createElement("div");
         gemseldiv.style.display = "none";
         gemseldiv.appendChild(this.sockComp.div);
+        var options = document.createElement("div");
+        this.colorMatch = document.createElement("input");
+        this.colorMatch.setAttribute("type", "checkbox");
+        this.colorMatch.addEventListener("click", (e) => {
+            // re-select the current socket so the list repopulates.
+            this.gemSelected(this.sockComp.selectedSocket);
+        });
+        var matchLabel = document.createElement("label");
+        matchLabel.innerText = "Match Color";
+        options.appendChild(matchLabel);
+        options.appendChild(this.colorMatch);
+        gemseldiv.appendChild(options);
+        gemseldiv.appendChild(this.sockComp.div);
         gemseldiv.appendChild(this.gemsList);
 
         var search = document.createElement("input");
-        search.addEventListener("keyup", (e) => {this.searchHandler(e)});
+        search.addEventListener("keyup", (e) => { this.searchHandler(e) });
 
         var closebut = document.createElement("button");
         closebut.innerText = "X";
         closebut.style.backgroundColor = "red";
         closebut.style.marginLeft = "5px";
-        closebut.addEventListener("click", (e) => {this.hide()});
+        closebut.addEventListener("click", (e) => { this.hide() });
 
         var clearbutton = document.createElement("button");
         clearbutton.innerText = "Remove";
@@ -80,28 +94,28 @@ class SelectorComponent {
             }
             this.notifyItemChange("None")
         });
-    
+
         var itemselector = document.createElement("div");
         var selectorlist = document.createElement("div");
         itemselector.appendChild(search);
         itemselector.appendChild(selectorlist);
 
-        var seltabs =  document.createElement("div");
+        var seltabs = document.createElement("div");
         seltabs.classList.add("selectortabs");
         var tab1 = document.createElement("div");
         tab1.innerText = "Item";
         tab1.classList.add("selectortab");
-        tab1.addEventListener("click", ()=> { this.focus("item") });
+        tab1.addEventListener("click", () => { this.focus("item") });
 
         var tab2 = document.createElement("div");
         tab2.innerText = "Gems";
         tab2.classList.add("selectortab");
-        tab2.addEventListener("click", ()=> { this.focus("gem") });
-        
+        tab2.addEventListener("click", () => { this.focus("gem") });
+
         var tab3 = document.createElement("div");
         tab3.innerText = "Enchants";
         tab3.classList.add("selectortab");
-        tab3.addEventListener("click", ()=> { this.focus("enchant") });
+        tab3.addEventListener("click", () => { this.focus("enchant") });
 
         seltabs.appendChild(tab1);
         seltabs.appendChild(tab2);
@@ -148,7 +162,7 @@ class SelectorComponent {
     updateEquipped(item) {
         if (this.slot == "equipoffhand") { // todo: separate 1h/2h enchants here too
             var enchantlist = this.enchantList(item);
-            this.enchselector.replaceChild(enchantlist, this.enchselector.firstChild);    
+            this.enchselector.replaceChild(enchantlist, this.enchselector.firstChild);
         }
 
         if (item.GemSlots == null || item.GemSlots.length == 0) {
@@ -164,16 +178,15 @@ class SelectorComponent {
         var listItem = document.createElement("div");
         listItem.classList.add("equipselitem");
         // listItem.innerText = item.Name;
-        listItem.addEventListener("click", (e)=>{
+        listItem.addEventListener("click", (e) => {
             this.gearClickHandler(item.Name);
         });
 
         var itemLink = document.createElement("a");
         itemLink.innerText = item.Name;
-        // itemLink.setAttribute("href", "https://tbc.wowhead.com/item="+item.ID);
-        itemLink.setAttribute("data-wowhead", "item="+item.ID+"&domain=tbc")
+        itemLink.setAttribute("data-wowhead", "item=" + item.ID + "&domain=tbc")
         listItem.appendChild(itemLink)
-        
+
         this.selectorlist.appendChild(listItem);
         this.items.push(item);
     }
@@ -213,7 +226,7 @@ class SelectorComponent {
             this.enchselector.style.display = "block";
         }
     }
-    
+
     hide(e) {
         if (e == null) {
             // by default just hide
@@ -244,22 +257,28 @@ class SelectorComponent {
             if (v[1].Quality <= this.filterLevel || v[1].Phase > this.phase) {
                 return false;
             }
-            return v[1].Color != 1; //colorIntersects(color, v[1].Color);
+            if (this.colorMatch.checked) {
+                return colorIntersects(color, v[1].Color);
+            }
+            return v[1].Color != 1;
         }).forEach((gem) => {
             var name = gem[1].Name;
             var itemdiv = document.createElement("div");
-            itemdiv.classList.add(`gemc${gem[1].Color}`)
-            itemdiv.innerText = name
-            itemdiv.addEventListener("click", (e)=>{
+            itemdiv.addEventListener("click", (e) => {
                 this.notifyGemChange(name, this.sockComp.selectedSocket);
             });
+            var gemLink = document.createElement("a");
+            gemLink.classList.add(`gemc${gem[1].Color}`)
+            gemLink.innerText = name;
+            gemLink.setAttribute("data-wowhead", "item=" + gem[1].ID + "&domain=tbc");
+            itemdiv.appendChild(gemLink);
             div.appendChild(itemdiv);
         });
         return div;
     }
 
     // Item Search
-    
+
     // turns a search string into a list of lowercase terms and if there is punctuation or not.
     getSearchTerms(text) {
         // Use lower case in search
@@ -271,11 +290,11 @@ class SelectorComponent {
         if (snp != search) {
             doPunc = true;
         }
-        
+
         // Now split search into terms
         var sterms = search.split(' ')
 
-        return {"terms": sterms, "punc": doPunc}
+        return { "terms": sterms, "punc": doPunc }
     }
 
     // takes search result from 'getSearchTerms' and searches the value string.
@@ -284,7 +303,7 @@ class SelectorComponent {
         if (!search.punc) {
             value = value.replace(/[^\w\s]|_/g, "");
         }
-        
+
         var found = true;
         search.terms.forEach(st => {
             // If value is missing any search term, break search.
@@ -297,20 +316,20 @@ class SelectorComponent {
     }
 
     notifyGemChange(gem, socket) {
-        this.changeHandlers.forEach((h)=>{
-            h({gem: {name: gem, socket: socket}});
+        this.changeHandlers.forEach((h) => {
+            h({ gem: { name: gem, socket: socket } });
         });
     }
 
     notifyItemChange(value) {
-        this.changeHandlers.forEach((h)=>{
-            h({item: value});
+        this.changeHandlers.forEach((h) => {
+            h({ item: value });
         });
     }
 
     notifyEnchantChange(name) {
-        this.changeHandlers.forEach((h)=>{
-            h({enchant: {name: name}});
+        this.changeHandlers.forEach((h) => {
+            h({ enchant: { name: name } });
         });
     }
 
@@ -322,7 +341,7 @@ class SelectorComponent {
     }
 
     arrow(search, last, F) {
-        return function(i, node, item) {
+        return function (i, node, item) {
             if (F(search, item)) {
                 node.childNodes[i].classList.add("lisearch");
                 node.childNodes[last].classList.remove("lisearch");
@@ -332,7 +351,7 @@ class SelectorComponent {
         }
     }
     handleSearchDown(hndlr) {
-        for (var i = this.highlighted+1; i < this.items.length; i++) {
+        for (var i = this.highlighted + 1; i < this.items.length; i++) {
             if (hndlr(i, this.selectorlist, this.items[i].Name)) {
                 this.highText = this.items[i].Name;
                 this.highlighted = i;
@@ -341,7 +360,7 @@ class SelectorComponent {
         }
     }
     handleSearchUp(hndlr) {
-        for (var i = this.highlighted-1; i>=0; i--) {
+        for (var i = this.highlighted - 1; i >= 0; i--) {
             if (hndlr(i, this.selectorlist, this.items[i].Name)) {
                 this.highText = this.items[i].Name;
                 this.highlighted = i;
@@ -369,7 +388,7 @@ class SelectorComponent {
         }
 
         var search = this.getSearchTerms(this.search.value);
-        
+
         // Handle direction function.
         var hndlr = this.arrow(search, this.highlighted, this.find);
         if (event.code == "ArrowUp") {
@@ -453,11 +472,17 @@ class SelectorComponent {
             var name = ench[1].Name;
             var itemdiv = document.createElement("div");
             itemdiv.classList.add("equipselitem")
-            itemdiv.innerText = name
-            itemdiv.addEventListener("click", (e)=>{
+            // itemdiv.innerText = name
+            itemdiv.addEventListener("click", (e) => {
                 // using global itemselector here feels weird...
                 this.notifyEnchantChange(name);
             });
+
+            var enchantLink = document.createElement("a");
+            enchantLink.innerText = name;
+            enchantLink.setAttribute("data-wowhead", "item=" + ench[1].ID + "&domain=tbc")
+            itemdiv.appendChild(enchantLink)
+
             div.appendChild(itemdiv);
         });
         return div;
@@ -465,7 +490,7 @@ class SelectorComponent {
 }
 
 function getColorHex(gem) {
-    switch(gem) {
+    switch (gem) {
         case 1: // meta
             return "";
             break;
@@ -490,8 +515,8 @@ function getColorHex(gem) {
         case 8: // prismatic
             return "#FFFFFF"
             break;
-                            
-        }
+
+    }
     return "";
 }
 
