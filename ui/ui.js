@@ -416,7 +416,7 @@ function runSim(gearSpec) {
 			simRequest.Options.DPSReportTime = 30;
 
 			workerPool.runSimulation(simRequest).then(simResult => {
-					const oomAtText = simResult.oomAtAvg ? Math.round(simResult.oomAtAvg) : ">600";
+					const oomAtText = simResult.OomAtAvg ? Math.round(simResult.OomAtAvg) : ">600";
 					const dps = Math.max(simResult.DpsAvg, simResult.DpsAtOomAvg);
 					resultsElem.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(dps)}</text> dps<br /><text style="font-size:0.7em">${oomAtText}s to oom using CL on CD.</text></div>`
 			});

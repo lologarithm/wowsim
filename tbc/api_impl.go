@@ -28,6 +28,8 @@ func computeStatsImpl(request ComputeStatsRequest) ComputeStatsResult {
 	fakeSim := NewSim(stats, equipment, request.Options)
 	sets := fakeSim.ActivateSets()
 
+	fakeSim.reset() // this will activate any perm-effect items as well
+
 	finalStats := stats
 	for stat, statValue := range fakeSim.Buffs {
 		finalStats[stat] += statValue
@@ -258,7 +260,7 @@ func (aggregator *MetricsAggregator) getResult() SimResult {
 	result.DpsHist = aggregator.dpsHist
 
 	result.NumOom = aggregator.numOom
-	result.OomAtAvg = aggregator.oomAtSum / numSims
+	result.OomAtAvg = aggregator.oomAtSum / float64(aggregator.numOom)
 	result.DpsAtOomAvg = aggregator.dpsAtOomSum / numSims
 
 	result.Casts = aggregator.casts

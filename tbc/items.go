@@ -665,15 +665,18 @@ var items = []Item{
 	{ID: 32483, Slot: EquipTrinket, Name: "The Skull of Gul'dan", Phase: 3, Quality: ItemQualityEpic, SourceZone: "Black Temple", SourceDrop: "", Stats: Stats{StatSpellHit: 25, StatSpellDmg: 55}, Activate: createHasteActivate(MagicIDSkullGuldan, 175, 20), ActivateCD: 120, CoolID: MagicIDSkullGuldanTrink},
 	{ID: 33829, Slot: EquipTrinket, Name: "Hex Shrunken Head", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatSpellDmg: 53}, Activate: createSpellDmgActivate(MagicIDHexShunkHead, 211, 20), ActivateCD: 120, CoolID: MagicIDHexTrink},
 	{ID: 29376, Slot: EquipTrinket, Name: "Essence of the Martyr", Phase: 1, Quality: ItemQualityRare, SourceZone: "G'eras", SourceDrop: "Badges", Stats: Stats{StatSpellDmg: 28}, Activate: createSpellDmgActivate(MagicIDSpellPower, 99, 20), ActivateCD: 120, CoolID: MagicIDEssMartyrTrink},
-	// {ID: 38290, Slot: EquipTrinket, Name: "Dark Iron Smoking Pipe", Phase: 2, Quality: ItemQualityEpic, SourceZone: "Corin Direbrew", SourceDrop: "Brewfest", Stats: Stats{StatSpellDmg: 43}, Activate: createSpellDmgActivate(MagicIDBlessingSilverCrescent, 155, 20), ActivateCD: 120, CoolID: MagicIDISCTrink},
+	{ID: 38290, Slot: EquipTrinket, Name: "Dark Iron Smoking Pipe", Phase: 2, Quality: ItemQualityEpic, SourceZone: "Brewfest", SourceDrop: "Corin Direbrew", Stats: Stats{StatSpellDmg: 43}, Activate: createSpellDmgActivate(MagicIDDarkIronPipeweed, 155, 20), ActivateCD: 120, CoolID: MagicIDDITrink},
+	{ID: 30663, Slot: EquipTrinket, Name: "Fathom-Brooch of the Tidewalker", Phase: 2, Quality: ItemQualityEpic, SourceZone: "SSC", SourceDrop: "Fathom-Lord Karathress", Stats: Stats{}, Activate: ActivateFathomBrooch, ActivateCD: -1},
+	{ID: 47048, Slot: EquipTrinket, Name: "Sorcerer's Alchemist Stone", Phase: 5, Quality: ItemQualityEpic, SourceZone: "Shattered Sun Offensive", SourceDrop: "Exalted", Stats: Stats{StatSpellDmg: 63}, Activate: ActivateAlchStone, ActivateCD: -1},
+
 	{ID: 24116, Slot: EquipNeck, Name: "Eye of the Night", Phase: 1, Quality: ItemQualityRare, SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatSpellCrit: 26, StatSpellHit: 16, StatSpellPen: 15}, Activate: func(sim *Simulation) Aura {
 		if sim.Options.Buffs.EyeOfNight {
 			return Aura{} // if we already have buff from party member, no need to activate this
 		}
 		activate := createSpellDmgActivate(MagicIDEyeOfTheNight, 34, 30*60)
 		return activate(sim)
-	}, ActivateCD: 3600, CoolID: MagicIDEyeOfTheNightTrink},
-	{ID: 24121, Slot: EquipNeck, Name: "Chain of the Twilight Owl", Phase: 1, Quality: ItemQualityRare, SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatStm: 0, StatInt: 19, StatSpellDmg: 21}, Activate: ActivateChainTO, ActivateCD: 3600, CoolID: MagicIDChainTOTrink},
+	}, ActivateCD: -1, CoolID: MagicIDEyeOfTheNightTrink},
+	{ID: 24121, Slot: EquipNeck, Name: "Chain of the Twilight Owl", Phase: 1, Quality: ItemQualityRare, SourceZone: "Jewelcrafting", SourceDrop: "", Stats: Stats{StatStm: 0, StatInt: 19, StatSpellDmg: 21}, Activate: ActivateChainTO, ActivateCD: -1, CoolID: MagicIDChainTOTrink},
 	{ID: 31075, Slot: EquipFinger, Name: "Evoker's Mark of the Redemption", Phase: 1, Quality: ItemQualityRare, SourceZone: "Quest SMV", SourceDrop: "Dissension Amongst the Ranks...", Stats: Stats{StatInt: 15, StatSpellDmg: 29, StatSpellCrit: 10}},
 	{ID: 32664, Slot: EquipFinger, Name: "Dreamcrystal Band", Phase: 1, Quality: ItemQualityRare, SourceZone: "Blades Edge Moutains", SourceDrop: "50 Apexis Shards", Stats: Stats{StatInt: 10, StatSpellDmg: 38, StatSpellCrit: 15}},
 	{ID: 29522, Slot: EquipChest, Name: "Windhawk Hauberk", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Leatherworking", SourceDrop: "", Stats: Stats{StatStm: 28, StatInt: 29, StatSpirit: 29, StatSpellDmg: 46, StatSpellCrit: 19}, GemSlots: []GemColor{GemColorBlue, GemColorYellow, GemColorBlue}, SocketBonus: Stats{StatSpellDmg: 5}},

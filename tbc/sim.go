@@ -366,6 +366,18 @@ func (sim *Simulation) Cast(cast *Cast) {
 
 // Remove an aura by its ID, searches through auras
 // and calls 'cleanAura'
+func (sim *Simulation) AuraActive(id int32) bool {
+	for i := range sim.Auras {
+		if sim.Auras[i].ID == id {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Remove an aura by its ID, searches through auras
+// and calls 'cleanAura'
 func (sim *Simulation) removeAuraByID(id int32) {
 	for i := range sim.Auras {
 		if sim.Auras[i].ID == id {
