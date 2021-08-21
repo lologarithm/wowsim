@@ -19,6 +19,8 @@ var uifs embed.FS
 
 func main() {
 	var useFS = flag.Bool("usefs", false, "Use local file system and wasm. Set to true for dev")
+	var host = flag.String("host", ":3333", "URL to host the interface on.")
+
 	flag.Parse()
 
 	var fs http.Handler
@@ -56,9 +58,9 @@ func main() {
 
 	http.HandleFunc("/api", handleAPI)
 
-	log.Printf("Launching interface on http://localhost:3333/ui")
+	log.Printf("Launching interface on http://localhost%s/ui", *host)
 
-	log.Printf("Closing: %s", http.ListenAndServe(":3333", nil))
+	log.Printf("Closing: %s", http.ListenAndServe(*host, nil))
 }
 
 func handleAPI(w http.ResponseWriter, r *http.Request) {
