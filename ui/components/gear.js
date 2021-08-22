@@ -134,6 +134,8 @@ class GearUI {
                 this.itemCompSlots[slot].addItem(g);
             }
         });
+				this.setWeights(defaultStatWeights);
+
         gearList.Gems.forEach((gem)=>{
             this.allgems[gem.Name] = gem;
             this.gemsByID[gem.ID] = gem;
@@ -151,6 +153,11 @@ class GearUI {
     addChangeListener(handler) {
         this.changeHandlers.push(handler);
     }
+
+		// Sets the EP weights for all items.
+		setWeights(weights) {
+				Object.values(this.itemCompSlots).forEach(itemComp => itemComp.setWeights(weights));
+		}
 
     updateItemSlot(newItem, slotid) {
         this.currentGear[slotid] = newItem;

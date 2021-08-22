@@ -622,51 +622,39 @@ function calcStatWeights(gearSpec) {
 				});
 
 				showGearRecommendations(statWeightsResult.EpValues);
+				gearUI.setWeights(statWeightsResult.EpValues);
 		});
 }
 
 function showGearRecommendations(weights) {
     const itemWeightsBySlot = {};
     const curSlotWeights = new Array(20).fill(0);
-    const csdVal = (((currentFinalStats[STAT_IDX.SPELL_DMG] * 0.795) + 603) * 2 * (currentFinalStats[STAT_IDX.SPELL_CRIT] / 2208) * 0.045) / 0.795;
+
     // process all items to find the weighted value.
     // find the value of each slots currently equipped item.
     Object.entries(gearUI.allitems).forEach((entry) => {
-        var name = entry[0];
-        var item = entry[1];
+        const name = entry[0];
+        const item = entry[1];
+
         if (item.Quality <= qualityFilter || item.Phase > phaseFilter) {
             return;
         }
-        var value = 0.0;
-        if (item.Stats != null) {
-            weights.forEach((w, i) => {
-                if (item.Stats[i]) {
-                    value += item.Stats[i] * w
-                }
-            });
-        }
+
         if (itemWeightsBySlot[item.Slot] == null) {
             itemWeightsBySlot[item.Slot] = [];
         }
-        if (item.GemSlots != null && item.GemSlots.length > 0) {
-            let numGems = item.GemSlots.length;
-            if (item.GemSlots[0] == 1) {
-                numGems--;
-                // how to value a CSD
-                // ~ spellpower * crit chance * 0.09 = increased damage per cast.
-                value += csdVal;
-            }
-            value += (numGems * 9) * weights[STAT_IDX.SPELL_DMG]; // just for measuring use 9 spell power gems in every slot.
-        }
-        var slotid = slotToID[item.Slot];
+
+        let slotid = slotToID[item.Slot];
         if (slotid == "equipfinger") {
             slotid = "equipfinger1"
         }
-        var curEquip = gearUI.currentGear[slotid];
+
+        const itemEP = calcItemEP(item, weights);
+        const curEquip = gearUI.currentGear[slotid];
         if (curEquip != null && curEquip.Name == item.Name) {
-            curSlotWeights[item.Slot] = value;
+            curSlotWeights[item.Slot] = itemEP;
         }
-        itemWeightsBySlot[item.Slot].push({ Name: item.Name, Weight: value });
+        itemWeightsBySlot[item.Slot].push({ Name: item.Name, Weight: itemEP });
         itemWeightsBySlot[item.Slot] = itemWeightsBySlot[item.Slot].sort((a, b) => b.Weight - a.Weight);
     });
     var uptab = document.getElementById("upgrades");

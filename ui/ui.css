@@ -239,3 +239,19 @@ h4 {
 .gemc8 {
     color: #FFFFFF !important;
 }
+
+.qualityJunk {
+}
+
+.qualityUncommon {
+		color: #436904 !important;
+}
+.qualityRare {
+		color: #589BE1 !important;
+}
+.qualityEpic {
+		color: #A3178A !important;
+}
+.qualityLegendary {
+		color: #B27300 !important;
+}
