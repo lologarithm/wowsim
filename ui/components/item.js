@@ -91,6 +91,12 @@ class ItemComponent {
         console.log("New Item Equipped: ", newItem);
         if (newItem != null && newItem.Name != "") {
             this.name.innerText = newItem.Name;
+            // remove old quality classnames
+            this.name.classList.forEach(classname => {
+                if (classname.includes("quality")) {
+                    this.name.classList.remove(classname);
+                }
+            });
             this.name.classList.add(itemQualityCssClass(newItem.Quality));
 
             let wowheadData = ""

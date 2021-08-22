@@ -29,26 +29,19 @@ If not specified the AI will simply try to use exactly all the mana by casting a
 
 ### UI
   - Could use a real design
-  - Icons
   - Gear Change data on hover of item change dropdown.
-  - Remove Gem button
 
 ### Items
   - Validate gear stats - unsure if item data source is accurate.
   - More Gems - https://blizzardwatch.com/2021/04/07/burning-crusade-classic-gems/
 
 ### Engine
-  - Set Bonuses (missing t5/6)
 
 ### Other
-  - Implement Gear Phases
   - seventyupgrades importer
   - Add armor type to allow for a 'mail-only' optimization
-  - 'Gear Sets' both pre-made and let players save the setup. (optionally allow for saving of buffs as well)
   - History - Make another results tab that holds the history of all sims. (probably just Peak DPS + Avg DPS)
   - Versioning - Add a version notification that can do a quick check to see if new version exists. (maybe include a like VERSION file the client can poll on every few minutes)
-  - Look into more efficient serialization between sim <-> JS (use same serialization for wasm and server if that is ever implemented)
-    - This has been mostly mitigated by sending less data.
   - Write some tests already... so many small breaks from refactors that tests would have caught.
 
 ## Install
