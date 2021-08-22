@@ -121,17 +121,7 @@ class ItemComponent {
                 wowheadData += "ench=" + newItem.Enchant.EffectID;
             }
 
-            if (itemToIcon.has(newItem.ID)) {
-                this.img.src = slotToIcon[newItem.ID];
-            } else {
-                var img = this.img;
-                fetch('https://tbc.wowhead.com/tooltip/item/'+newItem.ID)
-                .then(response => response.json())
-                .then(itemInfo => {
-                    itemToIcon[newItem.ID] = "https://wow.zamimg.com/images/wow/icons/large/" + itemInfo.icon + ".jpg";
-                    img.src = itemToIcon[newItem.ID];
-                });
-            }
+            setItemIcon(newItem.ID, this.img);
             this.img.parentNode.setAttribute("href", "https://tbc.wowhead.com/item=" + newItem.ID);
             this.img.parentNode.setAttribute("data-wowhead", wowheadData);
             // updates the selector UI with the current gems/enchants (later)
@@ -221,7 +211,7 @@ class SocketsComponent {
                 if (gems && gems[idx]) {
                     if (gems[idx].Name != null) {
                         var img = document.createElement("img")
-                        img.src = gemToIcon[gems[idx].Color]
+                        setItemIcon(gems[idx].ID, img);
                         var text = gems[idx].Name;
                         gems[idx].Stats.forEach((v, i) => {
                             if (v > 0) {
@@ -275,14 +265,17 @@ class SocketsComponent {
     }
 }
 
-// For now hardcode an icon.
-var gemToIcon = {
-    1: "icons/Gems/Gem_Diamond_07.png",
-    2: "icons/Gems/Gem_BloodGem_02.png",
-    3: "icons/Gems/Gem_AzureDraenite_02.png", // blue
-    4: "icons/Gems/Gem_GoldenDraenite_02.png", // yellow
-    5: "icons/Gems/Gem_DeepPeridot_02.png", // green
-    6: "icons/Gems/Gem_FlameSpessarite_02.png", // orange
-    7: "icons/Gems/Gem_EbonDraenite_02.png", // purple
+function setItemIcon(id, imgElement) {
+    if (itemToIcon.has(id)) {
+        imgElement.src = itemToIcon.get(id);
+    } else {
+        fetch('https://tbc.wowhead.com/tooltip/item/'+id)
+        .then(response => response.json())
+        .then(itemInfo => {
+            itemToIcon.set(id, "https://wow.zamimg.com/images/wow/icons/large/" + itemInfo.icon + ".jpg");
+            imgElement.src = itemToIcon.get(id);
+        });
+    }
 }
 
+var itemToIcon = new Map();
