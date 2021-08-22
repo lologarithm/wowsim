@@ -258,5 +258,3 @@ class GearUI {
         return list;
     }
 }
-
-var itemToIcon = new Map();
