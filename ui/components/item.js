@@ -42,14 +42,16 @@ class ItemComponent {
         var img = document.createElement("img");
         img.id = slot + "icon";
         img.src = "";
-
+        
         var maindiv = document.createElement("div");
         maindiv.id = slot;
         maindiv.classList.add("equipslot");
 
         var imgLink = document.createElement("a");
+        imgLink.target = "_blank";
         imgLink.appendChild(img);
         maindiv.appendChild(imgLink);
+        
         maindiv.appendChild(innerdiv);
         maindiv.appendChild(this.selector.selectordiv);
 
@@ -119,7 +121,17 @@ class ItemComponent {
                 wowheadData += "ench=" + newItem.Enchant.EffectID;
             }
 
-            this.img.src = slotToIcon[this.slot];
+            if (itemToIcon.has(newItem.ID)) {
+                this.img.src = slotToIcon[newItem.ID];
+            } else {
+                var img = this.img;
+                fetch('https://tbc.wowhead.com/tooltip/item/'+newItem.ID)
+                .then(response => response.json())
+                .then(itemInfo => {
+                    itemToIcon[newItem.ID] = "https://wow.zamimg.com/images/wow/icons/large/" + itemInfo.icon + ".jpg";
+                    img.src = itemToIcon[newItem.ID];
+                });
+            }
             this.img.parentNode.setAttribute("href", "https://tbc.wowhead.com/item=" + newItem.ID);
             this.img.parentNode.setAttribute("data-wowhead", wowheadData);
             // updates the selector UI with the current gems/enchants (later)
