@@ -260,7 +260,9 @@ func (aggregator *MetricsAggregator) getResult() SimResult {
 	result.DpsHist = aggregator.dpsHist
 
 	result.NumOom = aggregator.numOom
-	result.OomAtAvg = aggregator.oomAtSum / float64(aggregator.numOom)
+	if result.NumOom > 0 {
+		result.OomAtAvg = aggregator.oomAtSum / float64(aggregator.numOom)
+	}
 	result.DpsAtOomAvg = aggregator.dpsAtOomSum / numSims
 
 	result.Casts = aggregator.casts
