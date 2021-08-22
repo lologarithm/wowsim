@@ -134,6 +134,8 @@ class GearUI {
                 this.itemCompSlots[slot].addItem(g);
             }
         });
+        this.setWeights(defaultStatWeights);
+
         gearList.Gems.forEach((gem)=>{
             this.allgems[gem.Name] = gem;
             this.gemsByID[gem.ID] = gem;
@@ -150,6 +152,11 @@ class GearUI {
     // or on pressing 'enter' in a search box
     addChangeListener(handler) {
         this.changeHandlers.push(handler);
+    }
+
+    // Sets the EP weights for all items.
+    setWeights(weights) {
+        Object.values(this.itemCompSlots).forEach(itemComp => itemComp.setWeights(weights));
     }
 
     updateItemSlot(newItem, slotid) {
@@ -186,11 +193,11 @@ class GearUI {
 
         // Take each item, find its slot
         newGear.forEach(item => {
-						const nameOrId = item.ID || item.Name;
-						const realItem = this.allitems[nameOrId] || this.itemsByID[nameOrId];
-						if (!realItem) {
-							return;
-						}
+            const nameOrId = item.ID || item.Name;
+            const realItem = this.allitems[nameOrId] || this.itemsByID[nameOrId];
+            if (!realItem) {
+              return;
+            }
 
             let slotid = slotToID[realItem.Slot];
     
@@ -210,25 +217,25 @@ class GearUI {
                 }
             }
 
-						if (item.Gems) {
-							realItem.Gems = item.Gems.map(gem => {
-								if (!gem) {
-									return {};
-								}
+            if (item.Gems) {
+              realItem.Gems = item.Gems.map(gem => {
+                if (!gem) {
+                  return {};
+                }
 
-								if (typeof gem === 'string') {
-									return this.allgems[gem] || {};
-								}
-								return this.allgems[gem.Name] || this.gemsByID[gem.ID] || {};
-							});
-						}
+                if (typeof gem === 'string') {
+                  return this.allgems[gem] || {};
+                }
+                return this.allgems[gem.Name] || this.gemsByID[gem.ID] || {};
+              });
+            }
             if (item.g) {
                 realItem.Gems = item.g.map(gem => this.gemsByID[gem] || {});
             }
             if (item.Enchant) {
                 realItem.Enchant = this.allenchants[item.Enchant] 
-										|| this.allenchants[item.Enchant.Name] 
-										|| this.enchantsByID[item.Enchant.ID];
+                    || this.allenchants[item.Enchant.Name] 
+                    || this.enchantsByID[item.Enchant.ID];
             }
             if (item.e && item.e > 0) {
                 realItem.Enchant = this.enchantsByID[item.e];

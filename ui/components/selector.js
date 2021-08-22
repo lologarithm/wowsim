@@ -175,20 +175,28 @@ class SelectorComponent {
 
     // Adds a new item that can be searched.
     addItem(item) {
-        var listItem = document.createElement("div");
-        listItem.classList.add("equipselitem");
-        // listItem.innerText = item.Name;
-        listItem.addEventListener("click", (e) => {
-            this.gearClickHandler(item.Name);
-        });
-
-        var itemLink = document.createElement("a");
-        itemLink.innerText = item.Name;
-        itemLink.setAttribute("data-wowhead", "item=" + item.ID + "&domain=tbc")
-        listItem.appendChild(itemLink)
-
-        this.selectorlist.appendChild(listItem);
         this.items.push(item);
+    }
+
+    setWeights(weights) {
+        this.items.sort((item1, item2) => calcItemEP(item2, weights) - calcItemEP(item1, weights));
+        this.selectorlist.innerHTML = "";
+
+        this.items.forEach(item => {
+            const listItem = document.createElement("div");
+            listItem.classList.add("equipselitem");
+            listItem.addEventListener("click", (e) => {
+                this.gearClickHandler(item.Name);
+            });
+
+            const itemLink = document.createElement("a");
+            itemLink.classList.add(itemQualityCssClass(item.Quality));
+            itemLink.innerText = item.Name;
+            itemLink.setAttribute("data-wowhead", "item=" + item.ID + "&domain=tbc")
+            listItem.appendChild(itemLink)
+
+            this.selectorlist.appendChild(listItem);
+        });
     }
 
     show() {
@@ -543,4 +551,62 @@ function colorIntersects(color, intersect) {
     }
 
     return false; // dunno wtf this is.
+}
+
+// Just using the weights from mostly bis p2 gear
+const defaultStatWeights = [
+    0.41, // int
+    0, // stam
+    0.88, // crit
+    0, // hit
+    1, // sp
+    1.21, // haste
+    0.37, // mp5
+    0, // mana
+    0, // pen
+    0 // spirit
+];
+
+function calcItemEP(item, weights) {
+    let ep = 0.0;
+    if (item.Stats != null) {
+        weights.forEach((w, i) => {
+            if (item.Stats[i]) {
+                ep += item.Stats[i] * w
+            }
+        });
+    }
+    if (item.GemSlots != null && item.GemSlots.length > 0) {
+        let numGems = item.GemSlots.length;
+        if (item.GemSlots[0] == 1) {
+            numGems--;
+            // how to value a CSD
+            // ~ spellpower * crit chance * 0.09 = increased damage per cast.
+            const csdEP = (((currentFinalStats[STAT_IDX.SPELL_DMG] * 0.795) + 603) * 2 * (currentFinalStats[STAT_IDX.SPELL_CRIT] / 2208) * 0.045) / 0.795;
+
+            if (isNaN(csdEP)) {
+              ep += 63;
+            } else {
+              ep += csdEP;
+            }
+        }
+        ep += (numGems * 9) * weights[STAT_IDX.SPELL_DMG]; // just for measuring use 9 spell power gems in every slot.
+    }
+    return ep;
+}
+
+function itemQualityCssClass(itemQuality) {
+    switch (itemQuality) {
+        case 0:
+            return 'qualityJunk';
+        case 1:
+            return 'qualityUncommon';
+        case 2:
+            return 'qualityRare';
+            this.name.style.color = "#589BE1"
+        case 3:
+            return 'qualityEpic';
+        case 4:
+            return 'qualityLegendary';
+    }
 }

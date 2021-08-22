@@ -83,28 +83,17 @@ class ItemComponent {
         this.selector.addItem(newItem);
     }
 
+    setWeights(weights) {
+        this.selector.setWeights(weights);
+    }
+
     updateEquipped(newItem) {
         console.log("New Item Equipped: ", newItem);
         if (newItem != null && newItem.Name != "") {
             this.name.innerText = newItem.Name;
-            switch (newItem.Quality) {
-                case 0:
-                    this.name.style.color = ""
-                    break;
-                case 1:
-                    this.name.style.color = "#436904"
-                    break;
-                case 2:
-                    this.name.style.color = "#589BE1"
-                    break;
-                case 3:
-                    this.name.style.color = "#A3178A"
-                    break;
-                case 4:
-                    this.name.style.color = "#B27300"
-                    break;
-            }
-            var wowheadData = ""
+            this.name.classList.add(itemQualityCssClass(newItem.Quality));
+
+            let wowheadData = ""
             if (newItem.Gems && newItem.Gems.length > 0) {
                 wowheadData += "gems=";
                 newItem.Gems.forEach((g, i) => {
@@ -122,6 +111,7 @@ class ItemComponent {
             }
 
             setItemIcon(newItem.ID, this.img);
+          
             this.img.parentNode.setAttribute("href", "https://tbc.wowhead.com/item=" + newItem.ID);
             this.img.parentNode.setAttribute("data-wowhead", wowheadData);
             // updates the selector UI with the current gems/enchants (later)
