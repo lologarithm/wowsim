@@ -582,8 +582,13 @@ function calcItemEP(item, weights) {
             numGems--;
             // how to value a CSD
             // ~ spellpower * crit chance * 0.09 = increased damage per cast.
-            const csdVal = (((currentFinalStats[STAT_IDX.SPELL_DMG] * 0.795) + 603) * 2 * (currentFinalStats[STAT_IDX.SPELL_CRIT] / 2208) * 0.045) / 0.795;
-            ep += csdVal;
+            const csdEP = (((currentFinalStats[STAT_IDX.SPELL_DMG] * 0.795) + 603) * 2 * (currentFinalStats[STAT_IDX.SPELL_CRIT] / 2208) * 0.045) / 0.795;
+
+            if (isNaN(csdEP)) {
+              ep += 63;
+            } else {
+              ep += csdEP;
+            }
         }
         ep += (numGems * 9) * weights[STAT_IDX.SPELL_DMG]; // just for measuring use 9 spell power gems in every slot.
     }
