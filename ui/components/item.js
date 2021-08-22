@@ -83,15 +83,15 @@ class ItemComponent {
         this.selector.addItem(newItem);
     }
 
-		setWeights(weights) {
-				this.selector.setWeights(weights);
-		}
+    setWeights(weights) {
+        this.selector.setWeights(weights);
+    }
 
     updateEquipped(newItem) {
         console.log("New Item Equipped: ", newItem);
         if (newItem != null && newItem.Name != "") {
             this.name.innerText = newItem.Name;
-						this.name.classList.add(itemQualityCssClass(newItem.Quality));
+            this.name.classList.add(itemQualityCssClass(newItem.Quality));
 
             let wowheadData = ""
             if (newItem.Gems && newItem.Gems.length > 0) {
