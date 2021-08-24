@@ -9,26 +9,8 @@ import (
 //   This is where we can add more sophisticated checks if we would like.
 //   Any changes to the damage output of an item set
 func TestSimulate(t *testing.T) {
-	equip := NewEquipmentSet(EquipmentSpec{
-		{Name: "Cyclone Faceguard (Tier 4)"},
-		{Name: "Adornment of Stolen Souls"},
-		{Name: "Cyclone Shoulderguards (Tier 4)"},
-		{Name: "Ruby Drape of the Mysticant"},
-		{Name: "Netherstrike Breastplate"},
-		{Name: "Netherstrike Bracers"},
-		{Name: "Soul-Eater's Handwraps"},
-		{Name: "Netherstrike Belt"},
-		{Name: "Stormsong Kilt"},
-		{Name: "Windshear Boots"},
-		{Name: "Ring of Unrelenting Storms"},
-		{Name: "Ring of Recurrence"},
-		{Name: "The Lightning Capacitor"},
-		{Name: "Icon of the Silver Crescent"},
-		{Name: "Totem of the Void"},
-		{Name: "Nathrezim Mindblade"},
-		{Name: "Mazthoril Honor Shield"},
-	})
 	options := Options{
+		RSeed:        1, // Use same seed to get same result on every run.
 		NumBloodlust: 1,
 		NumDrums:     0,
 		Buffs: Buffs{
@@ -55,12 +37,33 @@ func TestSimulate(t *testing.T) {
 			Convection:         5,
 		},
 	}
-	stats := CalculateTotalStats(options, equip)
-	s := NewSim(stats, equip, options)
-	metrics := s.Run()
+	result := RunSimulation(SimRequest{
+		Options: options,
+		Gear: EquipmentSpec{
+			{Name: "Cyclone Faceguard (Tier 4)"},
+			{Name: "Adornment of Stolen Souls"},
+			{Name: "Cyclone Shoulderguards (Tier 4)"},
+			{Name: "Ruby Drape of the Mysticant"},
+			{Name: "Netherstrike Breastplate"},
+			{Name: "Netherstrike Bracers"},
+			{Name: "Soul-Eater's Handwraps"},
+			{Name: "Netherstrike Belt"},
+			{Name: "Stormsong Kilt"},
+			{Name: "Windshear Boots"},
+			{Name: "Ring of Unrelenting Storms"},
+			{Name: "Ring of Recurrence"},
+			{Name: "The Lightning Capacitor"},
+			{Name: "Icon of the Silver Crescent"},
+			{Name: "Totem of the Void"},
+			{Name: "Nathrezim Mindblade"},
+			{Name: "Mazthoril Honor Shield"},
+		},
+		Iterations:  1,
+		IncludeLogs: false,
+	})
 
 	// Rounding because floats are dumb
-	if math.Round(metrics.TotalDamage) != 72527 {
-		t.Fatalf("Incorrect total damage in simulator: %0f", metrics.TotalDamage)
+	if math.Round(result.DpsAvg) != 1303 {
+		t.Fatalf("Incorrect total damage in simulator: %0f", result.DpsAvg)
 	}
 }
