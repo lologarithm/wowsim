@@ -829,6 +829,9 @@ function popgear(gearList) {
 
     updateGearSetList();
 
+    loadSettings(); // load phase/quality settings
+
+    // This will perform all the setup needed to use the stored settings from above.
     changePhaseFilter({ target: document.getElementById("phasesel") });
     changeQualityFilter({ target: document.getElementById("qualsel") })
 
@@ -1075,6 +1078,7 @@ function changePhaseFilter(e) {
     var filter = e.target.value;
     phaseFilter = parseInt(filter);
     gearUI.setPhase(phaseFilter);
+    localStorage.setItem("settings.phase", phaseFilter);
 }
 
 var qualityFilter = 0;
@@ -1082,6 +1086,7 @@ function changeQualityFilter(e) {
     var filter = e.target.value;
     qualityFilter = parseInt(filter);
     gearUI.setFilter(qualityFilter);
+    localStorage.setItem("settings.quality", qualityFilter);
 }
 
 function saveGearSet() {
@@ -1219,4 +1224,29 @@ function loadPako(onLoad) {
     script.onload = onLoad
     script.src = "pako.js";
     document.head.appendChild(script);
+}
+
+function loadSettings() {
+    phaseFilter = parseInt(localStorage.getItem('settings.phase'));
+    var phaseDrop = document.getElementById('phasesel');
+    var numOpts = phaseDrop.options.length;
+    for (var i = 0; i < numOpts; i++) {
+        var item = phaseDrop.options[i];
+        if (parseInt(item.value) == phaseFilter) {
+            phaseDrop.selectedIndex = i;
+            break;
+        }
+    }
+
+    qualityFilter = parseInt(localStorage.getItem('settings.quality'));
+    var qualDrop = document.getElementById('qualsel');
+    var numOpts = qualDrop.options.length;
+    for (var i = 0; i < numOpts; i++) {
+        var item = qualDrop.options[i];
+        if (parseInt(item.value) == qualityFilter) {
+            qualDrop.selectedIndex = i;
+            break;
+        }
+    }
+    // gcdmin = localStorage.getItem('settings.gcdmin');
 }
