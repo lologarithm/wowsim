@@ -45,6 +45,7 @@ var Gems = []Gem{
 	{ID: 32215, Name: "Glowing Shadowsong Amethyst", Quality: ItemQualityEpic, Phase: 3, Color: GemColorPurple, Stats: Stats{StatSpellDmg: 6, StatStm: 7}},
 	{ID: 31116, Name: "Infused Amethyst", Quality: ItemQualityEpic, Phase: 1, Color: GemColorPurple, Stats: Stats{StatSpellDmg: 6, StatStm: 6}},
 	{ID: 30600, Name: "Fluorescent Tanzanite", Quality: ItemQualityEpic, Phase: 1, Color: GemColorPurple, Stats: Stats{StatSpellDmg: 6, StatSpirit: 4}},
+	{ID: 30605, Name: "Vivid Chrysoprase", Quality: ItemQualityEpic, Phase: 1, Color: GemColorGreen, Stats: Stats{StatSpellHit: 5, StatStm: 6}},
 }
 
 var Enchants = []Enchant{
