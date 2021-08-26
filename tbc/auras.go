@@ -292,7 +292,7 @@ func ActivateChainLightningBounce(sim *Simulation) Aura {
 				dmgCoeff = 0.5
 			}
 			for i := 1; i < sim.Options.Encounter.NumClTargets; i++ {
-				if sim.Options.Tidefury2Pc {
+				if sim.hasAura(MagicIDTidefury) {
 					dmgCoeff *= 0.83
 				} else {
 					dmgCoeff *= 0.7
@@ -372,7 +372,7 @@ func AuraElementalFocus(currentTime float64) Aura {
 			}
 			count--
 			if count == 0 {
-				sim.removeAuraByID(MagicIDEleFocus)
+				sim.removeAura(MagicIDEleFocus)
 			}
 		},
 	}
@@ -395,7 +395,7 @@ func TryActivateEleMastery(sim *Simulation) {
 			c.Crit += 1.01 // 101% chance of crit
 			// Remove the buff and put skill on CD
 			sim.setCD(MagicIDEleMastery, 180)
-			sim.removeAuraByID(MagicIDEleMastery)
+			sim.removeAura(MagicIDEleMastery)
 		},
 	})
 }
@@ -784,7 +784,7 @@ func ActivateCycloneManaReduce(sim *Simulation) Aura {
 						c.ManaCost -= 270
 					},
 					OnCastComplete: func(sim *Simulation, c *Cast) {
-						sim.removeAuraByID(MagicIDCycloneMana)
+						sim.removeAura(MagicIDCycloneMana)
 					},
 				})
 			}
@@ -847,15 +847,15 @@ func TryActivateDestructionPotion(sim *Simulation) {
 }
 
 // TODO: This function doesn't really belong in auras.go, find a better home for it.
-func TryActivateDarkRune(sim *Simulation) bool {
+func TryActivateDarkRune(sim *Simulation) {
 	if !sim.Options.Consumes.DarkRune || sim.isOnCD(MagicIDRune) {
-		return false
+		return
 	}
 
 	// Only pop if we have less than the max mana provided by the potion minus 1mp5 tick.
 	totalRegen := sim.manaRegen() * 5
 	if sim.Stats[StatMana]-(sim.CurrentMana+totalRegen) < 1500 {
-		return false
+		return
 	}
 
 	// Restores 900 to 1500 mana. (2 Min Cooldown)
@@ -864,27 +864,25 @@ func TryActivateDarkRune(sim *Simulation) bool {
 	if sim.Debug != nil {
 		sim.Debug("Used Dark Rune\n")
 	}
-	return true
+	return
 }
 
 // TODO: This function doesn't really belong in auras.go, find a better home for it.
-func TryActivateSuperManaPotion(sim *Simulation) bool {
+func TryActivateSuperManaPotion(sim *Simulation) {
 	if !sim.Options.Consumes.SuperManaPotion || sim.isOnCD(MagicIDPotion) {
-		return false
+		return
 	}
 
 	// Only pop if we have less than the max mana provided by the potion minus 1mp5 tick.
 	totalRegen := sim.manaRegen() * 5
 	if sim.Stats[StatMana]-(sim.CurrentMana+totalRegen) < 3000 {
-		return false
+		return
 	}
 
 	// Restores 1800 to 3000 mana. (2 Min Cooldown)
 	manaGain := 1800 + (sim.rando.Float64() * 1200)
 
-	// this is way slower check than I would like...
-	// but this is only checked when we are actually going to use a mana pot so very rarely called.
-	if sim.AuraActive(MagicIDAlchStone) {
+	if sim.hasAura(MagicIDAlchStone) {
 		manaGain *= 1.4
 	}
 
@@ -893,7 +891,7 @@ func TryActivateSuperManaPotion(sim *Simulation) bool {
 	if sim.Debug != nil {
 		sim.Debug("Used Mana Potion\n")
 	}
-	return true
+	return
 }
 
 func ActivateSextant(sim *Simulation) Aura {
