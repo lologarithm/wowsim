@@ -28,8 +28,8 @@ type Simulation struct {
 	Options           Options
 
 	// timeToRegen := 0
-	CDs   []float64 // Map of MagicID to ticks until CD is done. 'Advance' counts down these
-	auras [MagicIDLen]Aura    // this is array instead of map to speed up browser perf.
+	CDs   []float64        // Map of MagicID to ticks until CD is done. 'Advance' counts down these
+	auras [MagicIDLen]Aura // this is array instead of map to speed up browser perf.
 
 	// Clears and regenerates on each Run call.
 	metrics SimMetrics
@@ -47,7 +47,7 @@ type SimMetrics struct {
 	DamageAtOOM    float64
 	OOMAt          float64
 	Casts          []*Cast
-  ManaSpent      float64
+	ManaSpent      float64
 	ManaAtEnd      int
 }
 
@@ -186,13 +186,13 @@ func (sim *Simulation) Run() SimMetrics {
 
 		// Choose next action
 		action := sim.Agent.ChooseAction(sim)
-    if action.Wait != 0 {
+		if action.Wait != 0 {
 			sim.Agent.OnActionAccepted(sim, action)
 			sim.Advance(action.Wait)
-      continue
-    }
+			continue
+		}
 
-    castingSpell := action.Cast
+		castingSpell := action.Cast
 		if castingSpell == nil {
 			panic("Agent returned nil action")
 		}
@@ -226,7 +226,7 @@ func (sim *Simulation) Run() SimMetrics {
 
 // Advance moves time forward counting down auras, CDs, mana regen, etc
 func (sim *Simulation) Advance(elapsedTime float64) {
-  newTime := sim.CurrentTime + elapsedTime
+	newTime := sim.CurrentTime + elapsedTime
 
 	// MP5 regen
 	sim.CurrentMana = math.Min(
@@ -235,7 +235,7 @@ func (sim *Simulation) Advance(elapsedTime float64) {
 
 	for i := range sim.auras {
 		if sim.auras[i].Expires != 0 && sim.auras[i].Expires <= newTime {
-      sim.removeAura(int32(i))
+			sim.removeAura(int32(i))
 		}
 	}
 	sim.CurrentTime = newTime
@@ -248,7 +248,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 		sim.Debug("Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
 	}
 	sim.CurrentMana -= cast.ManaCost
-  sim.metrics.ManaSpent += cast.ManaCost
+	sim.metrics.ManaSpent += cast.ManaCost
 
 	for _, aur := range sim.auras {
 		if aur.OnCastComplete != nil {
@@ -380,10 +380,10 @@ func (sim *Simulation) addAura(newAura Aura) {
 		return // no need to waste time adding aura that doesn't last.
 	}
 
-  if sim.hasAura(newAura.ID) {
-    sim.removeAura(newAura.ID)
-  }
-  sim.auras[newAura.ID] = newAura
+	if sim.hasAura(newAura.ID) {
+		sim.removeAura(newAura.ID)
+	}
+	sim.auras[newAura.ID] = newAura
 }
 
 // Remove an aura by its ID
@@ -391,7 +391,7 @@ func (sim *Simulation) removeAura(id int32) {
 	if sim.auras[id].OnExpire != nil {
 		sim.auras[id].OnExpire(sim, nil)
 	}
-  sim.auras[id] = Aura{}
+	sim.auras[id] = Aura{}
 
 	if sim.Debug != nil {
 		sim.Debug(" -%s\n", AuraName(id))
@@ -400,7 +400,7 @@ func (sim *Simulation) removeAura(id int32) {
 
 // Returns whether an aura with the given ID is currently active.
 func (sim *Simulation) hasAura(id int32) bool {
-  return sim.auras[id].ID != 0
+	return sim.auras[id].ID != 0
 }
 
 // Returns rate of mana regen, as mana / second

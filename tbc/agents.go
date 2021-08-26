@@ -24,21 +24,21 @@ type Agent interface {
 
 // A single action that an Agent can take.
 type AgentAction struct {
-  // Exactly one of these should be set.
-  Wait float64 // Duration to wait
-  Cast *Cast
+	// Exactly one of these should be set.
+	Wait float64 // Duration to wait
+	Cast *Cast
 }
 
 func NewWaitAction(duration float64) AgentAction {
-  return AgentAction{
-    Wait: duration,
-  }
+	return AgentAction{
+		Wait: duration,
+	}
 }
 
 func NewCastAction(sim *Simulation, sp *Spell) AgentAction {
-  return AgentAction{
-    Cast: NewCast(sim, sp),
-  }
+	return AgentAction{
+		Cast: NewCast(sim, sp),
+	}
 }
 
 // ################################################################
@@ -52,11 +52,11 @@ type FixedRotationAgent struct {
 // Returns if any temporary haste buff is currently active.
 // TODO: Figure out a way to make this automatic
 func (agent *FixedRotationAgent) temporaryHasteActive(sim *Simulation) bool {
-  return sim.hasAura(MagicIDBloodlust) ||
-      sim.hasAura(MagicIDDrums) ||
-      sim.hasAura(MagicIDTrollBerserking) ||
-      sim.hasAura(MagicIDSkullGuldan) ||
-      sim.hasAura(MagicIDFungalFrenzy)
+	return sim.hasAura(MagicIDBloodlust) ||
+		sim.hasAura(MagicIDDrums) ||
+		sim.hasAura(MagicIDTrollBerserking) ||
+		sim.hasAura(MagicIDSkullGuldan) ||
+		sim.hasAura(MagicIDFungalFrenzy)
 }
 
 func (agent *FixedRotationAgent) ChooseAction(sim *Simulation) AgentAction {
@@ -64,27 +64,27 @@ func (agent *FixedRotationAgent) ChooseAction(sim *Simulation) AgentAction {
 		return NewCastAction(sim, spellmap[MagicIDLB12])
 	}
 
-  if agent.numLBsSinceLastCL < agent.numLBsPerCL {
-    return NewCastAction(sim, spellmap[MagicIDLB12])
-  }
+	if agent.numLBsSinceLastCL < agent.numLBsPerCL {
+		return NewCastAction(sim, spellmap[MagicIDLB12])
+	}
 
-  if !sim.isOnCD(MagicIDCL6) {
-    return NewCastAction(sim, spellmap[MagicIDCL6])
-  }
+	if !sim.isOnCD(MagicIDCL6) {
+		return NewCastAction(sim, spellmap[MagicIDCL6])
+	}
 
-  // If we have a temporary haste effect (like bloodlust or quags eye) then
-  // we should add LB casts instead of waiting
-  if agent.temporaryHasteActive(sim) {
-    return NewCastAction(sim, spellmap[MagicIDLB12])
-  }
+	// If we have a temporary haste effect (like bloodlust or quags eye) then
+	// we should add LB casts instead of waiting
+	if agent.temporaryHasteActive(sim) {
+		return NewCastAction(sim, spellmap[MagicIDLB12])
+	}
 
-  return NewWaitAction(sim.getRemainingCD(MagicIDCL6))
+	return NewWaitAction(sim.getRemainingCD(MagicIDCL6))
 }
 
 func (agent *FixedRotationAgent) OnActionAccepted(sim *Simulation, action AgentAction) {
-  if action.Cast == nil {
-    return
-  }
+	if action.Cast == nil {
+		return
+	}
 
 	if action.Cast.Spell.ID == MagicIDLB12 {
 		agent.numLBsSinceLastCL++
@@ -115,27 +115,27 @@ type AdaptiveAgent struct {
 
 func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
 	if sim.isOnCD(MagicIDCL6) {
-    return NewCastAction(sim, spellmap[MagicIDLB12])
-  }
+		return NewCastAction(sim, spellmap[MagicIDLB12])
+	}
 
-  manaSpendingRate := sim.metrics.ManaSpent / math.Max(1.0, sim.CurrentTime)
-  timeRemaining := sim.Options.Encounter.Duration - sim.CurrentTime
-  projectedManaCost := manaSpendingRate * timeRemaining
-  buffer := spellmap[MagicIDCL6].Mana // mana buffer of 1 extra CL
+	manaSpendingRate := sim.metrics.ManaSpent / math.Max(1.0, sim.CurrentTime)
+	timeRemaining := sim.Options.Encounter.Duration - sim.CurrentTime
+	projectedManaCost := manaSpendingRate * timeRemaining
+	buffer := spellmap[MagicIDCL6].Mana // mana buffer of 1 extra CL
 
-  if sim.Debug != nil {
-    sim.Debug("[AI] CL Ready: Mana/Tick: %0.1f, Est Mana Cost: %0.1f, CurrentMana: %0.1f\n", manaSpendingRate, projectedManaCost, sim.CurrentMana)
-  }
+	if sim.Debug != nil {
+		sim.Debug("[AI] CL Ready: Mana/Tick: %0.1f, Est Mana Cost: %0.1f, CurrentMana: %0.1f\n", manaSpendingRate, projectedManaCost, sim.CurrentMana)
+	}
 
-  // If we have enough mana to burn and CL is off CD, use it.
-  if projectedManaCost < sim.CurrentMana-buffer {
-    castAction := NewCastAction(sim, spellmap[MagicIDCL6])
-    if sim.CurrentMana >= castAction.Cast.ManaCost {
-      return castAction
-    }
-  }
+	// If we have enough mana to burn and CL is off CD, use it.
+	if projectedManaCost < sim.CurrentMana-buffer {
+		castAction := NewCastAction(sim, spellmap[MagicIDCL6])
+		if sim.CurrentMana >= castAction.Cast.ManaCost {
+			return castAction
+		}
+	}
 
-  return NewCastAction(sim, spellmap[MagicIDLB12])
+	return NewCastAction(sim, spellmap[MagicIDLB12])
 }
 func (agent *AdaptiveAgent) OnActionAccepted(sim *Simulation, action AgentAction) {
 }
