@@ -25,10 +25,6 @@ type Options struct {
 	Debug bool // enables debug printing.
 	// TODO: could change this to be a func/stream consumer could provide,
 	// make it easier to integrate into different output systems.
-
-	// Hack indicating whether tidefury 2 piece bonus (CL bounce damage) is active
-	// This is only set from the aura, not from actual options
-	Tidefury2Pc bool
 }
 
 // Pack is how to convert all options/buffs/consumes/etc to reproduce the UI state

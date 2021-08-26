@@ -29,7 +29,7 @@ type Simulation struct {
 
 	// timeToRegen := 0
 	CDs   []float64 // Map of MagicID to ticks until CD is done. 'Advance' counts down these
-	Auras []Aura    // this is array instaed of map to speed up browser perf.
+	auras [MagicIDLen]Aura    // this is array instead of map to speed up browser perf.
 
 	// Clears and regenerates on each Run call.
 	metrics SimMetrics
@@ -47,6 +47,7 @@ type SimMetrics struct {
 	DamageAtOOM    float64
 	OOMAt          float64
 	Casts          []*Cast
+  ManaSpent      float64
 	ManaAtEnd      int
 }
 
@@ -63,7 +64,7 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		Options: options,
 		CDs:     make([]float64, MagicIDLen),
 		Buffs:   Stats{},
-		Auras:   []Aura{},
+		auras:   [MagicIDLen]Aura{},
 		Equip:   equip,
 		rseed:   options.RSeed,
 		rando:   rand.New(rand.NewSource(options.RSeed)),
@@ -107,7 +108,7 @@ func (sim *Simulation) reset() {
 	sim.CurrentMana = sim.Stats[StatMana]
 	sim.Buffs = Stats{}
 	sim.CDs = make([]float64, MagicIDLen)
-	sim.Auras = []Aura{}
+	sim.auras = [MagicIDLen]Aura{}
 	sim.metrics = SimMetrics{
 		Casts: make([]*Cast, 0, 1000),
 	}
@@ -180,15 +181,20 @@ func (sim *Simulation) Run() SimMetrics {
 		TryActivateDestructionPotion(sim)
 		sim.TryActivateEquipment()
 
-		didPot := TryActivateDarkRune(sim)
-		if TryActivateSuperManaPotion(sim) {
-			didPot = true
-		}
+		TryActivateDarkRune(sim)
+		TryActivateSuperManaPotion(sim)
 
-		// Choose next spell
-		castingSpell := sim.Agent.ChooseSpell(sim, didPot)
+		// Choose next action
+		action := sim.Agent.ChooseAction(sim)
+    if action.Wait != 0 {
+			sim.Agent.OnActionAccepted(sim, action)
+			sim.Advance(action.Wait)
+      continue
+    }
+
+    castingSpell := action.Cast
 		if castingSpell == nil {
-			panic("Agent returned nil casting spell")
+			panic("Agent returned nil action")
 		}
 
 		if sim.CurrentMana >= castingSpell.ManaCost {
@@ -196,7 +202,7 @@ func (sim *Simulation) Run() SimMetrics {
 				sim.Debug("Start Casting %s Cast Time: %0.1fs\n", castingSpell.Spell.Name, castingSpell.CastTime)
 			}
 
-			sim.Agent.OnSpellAccepted(sim, castingSpell)
+			sim.Agent.OnActionAccepted(sim, action)
 			sim.Advance(castingSpell.CastTime)
 			sim.Cast(castingSpell)
 		} else {
@@ -220,21 +226,19 @@ func (sim *Simulation) Run() SimMetrics {
 
 // Advance moves time forward counting down auras, CDs, mana regen, etc
 func (sim *Simulation) Advance(elapsedTime float64) {
+  newTime := sim.CurrentTime + elapsedTime
+
 	// MP5 regen
 	sim.CurrentMana = math.Min(
 		sim.Stats[StatMana],
 		sim.CurrentMana+sim.manaRegen()*elapsedTime)
 
-	todel := []int{}
-	for i := range sim.Auras {
-		if sim.Auras[i].Expires <= (sim.CurrentTime + elapsedTime) {
-			todel = append(todel, i)
+	for i := range sim.auras {
+		if sim.auras[i].Expires != 0 && sim.auras[i].Expires <= newTime {
+      sim.removeAura(int32(i))
 		}
 	}
-	for i := len(todel) - 1; i >= 0; i-- {
-		sim.cleanAura(todel[i])
-	}
-	sim.CurrentTime += elapsedTime
+	sim.CurrentTime = newTime
 }
 
 // Cast will actually cast and treat all casts as having no 'flight time'.
@@ -244,8 +248,9 @@ func (sim *Simulation) Cast(cast *Cast) {
 		sim.Debug("Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
 	}
 	sim.CurrentMana -= cast.ManaCost
+  sim.metrics.ManaSpent += cast.ManaCost
 
-	for _, aur := range sim.Auras {
+	for _, aur := range sim.auras {
 		if aur.OnCastComplete != nil {
 			aur.OnCastComplete(sim, cast)
 		}
@@ -329,7 +334,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 			eff(sim, cast)
 		}
 		// Apply any on spell hit effects.
-		for _, aur := range sim.Auras {
+		for _, aur := range sim.auras {
 			if aur.OnSpellHit != nil {
 				aur.OnSpellHit(sim, cast)
 			}
@@ -341,7 +346,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 		cast.DidDmg = 0
 		cast.DidCrit = false
 		cast.DidHit = false
-		for _, aur := range sim.Auras {
+		for _, aur := range sim.auras {
 			if aur.OnSpellMiss != nil {
 				aur.OnSpellMiss(sim, cast)
 			}
@@ -364,65 +369,38 @@ func (sim *Simulation) Cast(cast *Cast) {
 	}
 }
 
-// Remove an aura by its ID, searches through auras
-// and calls 'cleanAura'
-func (sim *Simulation) AuraActive(id int32) bool {
-	for i := range sim.Auras {
-		if sim.Auras[i].ID == id {
-			return true
-		}
-	}
-
-	return false
-}
-
-// Remove an aura by its ID, searches through auras
-// and calls 'cleanAura'
-func (sim *Simulation) removeAuraByID(id int32) {
-	for i := range sim.Auras {
-		if sim.Auras[i].ID == id {
-			sim.cleanAura(i)
-			break
-		}
-	}
-}
-
-// cleanAura will remove the given aura from the sim and release all references
-// to prevent memory leaking.
-func (sim *Simulation) cleanAura(i int) {
-	if sim.Auras[i].OnExpire != nil {
-		sim.Auras[i].OnExpire(sim, nil)
-	}
-	// clean up mem
-	sim.Auras[i].OnCast = nil
-	sim.Auras[i].OnCastComplete = nil
-	sim.Auras[i].OnStruck = nil
-	sim.Auras[i].OnSpellHit = nil
-	sim.Auras[i].OnExpire = nil
-
-	if sim.Debug != nil {
-		sim.Debug(" -%s\n", AuraName(sim.Auras[i].ID))
-	}
-	sim.Auras = sim.Auras[:i+copy(sim.Auras[i:], sim.Auras[i+1:])]
-}
-
 // addAura will add a new aura to the simulation. If there is a matching aura ID
 // it will be replaced with the newer aura.
 // Auras with duration of 0 will be logged as activating but never added to simulation auras.
-func (sim *Simulation) addAura(a Aura) {
+func (sim *Simulation) addAura(newAura Aura) {
 	if sim.Debug != nil {
-		sim.Debug(" +%s\n", AuraName(a.ID))
+		sim.Debug(" +%s\n", AuraName(newAura.ID))
 	}
-	if a.Expires == 0 {
+	if newAura.Expires == 0 {
 		return // no need to waste time adding aura that doesn't last.
 	}
-	for i := range sim.Auras {
-		if sim.Auras[i].ID == a.ID {
-			sim.Auras[i] = a // replace
-			return
-		}
+
+  if sim.hasAura(newAura.ID) {
+    sim.removeAura(newAura.ID)
+  }
+  sim.auras[newAura.ID] = newAura
+}
+
+// Remove an aura by its ID
+func (sim *Simulation) removeAura(id int32) {
+	if sim.auras[id].OnExpire != nil {
+		sim.auras[id].OnExpire(sim, nil)
 	}
-	sim.Auras = append(sim.Auras, a)
+  sim.auras[id] = Aura{}
+
+	if sim.Debug != nil {
+		sim.Debug(" -%s\n", AuraName(id))
+	}
+}
+
+// Returns whether an aura with the given ID is currently active.
+func (sim *Simulation) hasAura(id int32) bool {
+  return sim.auras[id].ID != 0
 }
 
 // Returns rate of mana regen, as mana / second
