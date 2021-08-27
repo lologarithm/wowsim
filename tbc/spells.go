@@ -111,9 +111,9 @@ func NewCast(sim *Simulation, sp *Spell) *Cast {
 	}
 
 	// Apply any on cast effects.
-	for _, aur := range sim.Auras {
-		if aur.OnCast != nil {
-			aur.OnCast(sim, cast)
+	for _, id := range sim.activeAuraIDs {
+		if sim.auras[id].OnCast != nil {
+			sim.auras[id].OnCast(sim, cast)
 		}
 	}
 
