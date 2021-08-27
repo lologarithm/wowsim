@@ -107,6 +107,18 @@ func init() {
 			ItemsByName[v.Name] = v
 			ItemsByID[v.ID] = v
 		}
+		// pre-cache item to set lookup for faster sim resetting.
+		setFound := false
+		for setIdx, set := range sets {
+			if set.Items[v.Name] {
+				itemSetLookup[v.ID] = &sets[setIdx]
+				setFound = true
+				break
+			}
+		}
+		if !setFound {
+			itemSetLookup[v.ID] = nil
+		}
 	}
 }
 

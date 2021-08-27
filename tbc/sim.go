@@ -162,21 +162,9 @@ func (sim *Simulation) reset() {
 func (sim *Simulation) ActivateSets() []string {
 	active := []string{}
 	// Activate Set Bonuses
-
 	setItemCount := map[string]int{}
 	for _, i := range sim.Equip {
-		set, ok := itemSetLookup[i.ID]
-		if !ok {
-			for setIdx, set := range sets {
-				if set.Items[i.Name] {
-					itemSetLookup[i.ID] = &sets[setIdx]
-					break
-				}
-			}
-			if _, ok := itemSetLookup[i.ID]; !ok {
-				itemSetLookup[i.ID] = nil
-			}
-		}
+		set := itemSetLookup[i.ID]
 		if set != nil {
 			setItemCount[set.Name]++
 			if bonus, ok := set.Bonuses[setItemCount[set.Name]]; ok {
