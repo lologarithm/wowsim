@@ -818,6 +818,9 @@ type ItemSet struct {
 	Bonuses map[int]ItemActivation // maps item count to activations
 }
 
+// cache for mapping item to set for fast resetting of sim.
+var itemSetLookup = map[int32]*ItemSet{}
+
 var sets = []ItemSet{
 	{
 		Name:  "Netherstrike",

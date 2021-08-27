@@ -11,6 +11,7 @@ type Spell struct {
 	Mana       float64
 	MinDmg     float64
 	MaxDmg     float64
+	DmgDiff    float64 // cached for faster dmg calculations
 	DamageType DamageType
 	Coeff      float64
 
@@ -56,6 +57,7 @@ func init() {
 		// Turns out to increase efficiency go 'range' will actually only allocate a single struct and mutate.
 		// If we want to create a pointer we need to clone the struct.
 		sp2 := sp
+		sp2.DmgDiff = sp2.MaxDmg - sp2.MinDmg
 		spp := &sp2
 		spellmap[sp.ID] = spp
 	}
@@ -88,12 +90,11 @@ type Cast struct {
 // NewCast constructs a Cast from the current simulation and selected spell.
 //  OnCast mechanics are applied at this time (anything that modifies the cast before its cast, usually just mana cost stuff)
 func NewCast(sim *Simulation, sp *Spell) *Cast {
-	cast := &Cast{
-		Spell:      sp,
-		ManaCost:   float64(sp.Mana),
-		Spellpower: 0,
-		CritBonus:  1.5,
-	}
+	cast := sim.objpool.NewCast()
+	cast.Spell = sp
+	cast.ManaCost = float64(sp.Mana)
+	cast.Spellpower = 0
+	cast.CritBonus = 1.5
 
 	castTime := sp.CastTime
 	itsElectric := sp.ID == MagicIDLB12 || sp.ID == MagicIDCL6

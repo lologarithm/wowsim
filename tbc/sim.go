@@ -21,7 +21,7 @@ type Simulation struct {
 	Stats       Stats
 	Buffs       Stats     // temp increases
 	Equip       Equipment // Current Gear
-	activeEquip []Item    // cache of gear that can activate.
+	activeEquip []*Item   // cache of gear that can activate.
 
 	bloodlustCasts    int
 	destructionPotion bool
@@ -39,6 +39,9 @@ type Simulation struct {
 	CurrentTime float64
 
 	Debug func(string, ...interface{})
+
+	// caches to speed up perf
+	objpool *pool
 }
 
 type SimMetrics struct {
@@ -65,24 +68,28 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		CDs:           make([]float64, MagicIDLen),
 		Buffs:         Stats{},
 		auras:         [MagicIDLen]Aura{},
-		activeAuraIDs: []int32{},
+		activeAuraIDs: make([]int32, 0, 10),
 		Equip:         equip,
 		rseed:         options.RSeed,
 		rando:         rand.New(rand.NewSource(options.RSeed)),
 		Debug:         nil,
+		objpool: &pool{
+			casts: make([]*Cast, 0, 1000),
+		},
 	}
+	sim.objpool.fill()
 
 	if options.Debug {
 		sim.Debug = debugFunc(sim)
 	}
 
-	for _, eq := range equip {
+	for i, eq := range equip {
 		if eq.Activate != nil {
-			sim.activeEquip = append(sim.activeEquip, eq)
+			sim.activeEquip = append(sim.activeEquip, &equip[i])
 		}
 		for _, g := range eq.Gems {
 			if g.Activate != nil {
-				sim.activeEquip = append(sim.activeEquip, eq)
+				sim.activeEquip = append(sim.activeEquip, &equip[i])
 			}
 		}
 	}
@@ -110,7 +117,7 @@ func (sim *Simulation) reset() {
 	sim.Buffs = Stats{}
 	sim.CDs = make([]float64, MagicIDLen)
 	sim.auras = [MagicIDLen]Aura{}
-	sim.activeAuraIDs = []int32{}
+	sim.activeAuraIDs = make([]int32, 0, 10)
 	sim.metrics = SimMetrics{
 		Casts: make([]*Cast, 0, 1000),
 	}
@@ -155,18 +162,30 @@ func (sim *Simulation) reset() {
 func (sim *Simulation) ActivateSets() []string {
 	active := []string{}
 	// Activate Set Bonuses
-	for _, set := range sets {
-		itemCount := 0
-		for _, i := range sim.Equip {
-			if set.Items[i.Name] {
-				itemCount++
-				if bonus, ok := set.Bonuses[itemCount]; ok {
-					active = append(active, set.Name+" ("+strconv.Itoa(itemCount)+"pc)")
-					sim.addAura(bonus(sim))
+
+	setItemCount := map[string]int{}
+	for _, i := range sim.Equip {
+		set, ok := itemSetLookup[i.ID]
+		if !ok {
+			for setIdx, set := range sets {
+				if set.Items[i.Name] {
+					itemSetLookup[i.ID] = &sets[setIdx]
+					break
 				}
+			}
+			if _, ok := itemSetLookup[i.ID]; !ok {
+				itemSetLookup[i.ID] = nil
+			}
+		}
+		if set != nil {
+			setItemCount[set.Name]++
+			if bonus, ok := set.Bonuses[setItemCount[set.Name]]; ok {
+				active = append(active, set.Name+" ("+strconv.Itoa(setItemCount[set.Name])+"pc)")
+				sim.addAura(bonus(sim))
 			}
 		}
 	}
+
 	return active
 }
 
@@ -268,8 +287,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 	}
 	if sim.rando.Float64() < hit {
 		sp := sim.Stats[StatSpellDmg] + sim.Buffs[StatSpellDmg] + cast.Spellpower
-		dmg := (sim.rando.Float64() * (cast.Spell.MaxDmg - cast.Spell.MinDmg)) + cast.Spell.MinDmg
-		dmg += (sp * cast.Spell.Coeff)
+		dmg := (sim.rando.Float64() * cast.Spell.DmgDiff) + cast.Spell.MinDmg + (sp * cast.Spell.Coeff)
 		if cast.DidDmg != 0 { // use the pre-set dmg
 			dmg = cast.DidDmg
 		}
@@ -289,7 +307,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 			dmg *= critBonus
 			if cast.Spell.ID != MagicIDTLCLB {
 				// TLC does not proc focus.
-				sim.addAura(AuraElementalFocus(sim.CurrentTime))
+				sim.addAura(AuraElementalFocus(sim))
 			}
 			if sim.Debug != nil {
 				dbgCast += " crit"
@@ -380,7 +398,7 @@ func (sim *Simulation) addAura(newAura Aura) {
 	if sim.Debug != nil {
 		sim.Debug(" +%s\n", AuraName(newAura.ID))
 	}
-	if newAura.Expires == 0 {
+	if newAura.Expires < sim.CurrentTime {
 		return // no need to waste time adding aura that doesn't last.
 	}
 
@@ -389,7 +407,7 @@ func (sim *Simulation) addAura(newAura Aura) {
 	}
 
 	sim.auras[newAura.ID] = newAura
-  sim.auras[newAura.ID].activeIndex = int32(len(sim.activeAuraIDs))
+	sim.auras[newAura.ID].activeIndex = int32(len(sim.activeAuraIDs))
 	sim.activeAuraIDs = append(sim.activeAuraIDs, newAura.ID)
 }
 
