@@ -172,10 +172,7 @@ func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
 
 	// If we have enough mana to burn and CL is off CD, use it.
 	if projectedManaCost < sim.CurrentMana-buffer {
-		castAction := NewCastAction(sim, spellmap[MagicIDCL6])
-		if sim.CurrentMana >= castAction.Cast.ManaCost {
-			return castAction
-		}
+		return NewCastAction(sim, spellmap[MagicIDCL6])
 	}
 
 	return NewCastAction(sim, spellmap[MagicIDLB12])
