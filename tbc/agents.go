@@ -108,30 +108,46 @@ func NewFixedRotationAgent(sim *Simulation, numLBsPerCL int) *FixedRotationAgent
 //                             ADAPTIVE
 // ################################################################
 type AdaptiveAgent struct {
-  // Circular array buffer for recent mana snapshot, within the window
-  manaSnapshots      [int32(manaSpendingWindow) * 2]ManaSnapshot
-  numSnapshots       int32
-  firstSnapshotIndex int32
+	// Circular array buffer for recent mana snapshots, within a time window
+	manaSnapshots      [manaSnapshotsBufferSize]ManaSnapshot
+	numSnapshots       int32
+	firstSnapshotIndex int32
 }
 
 const manaSpendingWindow = 60.0
+
+// 2 * (# of seconds) should be plenty of slots
+const manaSnapshotsBufferSize = int32(manaSpendingWindow) * 2
+
 type ManaSnapshot struct {
-  time float64 // time this snapshot was taken
-  mana float64 // amount of mana
+	time      float64 // time this snapshot was taken
+	manaSpent float64 // total amount of mana spent up to this time
 }
 
-func (agent *AdaptiveAgent) oldestSnapshot() ManaSnapshot {
-  return agent.manaSnapshots[agent.firstSnapshotIndex]
+func (agent *AdaptiveAgent) getOldestSnapshot() ManaSnapshot {
+	return agent.manaSnapshots[agent.firstSnapshotIndex]
 }
 
 func (agent *AdaptiveAgent) purgeExpiredSnapshots(sim *Simulation) {
+	expirationCutoff := sim.CurrentTime - manaSpendingWindow
+
+	curIndex := agent.firstSnapshotIndex
+	for agent.numSnapshots > 0 && agent.manaSnapshots[curIndex].time < expirationCutoff {
+		curIndex = (curIndex + 1) % manaSnapshotsBufferSize
+		agent.numSnapshots--
+	}
+	agent.firstSnapshotIndex = curIndex
 }
 
 func (agent *AdaptiveAgent) takeSnapshot(sim *Simulation) {
-  //snapshot := ManaSnapshot{
-  //  time: sim.CurrentTime,
-  //  mana: sim.metrics.ManaSpent,
-  //}
+	snapshot := ManaSnapshot{
+		time:      sim.CurrentTime,
+		manaSpent: sim.metrics.ManaSpent,
+	}
+
+	nextIndex := (agent.firstSnapshotIndex + agent.numSnapshots) % manaSnapshotsBufferSize
+	agent.manaSnapshots[nextIndex] = snapshot
+	agent.numSnapshots++
 }
 
 func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
@@ -139,7 +155,13 @@ func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
 		return NewCastAction(sim, spellmap[MagicIDLB12])
 	}
 
-	manaSpendingRate := sim.metrics.ManaSpent / math.Max(1.0, sim.CurrentTime)
+	agent.purgeExpiredSnapshots(sim)
+	oldestSnapshot := agent.getOldestSnapshot()
+
+	manaSpent := sim.metrics.ManaSpent - oldestSnapshot.manaSpent
+	timeDelta := sim.CurrentTime - oldestSnapshot.time
+	manaSpendingRate := manaSpent / math.Max(1.0, timeDelta)
+
 	timeRemaining := sim.Options.Encounter.Duration - sim.CurrentTime
 	projectedManaCost := manaSpendingRate * timeRemaining
 	buffer := spellmap[MagicIDCL6].Mana // mana buffer of 1 extra CL
@@ -159,9 +181,13 @@ func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
 	return NewCastAction(sim, spellmap[MagicIDLB12])
 }
 func (agent *AdaptiveAgent) OnActionAccepted(sim *Simulation, action AgentAction) {
+	agent.takeSnapshot(sim)
 }
 
 func (agent *AdaptiveAgent) Reset(sim *Simulation) {
+	agent.manaSnapshots = [manaSnapshotsBufferSize]ManaSnapshot{}
+	agent.firstSnapshotIndex = 0
+	agent.numSnapshots = 0
 }
 
 func NewAdaptiveAgent(sim *Simulation) *AdaptiveAgent {
