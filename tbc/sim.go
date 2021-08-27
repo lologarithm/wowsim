@@ -27,9 +27,9 @@ type Simulation struct {
 	destructionPotion bool
 	Options           Options
 
-	// timeToRegen := 0
-	CDs   []float64        // Map of MagicID to ticks until CD is done. 'Advance' counts down these
-	auras [MagicIDLen]Aura // this is array instead of map to speed up browser perf.
+	CDs           []float64        // Map of MagicID to ticks until CD is done. 'Advance' counts down these
+	auras         [MagicIDLen]Aura // this is array instead of map to speed up browser perf.
+	activeAuraIDs []int32          // IDs of auras that are active, in no particular order
 
 	// Clears and regenerates on each Run call.
 	metrics SimMetrics
@@ -60,15 +60,16 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 	}
 
 	sim := &Simulation{
-		Stats:   stats,
-		Options: options,
-		CDs:     make([]float64, MagicIDLen),
-		Buffs:   Stats{},
-		auras:   [MagicIDLen]Aura{},
-		Equip:   equip,
-		rseed:   options.RSeed,
-		rando:   rand.New(rand.NewSource(options.RSeed)),
-		Debug:   nil,
+		Stats:         stats,
+		Options:       options,
+		CDs:           make([]float64, MagicIDLen),
+		Buffs:         Stats{},
+		auras:         [MagicIDLen]Aura{},
+		activeAuraIDs: make([]int32, MagicIDLen),
+		Equip:         equip,
+		rseed:         options.RSeed,
+		rando:         rand.New(rand.NewSource(options.RSeed)),
+		Debug:         nil,
 	}
 
 	if options.Debug {
@@ -109,6 +110,7 @@ func (sim *Simulation) reset() {
 	sim.Buffs = Stats{}
 	sim.CDs = make([]float64, MagicIDLen)
 	sim.auras = [MagicIDLen]Aura{}
+	sim.activeAuraIDs = make([]int32, MagicIDLen)
 	sim.metrics = SimMetrics{
 		Casts: make([]*Cast, 0, 1000),
 	}
@@ -233,9 +235,11 @@ func (sim *Simulation) Advance(elapsedTime float64) {
 		sim.Stats[StatMana],
 		sim.CurrentMana+sim.manaRegen()*elapsedTime)
 
-	for i := range sim.auras {
-		if sim.auras[i].Expires != 0 && sim.auras[i].Expires <= newTime {
-			sim.removeAura(int32(i))
+	// Go in reverse order so we can safely delete while looping
+	for i := len(sim.activeAuraIDs) - 1; i >= 0; i-- {
+		id := sim.activeAuraIDs[i]
+		if sim.auras[id].Expires != 0 && sim.auras[id].Expires <= newTime {
+			sim.removeAura(id)
 		}
 	}
 	sim.CurrentTime = newTime
@@ -250,9 +254,9 @@ func (sim *Simulation) Cast(cast *Cast) {
 	sim.CurrentMana -= cast.ManaCost
 	sim.metrics.ManaSpent += cast.ManaCost
 
-	for _, aur := range sim.auras {
-		if aur.OnCastComplete != nil {
-			aur.OnCastComplete(sim, cast)
+	for _, id := range sim.activeAuraIDs {
+		if sim.auras[id].OnCastComplete != nil {
+			sim.auras[id].OnCastComplete(sim, cast)
 		}
 	}
 	hit := 0.83 + ((sim.Stats[StatSpellHit] + sim.Buffs[StatSpellHit]) / 1260.0) + cast.Hit // 12.6 hit == 1% hit
@@ -334,9 +338,9 @@ func (sim *Simulation) Cast(cast *Cast) {
 			eff(sim, cast)
 		}
 		// Apply any on spell hit effects.
-		for _, aur := range sim.auras {
-			if aur.OnSpellHit != nil {
-				aur.OnSpellHit(sim, cast)
+		for _, id := range sim.activeAuraIDs {
+			if sim.auras[id].OnSpellHit != nil {
+				sim.auras[id].OnSpellHit(sim, cast)
 			}
 		}
 	} else {
@@ -346,9 +350,9 @@ func (sim *Simulation) Cast(cast *Cast) {
 		cast.DidDmg = 0
 		cast.DidCrit = false
 		cast.DidHit = false
-		for _, aur := range sim.auras {
-			if aur.OnSpellMiss != nil {
-				aur.OnSpellMiss(sim, cast)
+		for _, id := range sim.activeAuraIDs {
+			if sim.auras[id].OnSpellMiss != nil {
+				sim.auras[id].OnSpellMiss(sim, cast)
 			}
 		}
 	}
@@ -383,7 +387,9 @@ func (sim *Simulation) addAura(newAura Aura) {
 	if sim.hasAura(newAura.ID) {
 		sim.removeAura(newAura.ID)
 	}
+
 	sim.auras[newAura.ID] = newAura
+	sim.activeAuraIDs = append(sim.activeAuraIDs, newAura.ID)
 }
 
 // Remove an aura by its ID
@@ -391,7 +397,18 @@ func (sim *Simulation) removeAura(id int32) {
 	if sim.auras[id].OnExpire != nil {
 		sim.auras[id].OnExpire(sim, nil)
 	}
+	removeActiveIndex := sim.auras[id].activeIndex
 	sim.auras[id] = Aura{}
+
+	// Overwrite the element being removed with the last element
+	otherAuraID := sim.activeAuraIDs[len(sim.activeAuraIDs)-1]
+	if id != otherAuraID {
+		sim.activeAuraIDs[removeActiveIndex] = otherAuraID
+		sim.auras[otherAuraID].activeIndex = removeActiveIndex
+	}
+
+	// Now we can remove the last element, in constant time
+	sim.activeAuraIDs = sim.activeAuraIDs[:len(sim.activeAuraIDs)-1]
 
 	if sim.Debug != nil {
 		sim.Debug(" -%s\n", AuraName(id))

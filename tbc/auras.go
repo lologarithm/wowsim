@@ -8,8 +8,9 @@ import (
 type AuraEffect func(sim *Simulation, c *Cast)
 
 type Aura struct {
-	ID      int32
-	Expires float64 // time at which aura will be removed
+	ID          int32
+	Expires     float64 // time at which aura will be removed
+	activeIndex int32   // Position of this aura's index in the sim.activeAuraIDs array
 
 	OnCast         AuraEffect
 	OnCastComplete AuraEffect
