@@ -807,6 +807,9 @@ var items = []Item{
 	{ID: 33506, Slot: EquipTotem, Name: "Skycall Totem", Phase: 4, Quality: ItemQualityEpic, SourceZone: "Geras", SourceDrop: "20 Badges", Stats: Stats{}, Activate: ActivateSkycall, ActivateCD: -1}, // -1 will trigger an activation only once
 	{ID: 32086, Slot: EquipHead, Name: "Storm Master's Helmet", Phase: 1, Quality: ItemQualityRare, SourceZone: "Geras", SourceDrop: "50 Badges", Stats: Stats{StatStm: 24, StatInt: 32, StatSpellCrit: 24, StatSpellDmg: 37}, GemSlots: []GemColor{GemColorMeta, GemColorBlue}, SocketBonus: Stats{StatSpellCrit: 4}},
 	{ID: 28602, Slot: EquipChest, Name: "Robe of the Elder Scribes", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Karazhan", SourceDrop: "Nightbane", Stats: Stats{StatStm: 27, StatInt: 29, StatSpirit: 24, StatSpellDmg: 32, StatSpellCrit: 24}, Activate: ActivateElderScribes, ActivateCD: -1},
+
+	{ID: 32963, Slot: EquipWeapon, Name: "Merciless Gladiator's Gavel / Spellblade", Phase: 2, Quality: ItemQualityEpic, SourceZone: "PvP", SourceDrop: "", Stats: Stats{StatStm: 27, StatInt: 18, StatSpellDmg: 225, StatSpellHit: 15}},
+	{ID: 32524, Slot: EquipBack, Name: "Shroud of the Highborne", Phase: 3, Quality: ItemQualityEpic, SourceZone: "Black Temple", SourceDrop: "Illidan Stormrage", Stats: Stats{StatStm: 24, StatInt: 23, StatSpellDmg: 23, StatHaste: 32}},
 }
 
 type ItemSet struct {
