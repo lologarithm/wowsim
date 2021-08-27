@@ -78,7 +78,7 @@ class SimWorker {
 
           const promiseFuncs = this.taskIdsToPromiseFuncs[id];
           delete this.taskIdsToPromiseFuncs[id];
-          this.numTasksRunnning--;
+          this.numTasksRunning--;
 
           promiseFuncs[0](event.data.payload);
       }
@@ -95,12 +95,12 @@ class SimWorker {
   }
 
   async doApiCall(request) {
+    this.numTasksRunning++;
     await this.onReady;
 
     const taskPromise = new Promise((resolve, reject) => {
       const id = this.makeTaskId();
       this.taskIdsToPromiseFuncs[id] = [resolve, reject];
-      this.numTasksRunning++;
       
       this.worker.postMessage({
         msg: "apiCall",

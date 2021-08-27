@@ -389,6 +389,7 @@ func (sim *Simulation) addAura(newAura Aura) {
 	}
 
 	sim.auras[newAura.ID] = newAura
+  sim.auras[newAura.ID].activeIndex = int32(len(sim.activeAuraIDs))
 	sim.activeAuraIDs = append(sim.activeAuraIDs, newAura.ID)
 }
 
