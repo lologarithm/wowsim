@@ -108,9 +108,30 @@ func NewFixedRotationAgent(sim *Simulation, numLBsPerCL int) *FixedRotationAgent
 //                             ADAPTIVE
 // ################################################################
 type AdaptiveAgent struct {
-	LastMana  float64
-	LastCheck float64
-	NumCasts  int
+  // Circular array buffer for recent mana snapshot, within the window
+  manaSnapshots      [int32(manaSpendingWindow) * 2]ManaSnapshot
+  numSnapshots       int32
+  firstSnapshotIndex int32
+}
+
+const manaSpendingWindow = 60.0
+type ManaSnapshot struct {
+  time float64 // time this snapshot was taken
+  mana float64 // amount of mana
+}
+
+func (agent *AdaptiveAgent) oldestSnapshot() ManaSnapshot {
+  return agent.manaSnapshots[agent.firstSnapshotIndex]
+}
+
+func (agent *AdaptiveAgent) purgeExpiredSnapshots(sim *Simulation) {
+}
+
+func (agent *AdaptiveAgent) takeSnapshot(sim *Simulation) {
+  //snapshot := ManaSnapshot{
+  //  time: sim.CurrentTime,
+  //  mana: sim.metrics.ManaSpent,
+  //}
 }
 
 func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
@@ -141,16 +162,10 @@ func (agent *AdaptiveAgent) OnActionAccepted(sim *Simulation, action AgentAction
 }
 
 func (agent *AdaptiveAgent) Reset(sim *Simulation) {
-	agent.LastMana = sim.CurrentMana
-	agent.LastCheck = 0
-	agent.NumCasts = 3
 }
 
 func NewAdaptiveAgent(sim *Simulation) *AdaptiveAgent {
-	return &AdaptiveAgent{
-		LastMana: sim.CurrentMana,
-		NumCasts: 3, // This lets us cast CL first.
-	}
+	return &AdaptiveAgent{}
 }
 
 type AgentType int

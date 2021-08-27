@@ -65,7 +65,7 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		CDs:           make([]float64, MagicIDLen),
 		Buffs:         Stats{},
 		auras:         [MagicIDLen]Aura{},
-		activeAuraIDs: make([]int32, MagicIDLen),
+		activeAuraIDs: []int32{},
 		Equip:         equip,
 		rseed:         options.RSeed,
 		rando:         rand.New(rand.NewSource(options.RSeed)),
@@ -110,7 +110,7 @@ func (sim *Simulation) reset() {
 	sim.Buffs = Stats{}
 	sim.CDs = make([]float64, MagicIDLen)
 	sim.auras = [MagicIDLen]Aura{}
-	sim.activeAuraIDs = make([]int32, MagicIDLen)
+	sim.activeAuraIDs = []int32{}
 	sim.metrics = SimMetrics{
 		Casts: make([]*Cast, 0, 1000),
 	}
