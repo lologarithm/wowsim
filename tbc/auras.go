@@ -388,7 +388,7 @@ func AuraElementalFocus(sim *Simulation) Aura {
 
 	// Whenever we use the cached aura we just reset its expire time and reset the count.
 	aura := sim.objpool.auras[MagicIDEleFocus]
-	aura.Expires = sim.CurrentTime + 15
+	aura.Expires = sim.CurrentTime + time.Second * 15
 	aura.reset()
 	return *aura
 }
