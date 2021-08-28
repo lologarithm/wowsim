@@ -3,6 +3,7 @@ package tbc
 import (
 	"fmt"
 	"math"
+	"time"
 )
 
 /**
@@ -25,11 +26,11 @@ type Agent interface {
 // A single action that an Agent can take.
 type AgentAction struct {
 	// Exactly one of these should be set.
-	Wait float64 // Duration to wait
+	Wait time.Duration // Duration to wait
 	Cast *Cast
 }
 
-func NewWaitAction(duration float64) AgentAction {
+func NewWaitAction(duration time.Duration) AgentAction {
 	return AgentAction{
 		Wait: duration,
 	}
@@ -120,14 +121,15 @@ type AdaptiveAgent struct {
 	cl                 *Spell
 }
 
-const manaSpendingWindow = 60.0
+const manaSpendingWindowNumSeconds = 60
+const manaSpendingWindow = time.Second * manaSpendingWindowNumSeconds
 
 // 2 * (# of seconds) should be plenty of slots
-const manaSnapshotsBufferSize = int32(manaSpendingWindow) * 2
+const manaSnapshotsBufferSize = manaSpendingWindowNumSeconds * 2
 
 type ManaSnapshot struct {
-	time      float64 // time this snapshot was taken
-	manaSpent float64 // total amount of mana spent up to this time
+	time      time.Duration // time this snapshot was taken
+	manaSpent float64       // total amount of mana spent up to this time
 }
 
 func (agent *AdaptiveAgent) getOldestSnapshot() ManaSnapshot {
@@ -146,6 +148,10 @@ func (agent *AdaptiveAgent) purgeExpiredSnapshots(sim *Simulation) {
 }
 
 func (agent *AdaptiveAgent) takeSnapshot(sim *Simulation) {
+  if agent.numSnapshots >= manaSnapshotsBufferSize {
+    panic("Agent snapshot buffer full")
+  }
+
 	snapshot := ManaSnapshot{
 		time:      sim.CurrentTime,
 		manaSpent: sim.metrics.ManaSpent,
@@ -166,10 +172,10 @@ func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
 
 	manaSpent := sim.metrics.ManaSpent - oldestSnapshot.manaSpent
 	timeDelta := sim.CurrentTime - oldestSnapshot.time
-	manaSpendingRate := manaSpent / math.Max(1.0, timeDelta)
+	manaSpendingRate := manaSpent / math.Max(1.0, timeDelta.Seconds())
 
-	timeRemaining := sim.Options.Encounter.Duration - sim.CurrentTime
-	projectedManaCost := manaSpendingRate * timeRemaining
+	timeRemaining := sim.Duration - sim.CurrentTime
+	projectedManaCost := manaSpendingRate * timeRemaining.Seconds()
 
 	if sim.Debug != nil {
 		sim.Debug("[AI] CL Ready: Mana/Tick: %0.1f, Est Mana Cost: %0.1f, CurrentMana: %0.1f\n", manaSpendingRate, projectedManaCost, sim.CurrentMana)
