@@ -264,8 +264,8 @@ func (aggregator *MetricsAggregator) getResult() SimResult {
 	result.NumOom = aggregator.numOom
 	if result.NumOom > 0 {
 		result.OomAtAvg = aggregator.oomAtSum / float64(aggregator.numOom)
+		result.DpsAtOomAvg = aggregator.dpsAtOomSum / float64(aggregator.numOom)
 	}
-	result.DpsAtOomAvg = aggregator.dpsAtOomSum / numSims
 
 	result.Casts = aggregator.casts
 
