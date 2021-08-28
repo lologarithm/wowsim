@@ -47,6 +47,8 @@ func NewCastAction(sim *Simulation, sp *Spell) AgentAction {
 type FixedRotationAgent struct {
 	numLBsPerCL       int // If -1, uses LB only
 	numLBsSinceLastCL int
+	lb                *Spell
+	cl                *Spell
 }
 
 // Returns if any temporary haste buff is currently active.
@@ -61,21 +63,21 @@ func (agent *FixedRotationAgent) temporaryHasteActive(sim *Simulation) bool {
 
 func (agent *FixedRotationAgent) ChooseAction(sim *Simulation) AgentAction {
 	if agent.numLBsPerCL == -1 {
-		return NewCastAction(sim, spellmap[MagicIDLB12])
+		return NewCastAction(sim, agent.lb)
 	}
 
 	if agent.numLBsSinceLastCL < agent.numLBsPerCL {
-		return NewCastAction(sim, spellmap[MagicIDLB12])
+		return NewCastAction(sim, agent.lb)
 	}
 
 	if !sim.isOnCD(MagicIDCL6) {
-		return NewCastAction(sim, spellmap[MagicIDCL6])
+		return NewCastAction(sim, agent.cl)
 	}
 
 	// If we have a temporary haste effect (like bloodlust or quags eye) then
 	// we should add LB casts instead of waiting
 	if agent.temporaryHasteActive(sim) {
-		return NewCastAction(sim, spellmap[MagicIDLB12])
+		return NewCastAction(sim, agent.lb)
 	}
 
 	return NewWaitAction(sim.getRemainingCD(MagicIDCL6))
@@ -101,6 +103,8 @@ func NewFixedRotationAgent(sim *Simulation, numLBsPerCL int) *FixedRotationAgent
 	return &FixedRotationAgent{
 		numLBsPerCL:       numLBsPerCL,
 		numLBsSinceLastCL: numLBsPerCL, // This lets us cast CL first
+		lb:                spellmap[MagicIDLB12],
+		cl:                spellmap[MagicIDCL6],
 	}
 }
 
@@ -112,6 +116,8 @@ type AdaptiveAgent struct {
 	manaSnapshots      [manaSnapshotsBufferSize]ManaSnapshot
 	numSnapshots       int32
 	firstSnapshotIndex int32
+	lb                 *Spell
+	cl                 *Spell
 }
 
 const manaSpendingWindow = 60.0
@@ -152,7 +158,7 @@ func (agent *AdaptiveAgent) takeSnapshot(sim *Simulation) {
 
 func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
 	if sim.isOnCD(MagicIDCL6) {
-		return NewCastAction(sim, spellmap[MagicIDLB12])
+		return NewCastAction(sim, agent.lb)
 	}
 
 	agent.purgeExpiredSnapshots(sim)
@@ -164,18 +170,17 @@ func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
 
 	timeRemaining := sim.Options.Encounter.Duration - sim.CurrentTime
 	projectedManaCost := manaSpendingRate * timeRemaining
-	buffer := spellmap[MagicIDCL6].Mana // mana buffer of 1 extra CL
 
 	if sim.Debug != nil {
 		sim.Debug("[AI] CL Ready: Mana/Tick: %0.1f, Est Mana Cost: %0.1f, CurrentMana: %0.1f\n", manaSpendingRate, projectedManaCost, sim.CurrentMana)
 	}
 
 	// If we have enough mana to burn and CL is off CD, use it.
-	if projectedManaCost < sim.CurrentMana-buffer {
-		return NewCastAction(sim, spellmap[MagicIDCL6])
+	if projectedManaCost < sim.CurrentMana {
+		return NewCastAction(sim, agent.cl)
 	}
 
-	return NewCastAction(sim, spellmap[MagicIDLB12])
+	return NewCastAction(sim, agent.lb)
 }
 func (agent *AdaptiveAgent) OnActionAccepted(sim *Simulation, action AgentAction) {
 	agent.takeSnapshot(sim)
@@ -188,7 +193,10 @@ func (agent *AdaptiveAgent) Reset(sim *Simulation) {
 }
 
 func NewAdaptiveAgent(sim *Simulation) *AdaptiveAgent {
-	return &AdaptiveAgent{}
+	return &AdaptiveAgent{
+		lb: spellmap[MagicIDLB12],
+		cl: spellmap[MagicIDCL6],
+	}
 }
 
 type AgentType int

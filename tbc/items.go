@@ -107,6 +107,18 @@ func init() {
 			ItemsByName[v.Name] = v
 			ItemsByID[v.ID] = v
 		}
+		// pre-cache item to set lookup for faster sim resetting.
+		setFound := false
+		for setIdx, set := range sets {
+			if set.Items[v.Name] {
+				itemSetLookup[v.ID] = &sets[setIdx]
+				setFound = true
+				break
+			}
+		}
+		if !setFound {
+			itemSetLookup[v.ID] = nil
+		}
 	}
 }
 
@@ -817,6 +829,9 @@ type ItemSet struct {
 	Items   map[string]bool
 	Bonuses map[int]ItemActivation // maps item count to activations
 }
+
+// cache for mapping item to set for fast resetting of sim.
+var itemSetLookup = map[int32]*ItemSet{}
 
 var sets = []ItemSet{
 	{

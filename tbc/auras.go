@@ -11,6 +11,7 @@ type Aura struct {
 	ID          int32
 	Expires     float64 // time at which aura will be removed
 	activeIndex int32   // Position of this aura's index in the sim.activeAuraIDs array
+	reset       func()  // reset func lets you re-use the aura
 
 	OnCast         AuraEffect
 	OnCastComplete AuraEffect
@@ -332,13 +333,12 @@ func AuraLightningOverload(lvl int) Aura {
 				if sim.Debug != nil {
 					sim.Debug(" +Lightning Overload\n")
 				}
-				clone := &Cast{
-					IsLO: true,
-					// Don't set IsClBounce even if this is a bounce, so that the clone does a normal CL and bounces
-					Spell:     c.Spell,
-					CritBonus: c.CritBonus,
-					Effects:   []AuraEffect{func(sim *Simulation, c *Cast) { c.DidDmg /= 2 }},
-				}
+				clone := sim.objpool.NewCast()
+				// Don't set IsClBounce even if this is a bounce, so that the clone does a normal CL and bounces
+				clone.IsLO = true
+				clone.Spell = c.Spell
+				clone.CritBonus = c.CritBonus
+				clone.Effects = []AuraEffect{func(sim *Simulation, c *Cast) { c.DidDmg /= 2 }}
 				sim.Cast(clone)
 			}
 		},
@@ -359,24 +359,35 @@ func AuraJudgementOfWisdom() Aura {
 	}
 }
 
-func AuraElementalFocus(currentTime float64) Aura {
-	count := 2
-	return Aura{
-		ID:      MagicIDEleFocus,
-		Expires: currentTime + 15,
-		OnCast: func(sim *Simulation, c *Cast) {
-			c.ManaCost *= .6 // reduced by 40%
-		},
-		OnCastComplete: func(sim *Simulation, c *Cast) {
-			if c.ManaCost <= 0 {
-				return // Don't consume charges from free spells.
-			}
-			count--
-			if count == 0 {
-				sim.removeAura(MagicIDEleFocus)
-			}
-		},
+func AuraElementalFocus(sim *Simulation) Aura {
+	if sim.objpool.auras[MagicIDEleFocus] == nil {
+		// create a cached version of this aura since we will re-use it all the time.
+		count := 2
+		sim.objpool.auras[MagicIDEleFocus] = &Aura{
+			ID: MagicIDEleFocus,
+			reset: func() {
+				count = 2
+			},
+			OnCast: func(sim *Simulation, c *Cast) {
+				c.ManaCost *= .6 // reduced by 40%
+			},
+			OnCastComplete: func(sim *Simulation, c *Cast) {
+				if c.ManaCost <= 0 {
+					return // Don't consume charges from free spells.
+				}
+				count--
+				if count == 0 {
+					sim.removeAura(MagicIDEleFocus)
+				}
+			},
+		}
 	}
+
+	// Whenever we use the cached aura we just reset its expire time and reset the count.
+	aura := sim.objpool.auras[MagicIDEleFocus]
+	aura.Expires = sim.CurrentTime + 15
+	aura.reset()
+	return *aura
 }
 
 func TryActivateEleMastery(sim *Simulation) {
@@ -745,13 +756,12 @@ func ActivateTLC(sim *Simulation) Aura {
 				}
 				lastActivation = sim.CurrentTime
 
-				clone := &Cast{
-					Spell:     tlcspell,
-					CritBonus: 1.5, // TLC does not get elemental fury
-					// TLC does not get hit talents bonus, subtract them here. (since we dont conditionally apply them)
-					Hit:  (-0.02 * float64(sim.Options.Talents.ElementalPrecision)) + (-0.01 * float64(sim.Options.Talents.NaturesGuidance)),
-					Crit: (-0.01 * float64(sim.Options.Talents.TidalMastery)) + (-0.01 * float64(sim.Options.Talents.CallOfThunder)),
-				}
+				clone := sim.objpool.NewCast()
+				// TLC does not get hit talents bonus, subtract them here. (since we dont conditionally apply them)
+				clone.Spell = tlcspell
+				clone.CritBonus = 1.5
+				clone.Hit = (-0.02 * float64(sim.Options.Talents.ElementalPrecision)) + (-0.01 * float64(sim.Options.Talents.NaturesGuidance))
+				clone.Crit = (-0.01 * float64(sim.Options.Talents.TidalMastery)) + (-0.01 * float64(sim.Options.Talents.CallOfThunder))
 				sim.Cast(clone)
 				charges = 0
 			}

@@ -181,7 +181,12 @@ func simResultsToString(request tbc.SimRequest, result tbc.SimResult) string {
 	output += fmt.Sprintf("Total Casts:\n")
 
 	for castId, cast := range result.Casts {
-		output += fmt.Sprintf("\t%s: %0.1f\n", tbc.AuraName(castId), float64(cast.Count)/float64(request.Iterations))
+		if castId > tbc.MagicIDLen {
+			name := tbc.AuraName(1000 - castId)
+			output += fmt.Sprintf("\t%s (LO): %0.1f\n", name, float64(cast.Count)/float64(request.Iterations))
+		} else {
+			output += fmt.Sprintf("\t%s: %0.1f\n", tbc.AuraName(castId), float64(cast.Count)/float64(request.Iterations))
+		}
 	}
 
 	output += fmt.Sprintf("Went OOM: %d/%d sims\n", result.NumOom, request.Iterations)

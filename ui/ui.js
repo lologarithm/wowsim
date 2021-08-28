@@ -398,10 +398,12 @@ function runSim(gearSpec) {
       const simRequest = deepCopy(sharedSimRequest);
       simRequest.Options.AgentType = AGENT_TYPES.FIXED_LB_ONLY;
       simRequest.Options.Encounter.Duration = 600;
+      simRequest.Options.DPSReportTime = sharedOptions.Encounter.Duration;
       simRequest.Options.ExitOnOOM = true;
 
       workerPool.runSimulation(simRequest).then(simResult => {
-          const oomAtText = simResult.oomAtAvg ? Math.round(simResult.oomAtAvg) : ">600";
+          const oomAtText = simResult.OomAtAvg ? Math.round(simResult.OomAtAvg) : ">600";
+          console.log("LB Stats: ", simResult);
           resultsElem.innerHTML = `<div><h3>Mana</h3><text class="simnums">${oomAtText}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(simResult.DpsAvg)} DPS</text></div>`
       });
     }
