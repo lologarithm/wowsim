@@ -100,7 +100,8 @@ func NewCast(sim *Simulation, sp *Spell) *Cast {
 
 	castTime := sp.CastTime
 
-	if sp.ID == MagicIDLB12 || sp.ID == MagicIDCL6 {
+	itsElectric := sp.ID == MagicIDLB12 || sp.ID == MagicIDCL6
+	if itsElectric {
 		cast.ManaCost *= 1 - (0.02 * float64(sim.Options.Talents.Convection))
 		// TODO: Add LightningMaster to talent list (this will never not be selected for an elemental shaman)
 		castTime -= time.Millisecond * 500 // Talent Lightning Mastery
