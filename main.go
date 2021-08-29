@@ -13,16 +13,17 @@ import (
 
 // Maps agentType flag values to actual enum types
 var agentTypesMap = map[string]tbc.AgentType{
-	"3LB1CL":   tbc.AGENT_TYPE_FIXED_3LB_1CL,
-	"4LB1CL":   tbc.AGENT_TYPE_FIXED_4LB_1CL,
-	"5LB1CL":   tbc.AGENT_TYPE_FIXED_5LB_1CL,
-	"6LB1CL":   tbc.AGENT_TYPE_FIXED_6LB_1CL,
-	"7LB1CL":   tbc.AGENT_TYPE_FIXED_7LB_1CL,
-	"8LB1CL":   tbc.AGENT_TYPE_FIXED_8LB_1CL,
-	"9LB1CL":   tbc.AGENT_TYPE_FIXED_9LB_1CL,
-	"10LB1CL":  tbc.AGENT_TYPE_FIXED_10LB_1CL,
-	"LB":       tbc.AGENT_TYPE_FIXED_LB_ONLY,
-	"Adaptive": tbc.AGENT_TYPE_ADAPTIVE,
+	"3LB1CL":        tbc.AGENT_TYPE_FIXED_3LB_1CL,
+	"4LB1CL":        tbc.AGENT_TYPE_FIXED_4LB_1CL,
+	"5LB1CL":        tbc.AGENT_TYPE_FIXED_5LB_1CL,
+	"6LB1CL":        tbc.AGENT_TYPE_FIXED_6LB_1CL,
+	"7LB1CL":        tbc.AGENT_TYPE_FIXED_7LB_1CL,
+	"8LB1CL":        tbc.AGENT_TYPE_FIXED_8LB_1CL,
+	"9LB1CL":        tbc.AGENT_TYPE_FIXED_9LB_1CL,
+	"10LB1CL":       tbc.AGENT_TYPE_FIXED_10LB_1CL,
+	"LB":            tbc.AGENT_TYPE_FIXED_LB_ONLY,
+	"Adaptive":      tbc.AGENT_TYPE_ADAPTIVE,
+	"CLOnClearcast": tbc.AGENT_TYPE_CL_ON_CLEARCAST,
 }
 
 var DEFAULT_EQUIPMENT = tbc.EquipmentSpec{

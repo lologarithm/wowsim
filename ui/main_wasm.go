@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"syscall/js"
 	"github.com/lologarithm/wowsim/tbc"
+	"syscall/js"
 )
 
 func ApiCallJson(this js.Value, args []js.Value) interface{} {

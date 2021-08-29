@@ -110,6 +110,55 @@ func NewFixedRotationAgent(sim *Simulation, numLBsPerCL int) *FixedRotationAgent
 }
 
 // ################################################################
+//                          CL ON CLEARCAST
+// ################################################################
+type CLOnClearcastAgent struct {
+	// Whether clearcasting was active when the last 2 spells were cast
+	prevCastProccedCC     bool
+	prevPrevCastProccedCC bool
+
+	lb *Spell
+	cl *Spell
+}
+
+func (agent *CLOnClearcastAgent) ChooseAction(sim *Simulation) AgentAction {
+	if sim.isOnCD(MagicIDCL6) || !agent.prevPrevCastProccedCC {
+		return NewCastAction(sim, agent.lb)
+	}
+
+	return NewCastAction(sim, agent.cl)
+}
+
+func (agent *CLOnClearcastAgent) OnActionAccepted(sim *Simulation, action AgentAction) {
+	agent.prevPrevCastProccedCC = agent.prevCastProccedCC
+	agent.prevCastProccedCC = false
+}
+
+func (agent *CLOnClearcastAgent) Reset(sim *Simulation) {
+	// Checking whether the EleFocus aura is active isn't enough; we need to know
+	// how many charges it currently has. This information isn't available so instead
+	// we infer by checking whether each spell is a crit.
+	sim.addAura(Aura{
+		ID:      MagicIDClearcastAgent,
+		Expires: neverExpires,
+		OnSpellHit: func(sim *Simulation, c *Cast) {
+			agent.prevCastProccedCC = agent.prevCastProccedCC ||
+				(c.DidCrit && c.Spell.ID != MagicIDTLCLB)
+		},
+	})
+
+	agent.prevCastProccedCC = false
+	agent.prevPrevCastProccedCC = false
+}
+
+func NewCLOnClearcastAgent(sim *Simulation) *CLOnClearcastAgent {
+	return &CLOnClearcastAgent{
+		lb: spellmap[MagicIDLB12],
+		cl: spellmap[MagicIDCL6],
+	}
+}
+
+// ################################################################
 //                             ADAPTIVE
 // ################################################################
 type AdaptiveAgent struct {
@@ -148,9 +197,9 @@ func (agent *AdaptiveAgent) purgeExpiredSnapshots(sim *Simulation) {
 }
 
 func (agent *AdaptiveAgent) takeSnapshot(sim *Simulation) {
-  if agent.numSnapshots >= manaSnapshotsBufferSize {
-    panic("Agent snapshot buffer full")
-  }
+	if agent.numSnapshots >= manaSnapshotsBufferSize {
+		panic("Agent snapshot buffer full")
+	}
 
 	snapshot := ManaSnapshot{
 		time:      sim.CurrentTime,
@@ -219,6 +268,7 @@ const (
 	AGENT_TYPE_FIXED_10LB_1CL
 	AGENT_TYPE_FIXED_LB_ONLY
 	AGENT_TYPE_ADAPTIVE
+	AGENT_TYPE_CL_ON_CLEARCAST
 )
 
 var ALL_AGENT_TYPES = []AgentType{
@@ -232,6 +282,7 @@ var ALL_AGENT_TYPES = []AgentType{
 	AGENT_TYPE_FIXED_10LB_1CL,
 	AGENT_TYPE_FIXED_LB_ONLY,
 	AGENT_TYPE_ADAPTIVE,
+	AGENT_TYPE_CL_ON_CLEARCAST,
 }
 
 func NewAgent(sim *Simulation, agentType AgentType) Agent {
@@ -256,6 +307,8 @@ func NewAgent(sim *Simulation, agentType AgentType) Agent {
 		return NewFixedRotationAgent(sim, -1)
 	case AGENT_TYPE_ADAPTIVE:
 		return NewAdaptiveAgent(sim)
+	case AGENT_TYPE_CL_ON_CLEARCAST:
+		return NewCLOnClearcastAgent(sim)
 	default:
 		fmt.Printf("[ERROR] No rotation given to sim.\n")
 		return nil
