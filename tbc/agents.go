@@ -113,7 +113,8 @@ func NewFixedRotationAgent(sim *Simulation, numLBsPerCL int) *FixedRotationAgent
 //                          CL ON CLEARCAST
 // ################################################################
 type CLOnClearcastAgent struct {
-	// Whether clearcasting was active when the last 2 spells were cast
+	// Whether the last 2 spells procced clearcasting, either directly
+	// or via lightning overload.
 	prevCastProccedCC     bool
 	prevPrevCastProccedCC bool
 
