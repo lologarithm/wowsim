@@ -2,7 +2,6 @@ package tbc
 
 import (
 	"fmt"
-	"math"
 	"time"
 )
 
@@ -222,13 +221,16 @@ func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
 
 	manaSpent := sim.metrics.ManaSpent - oldestSnapshot.manaSpent
 	timeDelta := sim.CurrentTime - oldestSnapshot.time
-	manaSpendingRate := manaSpent / math.Max(1.0, timeDelta.Seconds())
+	if timeDelta == 0 {
+		timeDelta = 1
+	}
 
 	timeRemaining := sim.Duration - sim.CurrentTime
-	projectedManaCost := manaSpendingRate * timeRemaining.Seconds()
+	projectedManaCost := manaSpent * (timeRemaining / timeDelta).Seconds()
 
 	if sim.Debug != nil {
-		sim.Debug("[AI] CL Ready: Mana/Tick: %0.1f, Est Mana Cost: %0.1f, CurrentMana: %0.1f\n", manaSpendingRate, projectedManaCost, sim.CurrentMana)
+		manaSpendingRate := manaSpent / timeDelta.Seconds()
+		sim.Debug("[AI] CL Ready: Mana/s: %0.1f, Est Mana Cost: %0.1f, CurrentMana: %0.1f\n", manaSpendingRate, projectedManaCost, sim.CurrentMana)
 	}
 
 	// If we have enough mana to burn and CL is off CD, use it.
