@@ -1,8 +1,7 @@
 package tbc
 
 import (
-  "math"
-  "time"
+	"time"
 )
 
 // Spell represents a single castable spell. This is all the data needed to begin a cast.
@@ -43,9 +42,9 @@ const (
 var spells = []Spell{
 	// {ID: MagicIDLB4,  Name: "LB4",  Coeff: 0.795,  CastTime: time.Millisecond * 2500, MinDmg: 88, MaxDmg: 100, Mana: 50, DamageType: DamageTypeNature},
 	// {ID: MagicIDLB10, Name: "LB10", Coeff: 0.795,  CastTime: time.Millisecond * 2500, MinDmg: 428, MaxDmg: 477, Mana: 265, DamageType: DamageTypeNature},
-	{ID: MagicIDLB12,    Name: "LB12", Coeff: 0.795,  CastTime: time.Millisecond * 2500, MinDmg: 571, MaxDmg: 652, Mana: 300, DamageType: DamageTypeNature},
+	{ID: MagicIDLB12, Name: "LB12", Coeff: 0.795, CastTime: time.Millisecond * 2500, MinDmg: 571, MaxDmg: 652, Mana: 300, DamageType: DamageTypeNature},
 	// {ID: MagicIDCL4,  Name: "CL4",  Coeff: 0.643,  CastTime: time.Millisecond * 2000, Cooldown: time.Second * 6, MinDmg: 505, MaxDmg: 564, Mana: 605, DamageType: DamageTypeNature},
-	{ID: MagicIDCL6,     Name: "CL6",  Coeff: 0.643,  CastTime: time.Millisecond * 2000, Cooldown: time.Second * 6, MinDmg: 734, MaxDmg: 838, Mana: 760, DamageType: DamageTypeNature},
+	{ID: MagicIDCL6, Name: "CL6", Coeff: 0.643, CastTime: time.Millisecond * 2000, Cooldown: time.Second * 6, MinDmg: 734, MaxDmg: 838, Mana: 760, DamageType: DamageTypeNature},
 	// {ID: MagicIDES8,  Name: "ES8",  Coeff: 0.3858, CastTime: time.Millisecond * 1500, Cooldown: time.Second * 6, MinDmg: 658, MaxDmg: 692, Mana: 535, DamageType: DamageTypeNature},
 	// {ID: MagicIDFrS5, Name: "FrS5", Coeff: 0.3858, CastTime: time.Millisecond * 1500, Cooldown: time.Second * 6, MinDmg: 640, MaxDmg: 676, Mana: 525, DamageType: DamageTypeFrost},
 	// {ID: MagicIDFlS7, Name: "FlS7", Coeff: 0.15, CastTime: time.Millisecond * 1500, Cooldown: time.Second * 6, MinDmg: 377, MaxDmg: 420, Mana: 500, DotDmg: 100, DotDur: time.Second * 6, DamageType: DamageTypeFire},
@@ -73,7 +72,7 @@ type Cast struct {
 	IsClBounce bool // stupider hack
 
 	// Pre-hit Mutatable State
-	CastTime time.Duration // time in seconds to cast the spell
+	CastTime time.Duration // time to cast the spell
 	ManaCost float64
 
 	Hit        float64 // Direct % bonus... 0.1 == 10%
@@ -100,19 +99,16 @@ func NewCast(sim *Simulation, sp *Spell) *Cast {
 	cast.CritBonus = 1.5
 
 	castTime := sp.CastTime
-	itsElectric := sp.ID == MagicIDLB12 || sp.ID == MagicIDCL6
 
+	itsElectric := sp.ID == MagicIDLB12 || sp.ID == MagicIDCL6
 	if itsElectric {
+		cast.ManaCost *= 1 - (0.02 * float64(sim.Options.Talents.Convection))
 		// TODO: Add LightningMaster to talent list (this will never not be selected for an elemental shaman)
 		castTime -= time.Millisecond * 500 // Talent Lightning Mastery
 	}
-  hasteBonus := (1 + ((sim.Stats[StatHaste] + sim.Buffs[StatHaste]) / 1576))
-  castTime = time.Duration(math.Max(float64(sim.GCDMin), float64(castTime) / hasteBonus))
+	hasteBonus := (1 + ((sim.Stats[StatHaste] + sim.Buffs[StatHaste]) / 1576))
+	castTime = time.Duration(float64(castTime) / hasteBonus)
 	cast.CastTime = castTime
-
-	if itsElectric {
-		cast.ManaCost *= 1 - (0.02 * float64(sim.Options.Talents.Convection))
-	}
 
 	// Apply any on cast effects.
 	for _, id := range sim.activeAuraIDs {

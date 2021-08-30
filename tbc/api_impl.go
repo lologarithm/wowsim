@@ -101,8 +101,8 @@ func statWeightsImpl(request StatWeightsRequest) StatWeightsResult {
 
 		result.EpValues[stat] = result.Weights[stat] / result.Weights[StatSpellDmg]
 
-		result.WeightsStDev[stat] = computeStDevFromHists(request.Iterations, statMods[stat], dpsHists[stat], baselineResult.DpsHist, nil, statMods[StatSpellDmg])
-		result.EpValuesStDev[stat] = computeStDevFromHists(request.Iterations, statMods[stat], dpsHists[stat], baselineResult.DpsHist, dpsHists[StatSpellDmg], statMods[StatSpellDmg])
+		result.WeightsStDev[stat] = computeStDevFromHists(request.Iterations, mod, dpsHists[stat], baselineResult.DpsHist, nil, statMods[StatSpellDmg])
+		result.EpValuesStDev[stat] = computeStDevFromHists(request.Iterations, mod, dpsHists[stat], baselineResult.DpsHist, dpsHists[StatSpellDmg], statMods[StatSpellDmg])
 	}
 	return result
 }

@@ -5,7 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"strconv"
-  "time"
+	"time"
 )
 
 func debugFunc(sim *Simulation) func(string, ...interface{}) {
@@ -27,12 +27,12 @@ type Simulation struct {
 	bloodlustCasts    int
 	destructionPotion bool
 	Options           Options
-  Duration          time.Duration
-  GCDMin            time.Duration
+	Duration          time.Duration
+	GCDMin            time.Duration
 
-	CDs           [MagicIDLen]time.Duration  // Map of MagicID to sim duration at which CD is done.
-	auras         [MagicIDLen]Aura // this is array instead of map to speed up browser perf.
-	activeAuraIDs []int32          // IDs of auras that are active, in no particular order
+	CDs           [MagicIDLen]time.Duration // Map of MagicID to sim duration at which CD is done.
+	auras         [MagicIDLen]Aura          // this is array instead of map to speed up browser perf.
+	activeAuraIDs []int32                   // IDs of auras that are active, in no particular order
 
 	// Clears and regenerates on each Run call.
 	metrics SimMetrics
@@ -68,8 +68,8 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 	sim := &Simulation{
 		Stats:         stats,
 		Options:       options,
-    Duration:      durationFromSeconds(options.Encounter.Duration),
-    GCDMin:        durationFromSeconds(options.GCDMin),
+		Duration:      durationFromSeconds(options.Encounter.Duration),
+		GCDMin:        durationFromSeconds(options.GCDMin),
 		CDs:           [MagicIDLen]time.Duration{},
 		Buffs:         Stats{},
 		auras:         [MagicIDLen]Aura{},
@@ -210,6 +210,9 @@ func (sim *Simulation) Run() SimMetrics {
 		if castingSpell == nil {
 			panic("Agent returned nil action")
 		}
+		if castingSpell.CastTime < sim.GCDMin {
+			castingSpell.CastTime = sim.GCDMin
+		}
 
 		if sim.CurrentMana >= castingSpell.ManaCost {
 			if sim.Debug != nil {
@@ -228,7 +231,7 @@ func (sim *Simulation) Run() SimMetrics {
 					return sim.metrics
 				}
 			}
-			timeUntilRegen := durationFromSeconds(math.Max(0.0001, (castingSpell.ManaCost - sim.CurrentMana) / sim.manaRegenPerSecond()))
+			timeUntilRegen := durationFromSeconds((castingSpell.ManaCost-sim.CurrentMana)/sim.manaRegenPerSecond()) + 1
 			sim.Advance(timeUntilRegen)
 			// Don't actually cast; let the next iteration do the cast, so we recheck for pots/CDs/etc
 		}
@@ -442,12 +445,12 @@ func (sim *Simulation) isOnCD(magicID int32) bool {
 }
 
 func (sim *Simulation) getRemainingCD(magicID int32) time.Duration {
-  remainingCD := sim.CDs[magicID]-sim.CurrentTime
-  if remainingCD > 0 {
-    return remainingCD
-  } else {
-    return 0
-  }
+	remainingCD := sim.CDs[magicID] - sim.CurrentTime
+	if remainingCD > 0 {
+		return remainingCD
+	} else {
+		return 0
+	}
 }
 
 func (sim *Simulation) setCD(magicID int32, newCD time.Duration) {
@@ -469,11 +472,11 @@ func (sim *Simulation) TryActivateEquipment() {
 		sim.addAura(item.Activate(sim))
 		sim.setCD(item.CoolID, item.ActivateCD)
 		if item.Slot == EquipTrinket {
-			sim.setCD(MagicIDAllTrinket, time.Second * 30)
+			sim.setCD(MagicIDAllTrinket, time.Second*30)
 		}
 	}
 }
 
 func durationFromSeconds(numSeconds float64) time.Duration {
-  return time.Duration(float64(time.Second) * numSeconds)
+	return time.Duration(float64(time.Second) * numSeconds)
 }
