@@ -112,17 +112,12 @@ func NewFixedRotationAgent(sim *Simulation, numLBsPerCL int) *FixedRotationAgent
 //                          CL ON CLEARCAST
 // ################################################################
 type CLOnClearcastAgent struct {
-	// Whether the last 2 spells procced clearcasting, either directly
-	// or via lightning overload.
-	prevCastProccedCC     bool
-	prevPrevCastProccedCC bool
-
 	lb *Spell
 	cl *Spell
 }
 
 func (agent *CLOnClearcastAgent) ChooseAction(sim *Simulation) AgentAction {
-	if sim.isOnCD(MagicIDCL6) || !agent.prevPrevCastProccedCC {
+	if sim.isOnCD(MagicIDCL6) || sim.auras[MagicIDEleFocus].stacks != 1 {
 		return NewCastAction(sim, agent.lb)
 	}
 
@@ -130,25 +125,9 @@ func (agent *CLOnClearcastAgent) ChooseAction(sim *Simulation) AgentAction {
 }
 
 func (agent *CLOnClearcastAgent) OnActionAccepted(sim *Simulation, action AgentAction) {
-	agent.prevPrevCastProccedCC = agent.prevCastProccedCC
-	agent.prevCastProccedCC = false
 }
 
 func (agent *CLOnClearcastAgent) Reset(sim *Simulation) {
-	// Checking whether the EleFocus aura is active isn't enough; we need to know
-	// how many charges it currently has. This information isn't available so instead
-	// we infer by checking whether each spell is a crit.
-	sim.addAura(Aura{
-		ID:      MagicIDClearcastAgent,
-		Expires: neverExpires,
-		OnSpellHit: func(sim *Simulation, c *Cast) {
-			agent.prevCastProccedCC = agent.prevCastProccedCC ||
-				(c.DidCrit && c.Spell.ID != MagicIDTLCLB)
-		},
-	})
-
-	agent.prevCastProccedCC = false
-	agent.prevPrevCastProccedCC = false
 }
 
 func NewCLOnClearcastAgent(sim *Simulation) *CLOnClearcastAgent {
