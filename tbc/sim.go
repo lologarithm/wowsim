@@ -10,7 +10,7 @@ import (
 
 func debugFunc(sim *Simulation) func(string, ...interface{}) {
 	return func(s string, vals ...interface{}) {
-		fmt.Printf("[%0.1f] "+s, append([]interface{}{sim.CurrentTime}, vals...)...)
+		fmt.Printf("[%0.1f] "+s, append([]interface{}{sim.CurrentTime.Seconds()}, vals...)...)
 	}
 }
 
@@ -83,10 +83,6 @@ func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
 		},
 	}
 	sim.objpool.fill()
-
-	if options.Debug {
-		sim.Debug = debugFunc(sim)
-	}
 
 	for i, eq := range equip {
 		if eq.Activate != nil {
@@ -216,7 +212,7 @@ func (sim *Simulation) Run() SimMetrics {
 
 		if sim.CurrentMana >= castingSpell.ManaCost {
 			if sim.Debug != nil {
-				sim.Debug("Start Casting %s Cast Time: %0.1fs\n", castingSpell.Spell.Name, castingSpell.CastTime)
+				sim.Debug("Start Casting %s Cast Time: %0.1fs\n", castingSpell.Spell.Name, castingSpell.CastTime.Seconds())
 			}
 
 			sim.Agent.OnActionAccepted(sim, action)

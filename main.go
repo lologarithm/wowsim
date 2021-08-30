@@ -107,7 +107,7 @@ func main() {
 
 	var isDebug = flag.Bool("debug", false, "Include --debug to spew the entire simulation log.")
 	var noopt = flag.Bool("noopt", false, "If included it will disable optimization.")
-	var agentTypeStr = flag.String("agentType", "", "Custom comma separated agent type to simulate.\n\tFor Example: --rotation=3LB1CL")
+	var agentTypeStr = flag.String("agentType", "Adaptive", "Custom comma separated agent type to simulate.\n\tFor Example: --rotation=3LB1CL")
 	var duration = flag.Float64("duration", 300, "Custom fight duration in seconds.")
 	var iterations = flag.Int("iter", 10000, "Custom number of iterations for the sim to run.")
 	var configFile = flag.String("config", "", "Specify an input configuration.")
@@ -169,7 +169,9 @@ func runTBCSim(simRequest tbc.SimRequest, noopt bool) {
 		fmt.Printf("\n]\n")
 	}
 
+	fmt.Printf("Starting main simulation with agent: %#v", simRequest.Options.AgentType)
 	simResult := tbc.RunSimulation(simRequest)
+	fmt.Printf("\nLogs:\n%s\n", simResult.Logs)
 	fmt.Printf("\n%s\n", simResultsToString(simRequest, simResult))
 }
 

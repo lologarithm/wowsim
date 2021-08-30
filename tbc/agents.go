@@ -205,7 +205,7 @@ func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
 	}
 
 	timeRemaining := sim.Duration - sim.CurrentTime
-	projectedManaCost := manaSpent * (timeRemaining / timeDelta).Seconds()
+	projectedManaCost := manaSpent * (timeRemaining.Seconds() / timeDelta.Seconds())
 
 	if sim.Debug != nil {
 		manaSpendingRate := manaSpent / timeDelta.Seconds()
