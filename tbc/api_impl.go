@@ -152,13 +152,13 @@ func runSimulationImpl(request SimRequest) SimResult {
 	sim := NewSim(stats, equipment, request.Options)
 	aggregator := NewMetricsAggregator()
 
-	for i := 0; i < request.Iterations; i++ {
-		if request.IncludeLogs {
-			sim.Debug = func(s string, vals ...interface{}) {
-				logsBuffer.WriteString(fmt.Sprintf("[%0.1f] "+s, append([]interface{}{sim.CurrentTime}, vals...)...))
-			}
+	if request.IncludeLogs {
+		sim.Debug = func(s string, vals ...interface{}) {
+			logsBuffer.WriteString(fmt.Sprintf("[%0.1f] "+s, append([]interface{}{sim.CurrentTime.Seconds()}, vals...)...))
 		}
+	}
 
+	for i := 0; i < request.Iterations; i++ {
 		metrics := sim.Run()
 		aggregator.addMetrics(request.Options, metrics)
 		sim.objpool.ReturnCasts(metrics.Casts)

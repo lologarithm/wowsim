@@ -14,7 +14,6 @@ type Aura struct {
 	ID          int32
 	Expires     time.Duration // time at which aura will be removed
 	activeIndex int32         // Position of this aura's index in the sim.activeAuraIDs array
-	reset       func()        // reset func lets you re-use the aura
 
 	// The number of stacks, or charges, of this aura. If this aura doesn't care
 	// about charges, is just 0.
@@ -189,8 +188,6 @@ func AuraName(a int32) string {
 		return "Fathom-Brooch Regain Mana"
 	case MagicIDAlchStone:
 		return "Alchemist's Stone"
-	case MagicIDClearcastAgent:
-		return "Clearcast Agent"
 	}
 
 	return "<<TODO: Add Aura name to switch!!>>"
@@ -299,9 +296,6 @@ const (
 	MagicIDEssSappTrink
 	MagicIDDITrink // Dark Iron pipe trinket CD
 
-	// Misc
-	MagicIDClearcastAgent
-
 	// Always at end so we know how many magic IDs there are.
 	MagicIDLen
 )
@@ -386,14 +380,12 @@ func AuraJudgementOfWisdom() Aura {
 }
 
 func AuraElementalFocus(sim *Simulation) Aura {
-	if sim.objpool.auras[MagicIDEleFocus] == nil {
+	aura := sim.objpool.auras[MagicIDEleFocus]
+	if aura == nil {
 		// create a cached version of this aura since we will re-use it all the time.
-		count := 2
-		sim.objpool.auras[MagicIDEleFocus] = &Aura{
-			ID: MagicIDEleFocus,
-			reset: func() {
-				count = 2
-			},
+		aura = &Aura{
+			ID:     MagicIDEleFocus,
+			stacks: 2,
 			OnCast: func(sim *Simulation, c *Cast) {
 				c.ManaCost *= .6 // reduced by 40%
 			},
@@ -401,18 +393,18 @@ func AuraElementalFocus(sim *Simulation) Aura {
 				if c.ManaCost <= 0 {
 					return // Don't consume charges from free spells.
 				}
-				count--
-				if count == 0 {
+				aura.stacks--
+				if aura.stacks == 0 {
 					sim.removeAura(MagicIDEleFocus)
 				}
 			},
 		}
+		sim.objpool.auras[MagicIDEleFocus] = aura
 	}
-
 	// Whenever we use the cached aura we just reset its expire time and reset the count.
-	aura := sim.objpool.auras[MagicIDEleFocus]
 	aura.Expires = sim.CurrentTime + time.Second*15
-	aura.reset()
+	// Set stacks back to 2 whenever we crit.
+	aura.stacks = 2
 	return *aura
 }
 

@@ -283,8 +283,10 @@ func NewEquipmentSet(equipSpec EquipmentSpec) Equipment {
 
 		if len(itemSpec.Gems) > 0 {
 			item.Gems = make([]Gem, len(item.GemSlots))
-
 			for gemIdx, gemSpec := range itemSpec.Gems {
+				if gemIdx >= len(item.GemSlots) {
+					break // in case we get invalid gem settings.
+				}
 				if gem, ok := GemsByName[gemSpec.Name]; ok {
 					item.Gems[gemIdx] = gem
 				} else if gem, ok := GemsByID[gemSpec.ID]; ok {
@@ -574,7 +576,7 @@ var items = []Item{
 	{ID: 29992, Slot: EquipBack, Name: "Royal Cloak of the Sunstriders", Phase: 2, Quality: ItemQualityEpic, SourceZone: "TK", SourceDrop: "Kaelthas", Stats: Stats{StatStm: 27, StatInt: 22, StatSpellDmg: 44}},
 	{ID: 28797, Slot: EquipBack, Name: "Brute Cloak of the Ogre-Magi", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Gruul's Lair", SourceDrop: "Maulgar", Stats: Stats{StatStm: 18, StatInt: 20, StatSpellDmg: 28, StatSpellCrit: 23}},
 	{ID: 30735, Slot: EquipBack, Name: "Ancient Spellcloak of the Highborne", Phase: 1, Quality: ItemQualityEpic, SourceZone: "WorldBoss", SourceDrop: "Kazzak", Stats: Stats{StatStm: 0, StatInt: 15, StatSpellDmg: 36, StatSpellCrit: 19}},
-	{ID: 32331, Slot: EquipBack, Name: "Cloak of the Illidari Council", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "IllidariCouncil", Stats: Stats{StatStm: 24, StatInt: 16, StatSpellDmg: 42, StatSpellCrit: 25}},
+	{ID: 32331, Slot: EquipBack, Name: "Cloak of the Illidari Council", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Illidari Council", Stats: Stats{StatStm: 24, StatInt: 16, StatSpellDmg: 42, StatSpellCrit: 25}},
 	{ID: 29033, Slot: EquipChest, Name: "Cyclone Chestguard (Tier 4)", Phase: 1, Quality: ItemQualityEpic, SourceZone: "GruulsLair", SourceDrop: "Maulgar", Stats: Stats{StatStm: 33, StatInt: 32, StatSpellDmg: 39, StatSpellCrit: 20, StatMP5: 8}, GemSlots: []GemColor{GemColorRed, GemColorYellow, GemColorBlue}, SocketBonus: Stats{StatSpellHit: 4}},
 	{ID: 29519, Slot: EquipChest, Name: "Netherstrike Breastplate", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Crafted", SourceDrop: "Leatherworking", Stats: Stats{StatStm: 34, StatInt: 23, StatSpellDmg: 37, StatSpellCrit: 32, StatMP5: 8}, GemSlots: []GemColor{GemColorBlue, GemColorYellow, GemColorBlue}, SocketBonus: Stats{StatSpellDmg: 5}},
 	{ID: 30056, Slot: EquipChest, Name: "Robe of Hateful Echoes", Phase: 2, Quality: ItemQualityEpic, SourceZone: "SSC", SourceDrop: "Hydross", Stats: Stats{StatStm: 34, StatInt: 36, StatSpellDmg: 50, StatSpellCrit: 25}, GemSlots: []GemColor{GemColorRed, GemColorYellow, GemColorYellow}, SocketBonus: Stats{StatStm: 6}},
@@ -616,7 +618,7 @@ var items = []Item{
 	{ID: 29972, Slot: EquipLegs, Name: "Trousers of the Astromancer", Phase: 2, Quality: ItemQualityEpic, SourceZone: "TK", SourceDrop: "Solarian", Stats: Stats{StatStm: 33, StatInt: 36, StatSpellDmg: 54}, GemSlots: []GemColor{GemColorBlue, GemColorYellow, GemColorBlue}, SocketBonus: Stats{StatSpellDmg: 5}},
 	{ID: 30172, Slot: EquipLegs, Name: "Cataclysm Leggings (Tier 5)", Phase: 2, Quality: ItemQualityEpic, SourceZone: "TK", SourceDrop: "Karathress", Stats: Stats{StatStm: 48, StatInt: 46, StatSpellDmg: 54, StatSpellCrit: 24, StatSpellHit: 14}, GemSlots: []GemColor{GemColorYellow}, SocketBonus: Stats{StatSpellDmg: 2}},
 	{ID: 32367, Slot: EquipLegs, Name: "Leggings of Devastation", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Mother", Stats: Stats{StatStm: 40, StatInt: 42, StatSpellDmg: 60, StatSpellHit: 26}, GemSlots: []GemColor{GemColorYellow, GemColorYellow, GemColorBlue}, SocketBonus: Stats{StatSpellDmg: 5}},
-	{ID: 31020, Slot: EquipLegs, Name: "Skyshatter Legguards (Tier 6)", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "IllidariCouncil", Stats: Stats{StatStm: 40, StatInt: 42, StatSpellDmg: 62, StatSpellCrit: 29, StatSpellHit: 20, StatMP5: 11}, GemSlots: []GemColor{GemColorYellow, GemColorYellow, GemColorBlue}, SocketBonus: Stats{StatSpellDmg: 5}},
+	{ID: 31020, Slot: EquipLegs, Name: "Skyshatter Legguards (Tier 6)", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Illidari Council", Stats: Stats{StatStm: 40, StatInt: 42, StatSpellDmg: 62, StatSpellCrit: 29, StatSpellHit: 20, StatMP5: 11}, GemSlots: []GemColor{GemColorYellow}, SocketBonus: Stats{StatSpellDmg: 2}},
 	{ID: 30734, Slot: EquipLegs, Name: "Leggings of the Seventh Circle", Phase: 1, Quality: ItemQualityEpic, SourceZone: "World Boss", SourceDrop: "Kazzak", Stats: Stats{StatStm: 0, StatInt: 22, StatSpellDmg: 50, StatSpellCrit: 25, StatSpellHit: 18}, GemSlots: []GemColor{GemColorRed, GemColorYellow, GemColorYellow}, SocketBonus: Stats{StatSpellDmg: 5}},
 	{ID: 30916, Slot: EquipLegs, Name: "Leggings of Channeled Elements", Phase: 3, Quality: ItemQualityEpic, SourceZone: "Hyjal", SourceDrop: "Kazrogal", Stats: Stats{StatStm: 25, StatInt: 28, StatSpellDmg: 59, StatSpellCrit: 34, StatSpellHit: 18}, GemSlots: []GemColor{GemColorYellow, GemColorYellow, GemColorBlue}, SocketBonus: Stats{StatSpellDmg: 5}},
 	{ID: 28670, Slot: EquipFeet, Name: "Boots of the Infernal Coven", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Aran", Stats: Stats{StatStm: 27, StatInt: 27, StatSpellDmg: 34}},
