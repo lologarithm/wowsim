@@ -44,7 +44,7 @@ type Simulation struct {
 	Debug func(string, ...interface{})
 
 	// caches to speed up perf
-	objpool *pool
+	cache *pool
 }
 
 type SimMetrics struct {
@@ -78,11 +78,22 @@ func NewSim(equipSpec EquipmentSpec, options Options) *Simulation {
 		rseed:         options.RSeed,
 		rando:         rand.New(rand.NewSource(options.RSeed)),
 		Debug:         nil,
-		objpool: &pool{
+		cache: &pool{
 			casts: make([]*Cast, 0, 1000),
 		},
 	}
-	sim.objpool.fill()
+	sim.cache.dpsReportTime = durationFromSeconds(sim.Options.DPSReportTime)
+	sim.cache.dmgBonus = 1.0
+	sim.cache.elcDmgBonus = 1.0
+
+	if sim.Options.Talents.Concussion > 0 {
+		sim.cache.elcDmgBonus += (0.01 * sim.Options.Talents.Concussion)
+	}
+	if sim.Options.Buffs.Misery {
+		sim.cache.elcDmgBonus += (0.01 * sim.Options.Talents.Concussion)
+		sim.cache.dmgBonus += (0.01 * sim.Options.Talents.Concussion)
+	}
+	sim.cache.fill()
 
 	for i, eq := range equip {
 		if eq.Activate != nil {
@@ -118,7 +129,7 @@ func (sim *Simulation) reset() {
 	sim.CurrentMana = sim.Stats[StatMana]
 	sim.CDs = [MagicIDLen]time.Duration{}
 	sim.auras = [MagicIDLen]Aura{}
-	sim.activeAuraIDs = make([]int32, 0, 10)
+	sim.activeAuraIDs = sim.activeAuraIDs[0:] // chop off end of activeids slice, faster than making a new one
 	sim.metrics = SimMetrics{
 		Casts: make([]*Cast, 0, 1000),
 	}
@@ -157,6 +168,9 @@ func (sim *Simulation) reset() {
 
 	sim.ActivateSets()
 	sim.Agent.Reset(sim)
+
+	// Currently no temp hit increase effects in the sim... so lets cache this!
+	sim.cache.spellHit = 0.83 + sim.Stats[StatSpellHit]/1260.0 // 12.6 hit == 1% hit
 }
 
 // Activates set bonuses, returning the list of active bonuses.
@@ -270,20 +284,21 @@ func (sim *Simulation) Cast(cast *Cast) {
 			sim.auras[id].OnCastComplete(sim, cast)
 		}
 	}
-	hit := 0.83 + (sim.Stats[StatSpellHit] / 1260.0) + cast.Hit // 12.6 hit == 1% hit
-	hit = math.Min(hit, 0.99)                                   // can't get away from the 1% miss
+	hit := sim.cache.spellHit + cast.Hit // 12.6 hit == 1% hit
+	hit = math.Min(hit, 0.99)            // can't get away from the 1% miss
 
 	dbgCast := cast.Spell.Name
 	if sim.Debug != nil {
 		sim.Debug("Completed Cast (%s)\n", dbgCast)
 	}
 	if sim.rando.Float64() < hit {
-		sp := sim.Stats[StatSpellDmg] + cast.Spellpower
-		dmg := (sim.rando.Float64() * cast.Spell.DmgDiff) + cast.Spell.MinDmg + (sp * cast.Spell.Coeff)
+		dmg := (sim.rando.Float64() * cast.Spell.DmgDiff) + cast.Spell.MinDmg + (sim.Stats[StatSpellDmg] * cast.Spell.Coeff)
 		if cast.DidDmg != 0 { // use the pre-set dmg
 			dmg = cast.DidDmg
 		}
 		cast.DidHit = true
+
+		itsElectric := cast.Spell.ID == MagicIDCL6 || cast.Spell.ID == MagicIDLB12
 
 		crit := (sim.Stats[StatSpellCrit] / 2208.0) + cast.Crit // 22.08 crit == 1% crit
 		if sim.rando.Float64() < crit {
@@ -292,7 +307,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 			if cast.CritBonus != 0 {
 				critBonus = cast.CritBonus // This means we had pre-set the crit bonus when the spell was created. CSD will modify this.
 			}
-			if cast.Spell.ID == MagicIDCL6 || cast.Spell.ID == MagicIDLB12 {
+			if itsElectric {
 				critBonus *= 2 // This handles the 'Elemental Fury' talent which increases the crit bonus.
 				critBonus -= 1 // reduce to multiplier instead of percent.
 			}
@@ -308,12 +323,10 @@ func (sim *Simulation) Cast(cast *Cast) {
 			dbgCast += " hit"
 		}
 
-		if sim.Options.Talents.Concussion > 0 && (cast.Spell.ID == MagicIDLB12 || cast.Spell.ID == MagicIDCL6) {
-			// Talent Concussion
-			dmg *= 1 + (0.01 * sim.Options.Talents.Concussion)
-		}
-		if sim.Options.Buffs.Misery {
-			dmg *= 1.05
+		if itsElectric {
+			dmg *= sim.cache.elcDmgBonus
+		} else {
+			dmg *= sim.cache.dmgBonus
 		}
 
 		// Average Resistance (AR) = (Target's Resistance / (Caster's Level * 5)) * 0.75
@@ -344,8 +357,8 @@ func (sim *Simulation) Cast(cast *Cast) {
 		}
 		cast.DidDmg = dmg
 		// Apply any effects specific to this cast.
-		for _, eff := range cast.Effects {
-			eff(sim, cast)
+		if cast.Effect != nil {
+			cast.Effect(sim, cast)
 		}
 		// Apply any on spell hit effects.
 		for _, id := range sim.activeAuraIDs {
@@ -378,7 +391,7 @@ func (sim *Simulation) Cast(cast *Cast) {
 	sim.metrics.Casts = append(sim.metrics.Casts, cast)
 
 	sim.metrics.TotalDamage += cast.DidDmg
-	if sim.Options.DPSReportTime > 0 && sim.CurrentTime <= durationFromSeconds(sim.Options.DPSReportTime) {
+	if sim.Options.DPSReportTime > 0 && sim.CurrentTime <= sim.cache.dpsReportTime {
 		sim.metrics.ReportedDamage += cast.DidDmg
 	}
 }

@@ -1,7 +1,15 @@
 package tbc
 
+import "time"
+
 type pool struct {
 	casts []*Cast
+
+	// Cached pre-calculated values
+	dmgBonus      float64 // precalculated dmg modifier
+	elcDmgBonus   float64 // electric spell dmg modifier
+	dpsReportTime time.Duration
+	spellHit      float64
 }
 
 func (p *pool) NewCast() *Cast {
@@ -34,12 +42,11 @@ func (p *pool) ReturnCasts(casts []*Cast) {
 		v.Hit = 0
 		v.Crit = 0
 		v.CritBonus = 0
-		v.Spellpower = 0
 		v.DidHit = false
 		v.DidCrit = false
 		v.DidDmg = 0
 		v.CastAt = 0
-		v.Effects = nil
+		v.Effect = nil
 	}
 
 	p.casts = append(p.casts, casts...)

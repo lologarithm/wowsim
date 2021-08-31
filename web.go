@@ -1,13 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"embed"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"runtime/pprof"
 	"strings"
 	"time"
 
@@ -58,9 +62,40 @@ func main() {
 
 	http.HandleFunc("/api", handleAPI)
 
-	log.Printf("Launching interface on http://localhost%s/ui", *host)
+	go func() {
+		log.Printf("Launching interface on http://localhost%s/ui", *host)
+		log.Printf("Closing: %s", http.ListenAndServe(*host, nil))
+	}()
 
-	log.Printf("Closing: %s", http.ListenAndServe(*host, nil))
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		text, _ := reader.ReadString('\n')
+		if len(text) == 0 {
+			continue
+		}
+		switch strings.TrimSpace(text) {
+		case "profile":
+			go func() {
+				filename := fmt.Sprintf("profile_%d.cpu", time.Now().Unix())
+				f, err := os.Create(filename)
+				if err != nil {
+					log.Fatal("could not create CPU profile: ", err)
+				}
+				if err := pprof.StartCPUProfile(f); err != nil {
+					log.Fatal("could not start CPU profile: ", err)
+				}
+				fmt.Printf("Running profiling for 15 seconds, output to %s\n", filename)
+				time.Sleep(time.Second * 15)
+				pprof.StopCPUProfile()
+				f.Close()
+				fmt.Printf("Profiling complete.")
+			}()
+		case "quit":
+			os.Exit(1)
+		default:
+			fmt.Printf("Unknown command: '%s'", text)
+		}
+	}
 }
 
 func handleAPI(w http.ResponseWriter, r *http.Request) {

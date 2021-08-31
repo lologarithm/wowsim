@@ -75,10 +75,9 @@ type Cast struct {
 	CastTime time.Duration // time to cast the spell
 	ManaCost float64
 
-	Hit        float64 // Direct % bonus... 0.1 == 10%
-	Crit       float64 // Direct % bonus... 0.1 == 10%
-	CritBonus  float64 // Multiplier to critical dmg bonus.
-	Spellpower float64 // Bonus Spellpower to add at end of cast.
+	Hit       float64 // Direct % bonus... 0.1 == 10%
+	Crit      float64 // Direct % bonus... 0.1 == 10%
+	CritBonus float64 // Multiplier to critical dmg bonus.
 
 	// Calculated Values
 	DidHit  bool
@@ -86,22 +85,20 @@ type Cast struct {
 	DidDmg  float64
 	CastAt  time.Duration // simulation time the spell cast
 
-	Effects []AuraEffect // effects applied ONLY to this cast.
+	Effect AuraEffect // effects applied ONLY to this cast.
 }
 
 // NewCast constructs a Cast from the current simulation and selected spell.
 //  OnCast mechanics are applied at this time (anything that modifies the cast before its cast, usually just mana cost stuff)
 func NewCast(sim *Simulation, sp *Spell) *Cast {
-	cast := sim.objpool.NewCast()
+	cast := sim.cache.NewCast()
 	cast.Spell = sp
 	cast.ManaCost = float64(sp.Mana)
-	cast.Spellpower = 0
 	cast.CritBonus = 1.5
 
 	castTime := sp.CastTime
 
-	itsElectric := sp.ID == MagicIDLB12 || sp.ID == MagicIDCL6
-	if itsElectric {
+	if sp.ID == MagicIDLB12 || sp.ID == MagicIDCL6 {
 		cast.ManaCost *= 1 - (0.02 * float64(sim.Options.Talents.Convection))
 		// TODO: Add LightningMaster to talent list (this will never not be selected for an elemental shaman)
 		castTime -= time.Millisecond * 500 // Talent Lightning Mastery
