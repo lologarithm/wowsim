@@ -136,8 +136,8 @@ func main() {
 	} else if agentType, ok := agentTypesMap[*agentTypeStr]; ok {
 		simRequest.Options.AgentType = agentType
 	} else {
-    panic(fmt.Sprintf("Invalid agent type: %s", *agentTypeStr))
-  }
+		panic(fmt.Sprintf("Invalid agent type: %s", *agentTypeStr))
+	}
 	simRequest.Options.Encounter.Duration = *duration
 	simRequest.Options.RSeed = time.Now().Unix()
 	simRequest.Iterations = *iterations
