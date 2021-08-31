@@ -129,7 +129,9 @@ func (sim *Simulation) reset() {
 	sim.CurrentMana = sim.Stats[StatMana]
 	sim.CDs = [MagicIDLen]time.Duration{}
 	sim.auras = [MagicIDLen]Aura{}
-	sim.activeAuraIDs = sim.activeAuraIDs[0:] // chop off end of activeids slice, faster than making a new one
+	if len(sim.activeAuraIDs) > 0 {
+		sim.activeAuraIDs = sim.activeAuraIDs[len(sim.activeAuraIDs)-1:] // chop off end of activeids slice, faster than making a new one
+	}
 	sim.metrics = SimMetrics{
 		Casts: make([]*Cast, 0, 1000),
 	}
