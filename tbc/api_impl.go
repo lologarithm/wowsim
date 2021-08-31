@@ -19,21 +19,14 @@ func getGearListImpl(request GearListRequest) GearListResult {
 }
 
 func computeStatsImpl(request ComputeStatsRequest) ComputeStatsResult {
-	equipment := NewEquipmentSet(request.Gear)
-
-	gearOnlyStats := equipment.Stats().CalculatedTotal()
-
 	request.Options.AgentType = AGENT_TYPE_ADAPTIVE
-	stats := CalculateTotalStats(request.Options, equipment)
-	fakeSim := NewSim(stats, equipment, request.Options)
-	sets := fakeSim.ActivateSets()
+	fakeSim := NewSim(request.Gear, request.Options)
 
+	sets := fakeSim.ActivateSets()
 	fakeSim.reset() // this will activate any perm-effect items as well
 
-	finalStats := stats
-	for stat, statValue := range fakeSim.Buffs {
-		finalStats[stat] += statValue
-	}
+	gearOnlyStats := fakeSim.Equip.Stats().CalculatedTotal()
+	finalStats := fakeSim.Stats
 
 	return ComputeStatsResult{
 		GearOnly:   gearOnlyStats,
@@ -145,11 +138,9 @@ func sampleFromDpsHist(hist map[int]int, histNumSamples int) int {
 }
 
 func runSimulationImpl(request SimRequest) SimResult {
-	equipment := NewEquipmentSet(request.Gear)
-	stats := CalculateTotalStats(request.Options, equipment)
+	sim := NewSim(request.Gear, request.Options)
 
 	logsBuffer := &strings.Builder{}
-	sim := NewSim(stats, equipment, request.Options)
 	aggregator := NewMetricsAggregator()
 
 	if request.IncludeLogs {

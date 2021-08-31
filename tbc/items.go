@@ -841,7 +841,7 @@ var sets = []ItemSet{
 		Name:  "Netherstrike",
 		Items: map[string]bool{"Netherstrike Breastplate": true, "Netherstrike Bracers": true, "Netherstrike Belt": true},
 		Bonuses: map[int]ItemActivation{3: func(sim *Simulation) Aura {
-			sim.Buffs[StatSpellDmg] += 23
+			sim.Stats[StatSpellDmg] += 23
 			return Aura{ID: MagicIDNetherstrike}
 		}},
 	},
@@ -849,7 +849,7 @@ var sets = []ItemSet{
 		Name:  "The Twin Stars",
 		Items: map[string]bool{"Charlotte's Ivy": true, "Lola's Eve": true},
 		Bonuses: map[int]ItemActivation{2: func(sim *Simulation) Aura {
-			sim.Buffs[StatSpellDmg] += 15
+			sim.Stats[StatSpellDmg] += 15
 			return Aura{ID: MagicIDNetherstrike}
 		}},
 	},
@@ -862,7 +862,7 @@ var sets = []ItemSet{
 			},
 			4: func(sim *Simulation) Aura {
 				if sim.Options.Buffs.WaterShield {
-					sim.Buffs[StatMP5] += 3
+					sim.Stats[StatMP5] += 3
 				}
 				return Aura{ID: MagicIDTidefury}
 			},
@@ -877,7 +877,7 @@ var sets = []ItemSet{
 		Name:  "Mana Etched",
 		Items: map[string]bool{"Mana-Etched Crown": true, "Mana-Etched Spaulders": true, "Mana-Etched Vestments": true, "Mana-Etched Gloves": true, "Mana-Etched Pantaloons": true},
 		Bonuses: map[int]ItemActivation{4: ActivateManaEtched, 2: func(sim *Simulation) Aura {
-			sim.Buffs[StatSpellHit] += 35
+			sim.Stats[StatSpellHit] += 35
 			return Aura{ID: MagicIDManaEtchedHit}
 		}},
 	},
@@ -886,7 +886,7 @@ var sets = []ItemSet{
 		Items: map[string]bool{"Cyclone Faceguard (Tier 4)": true, "Cyclone Shoulderguards (Tier 4)": true, "Cyclone Chestguard (Tier 4)": true, "Cyclone Handguards (Tier 4)": true, "Cyclone Legguards (Tier 4)": true},
 		Bonuses: map[int]ItemActivation{4: ActivateCycloneManaReduce, 2: func(sim *Simulation) Aura {
 			if !sim.Options.Totems.Cyclone2PC && sim.Options.Totems.WrathOfAir {
-				sim.Buffs[StatSpellDmg] += 20 // only activate if we don't already have it from party/
+				sim.Stats[StatSpellDmg] += 20 // only activate if we don't already have it from party/
 			}
 			return Aura{ID: MagicIDCyclone2pc}
 		}},
@@ -896,7 +896,7 @@ var sets = []ItemSet{
 		Items: map[string]bool{"Windhawk Hauberk": true, "Windhawk Belt": true, "Windhawk Bracers": true},
 		Bonuses: map[int]ItemActivation{3: func(sim *Simulation) Aura {
 			if sim.Options.Buffs.WaterShield {
-				sim.Buffs[StatMP5] += 8
+				sim.Stats[StatMP5] += 8
 			}
 			return Aura{ID: MagicIDWindhawk}
 		}},
@@ -919,9 +919,9 @@ var sets = []ItemSet{
 			"Skyshatter Bands":                true,
 		},
 		Bonuses: map[int]ItemActivation{2: func(sim *Simulation) Aura {
-			sim.Buffs[StatMP5] += 15
-			sim.Buffs[StatSpellCrit] += 35
-			sim.Buffs[StatSpellDmg] += 45
+			sim.Stats[StatMP5] += 15
+			sim.Stats[StatSpellCrit] += 35
+			sim.Stats[StatSpellDmg] += 45
 			return Aura{ID: MagicIDSkyshatter2pc}
 		}, 4: ActivateSkyshatterImpLB},
 	},

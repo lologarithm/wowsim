@@ -7,24 +7,33 @@ import (
 // Use same seed to get same result on every run.
 var RSeed = int64(1)
 
+var shortEncounter = Encounter{
+	Duration:     60,
+	NumClTargets: 1,
+}
+var longEncounter = Encounter{
+	Duration:     300,
+	NumClTargets: 1,
+}
+var longEncounterMultiTarget = Encounter{
+	Duration:     300,
+	NumClTargets: 3,
+}
+
 var basicOptions = Options{
 	RSeed:        RSeed,
 	NumBloodlust: 1,
 	NumDrums:     0,
 	Buffs: Buffs{
-		ArcaneInt:                true,
-		GiftOftheWild:            true,
-		BlessingOfKings:          true,
-		ImprovedBlessingOfWisdom: true,
+		ArcaneInt:                false,
+		GiftOftheWild:            false,
+		BlessingOfKings:          false,
+		ImprovedBlessingOfWisdom: false,
 		JudgementOfWisdom:        false,
-		Moonkin:                  true,
+		Moonkin:                  false,
 		SpriestDPS:               0,
 		WaterShield:              true,
 		Race:                     RaceBonusTroll10,
-	},
-	Encounter: Encounter{
-		Duration:     60,
-		NumClTargets: 1,
 	},
 	Talents: Talents{
 		LightningOverload:  5,
@@ -54,10 +63,6 @@ var fullOptions = Options{
 		WaterShield:              true,
 		Race:                     RaceBonusOrc,
 	},
-	Encounter: Encounter{
-		Duration:     300,
-		NumClTargets: 2,
-	},
 	Consumes: Consumes{
 		FlaskOfBlindingLight: true,
 		BrilliantWizardOil:   true,
@@ -85,7 +90,27 @@ var fullOptions = Options{
 	},
 }
 
-var p1NearBisGear = EquipmentSpec{
+var preRaidGear = EquipmentSpec{
+	{Name: "Tidefury Helm"},
+	{Name: "Brooch of Heightened Potential"},
+	{Name: "Tidefury Shoulderguards"},
+	{Name: "Cloak of the Black Void"},
+	{Name: "Tidefury Chestpiece"},
+	{Name: "Shattrath Wraps"},
+	{Name: "Tidefury Gauntlets"},
+	{Name: "Moonrage Girdle"},
+	{Name: "Tidefury Kilt"},
+	{Name: "Earthbreaker's Greaves"},
+	{Name: "Seal of the Exorcist"},
+	{Name: "Spectral Band of Innervation"},
+	{Name: "Xi'ri's Gift"},
+	{Name: "Quagmirran's Eye"},
+	{Name: "Totem of the Void"},
+	{Name: "Sky Breaker"},
+	{Name: "Silvermoon Crest Shield"},
+}
+
+var p1Gear = EquipmentSpec{
 	{Name: "Cyclone Faceguard (Tier 4)"},
 	{Name: "Adornment of Stolen Souls"},
 	{Name: "Cyclone Shoulderguards (Tier 4)"},
@@ -105,27 +130,146 @@ var p1NearBisGear = EquipmentSpec{
 	{Name: "Mazthoril Honor Shield"},
 }
 
-func TestSimulateP1Basic(t *testing.T) {
-	doSimulateTest(t, basicOptions, p1NearBisGear, 1297)
+func TestSimulatePreRaidNoBuffs(t *testing.T) {
+	simAllEncountersTest(AllEncountersTestOptions{
+		label: "preRaidNoBuffs",
+		t:     t,
+
+		Options:   basicOptions,
+		Gear:      preRaidGear,
+		AgentType: AGENT_TYPE_ADAPTIVE,
+
+		ExpectedDpsShort: 868.5,
+		ExpectedDpsLong:  271,
+	})
 }
 
-func TestSimulateP1Full(t *testing.T) {
-	doSimulateTest(t, fullOptions, p1NearBisGear, 1491.5)
+func TestSimulatePreRaid(t *testing.T) {
+	simAllEncountersTest(AllEncountersTestOptions{
+		label: "preRaid",
+		t:     t,
+
+		Options:   fullOptions,
+		Gear:      preRaidGear,
+		AgentType: AGENT_TYPE_ADAPTIVE,
+
+		ExpectedDpsShort: 1406,
+		ExpectedDpsLong:  1032,
+	})
+}
+
+func TestSimulateP1(t *testing.T) {
+	simAllEncountersTest(AllEncountersTestOptions{
+		label: "p1",
+		t:     t,
+
+		Options:   fullOptions,
+		Gear:      p1Gear,
+		AgentType: AGENT_TYPE_ADAPTIVE,
+
+		ExpectedDpsShort: 1538.5,
+		ExpectedDpsLong:  1238,
+	})
+}
+
+func TestMultiTarget(t *testing.T) {
+	doSimulateTest(
+		"multiTarget",
+		t,
+		makeOptions(
+			fullOptions,
+			Encounter{
+				Duration:     300,
+				NumClTargets: 3,
+			},
+			AGENT_TYPE_ADAPTIVE),
+		p1Gear,
+		1372)
+}
+
+func TestLBOnlyAgent(t *testing.T) {
+	simAllEncountersTest(AllEncountersTestOptions{
+		label: "lbOnly",
+		t:     t,
+
+		Options:   fullOptions,
+		Gear:      p1Gear,
+		AgentType: AGENT_TYPE_FIXED_LB_ONLY,
+
+		ExpectedDpsShort: 1582,
+		ExpectedDpsLong:  1228.5,
+	})
+}
+
+func TestFixedAgent(t *testing.T) {
+	simAllEncountersTest(AllEncountersTestOptions{
+		label: "fixedAgent",
+		t:     t,
+
+		Options:   fullOptions,
+		Gear:      p1Gear,
+		AgentType: AGENT_TYPE_FIXED_4LB_1CL,
+
+		ExpectedDpsShort: 1488.5,
+		ExpectedDpsLong:  1283.6,
+	})
+}
+
+func TestClearcastAgent(t *testing.T) {
+	simAllEncountersTest(AllEncountersTestOptions{
+		label: "clOnClearcast",
+		t:     t,
+
+		Options:   fullOptions,
+		Gear:      p1Gear,
+		AgentType: AGENT_TYPE_CL_ON_CLEARCAST,
+
+		ExpectedDpsShort: 1584,
+		ExpectedDpsLong:  1276,
+	})
 }
 
 func BenchmarkSimulate(b *testing.B) {
 	RunSimulation(SimRequest{
 		Options:     fullOptions,
-		Gear:        p1NearBisGear,
+		Gear:        p1Gear,
 		Iterations:  b.N,
 		IncludeLogs: false,
 	})
 }
 
+type AllEncountersTestOptions struct {
+	label string
+	t     *testing.T
+
+	Options   Options
+	Gear      EquipmentSpec
+	AgentType AgentType
+
+	ExpectedDpsShort float64
+	ExpectedDpsLong  float64
+}
+
+func simAllEncountersTest(testOpts AllEncountersTestOptions) {
+	doSimulateTest(
+		testOpts.label+"-short",
+		testOpts.t,
+		makeOptions(testOpts.Options, shortEncounter, testOpts.AgentType),
+		testOpts.Gear,
+		testOpts.ExpectedDpsShort)
+
+	doSimulateTest(
+		testOpts.label+"-long",
+		testOpts.t,
+		makeOptions(testOpts.Options, longEncounter, testOpts.AgentType),
+		testOpts.Gear,
+		testOpts.ExpectedDpsLong)
+}
+
 // Performs a basic end-to-end test of the simulator.
 //   This is where we can add more sophisticated checks if we would like.
 //   Any changes to the damage output of an item set
-func doSimulateTest(t *testing.T, options Options, gear EquipmentSpec, expectedDps float64) {
+func doSimulateTest(label string, t *testing.T, options Options, gear EquipmentSpec, expectedDps float64) {
 	result := RunSimulation(SimRequest{
 		Options:     options,
 		Gear:        gear,
@@ -135,6 +279,12 @@ func doSimulateTest(t *testing.T, options Options, gear EquipmentSpec, expectedD
 
 	tolerance := 0.5
 	if result.DpsAvg < expectedDps-tolerance || result.DpsAvg > expectedDps+tolerance {
-		t.Fatalf("Expected %0f dps from sim but was: %0f", expectedDps, result.DpsAvg)
+		t.Fatalf("%s failed: expected %0f dps from sim but was %0f", label, expectedDps, result.DpsAvg)
 	}
+}
+
+func makeOptions(baseOptions Options, encounter Encounter, agentType AgentType) Options {
+	baseOptions.Encounter = encounter
+	baseOptions.AgentType = agentType
+	return baseOptions
 }
