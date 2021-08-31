@@ -88,8 +88,8 @@ func NewSim(equipSpec EquipmentSpec, options Options) *Simulation {
 		sim.cache.elcDmgBonus += (0.01 * sim.Options.Talents.Concussion)
 	}
 	if sim.Options.Buffs.Misery {
-		sim.cache.elcDmgBonus += (0.01 * sim.Options.Talents.Concussion)
-		sim.cache.dmgBonus += (0.01 * sim.Options.Talents.Concussion)
+		sim.cache.elcDmgBonus += 0.05
+		sim.cache.dmgBonus += 0.05
 	}
 	sim.cache.fillCasts()
 
