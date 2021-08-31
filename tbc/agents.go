@@ -112,8 +112,7 @@ func NewFixedRotationAgent(sim *Simulation, numLBsPerCL int) *FixedRotationAgent
 //                          CL ON CLEARCAST
 // ################################################################
 type CLOnClearcastAgent struct {
-	// Whether the last 2 spells procced clearcasting
-	prevCastProccedCC     bool
+	// Whether the second-to-last spell procced clearcasting
 	prevPrevCastProccedCC bool
 
 	lb *Spell
@@ -129,13 +128,11 @@ func (agent *CLOnClearcastAgent) ChooseAction(sim *Simulation) AgentAction {
 }
 
 func (agent *CLOnClearcastAgent) OnActionAccepted(sim *Simulation, action AgentAction) {
-	agent.prevPrevCastProccedCC = agent.prevCastProccedCC
-	agent.prevCastProccedCC = sim.auras[MagicIDEleFocus].stacks == 2
+	agent.prevPrevCastProccedCC = sim.auras[MagicIDEleFocus].stacks == 2
 }
 
 func (agent *CLOnClearcastAgent) Reset(sim *Simulation) {
-	agent.prevCastProccedCC = false
-	agent.prevPrevCastProccedCC = true // Let's us cast CL first
+	agent.prevPrevCastProccedCC = true // Lets us cast CL first
 }
 
 func NewCLOnClearcastAgent(sim *Simulation) *CLOnClearcastAgent {

@@ -379,33 +379,29 @@ func AuraJudgementOfWisdom() Aura {
 	}
 }
 
+func elementalFocusOnCast(sim *Simulation, c *Cast) {
+  c.ManaCost *= .6 // reduced by 40%
+}
+
+func elementalFocusOnCastComplete(sim *Simulation, c *Cast) {
+  if c.ManaCost <= 0 {
+    return // Don't consume charges from free spells.
+  }
+
+  sim.auras[MagicIDEleFocus].stacks--
+  if sim.auras[MagicIDEleFocus].stacks == 0 {
+    sim.removeAura(MagicIDEleFocus)
+  }
+}
+
 func AuraElementalFocus(sim *Simulation) Aura {
-	aura := sim.objpool.auras[MagicIDEleFocus]
-	if aura == nil {
-		// create a cached version of this aura since we will re-use it all the time.
-		aura = &Aura{
-			ID:     MagicIDEleFocus,
-			stacks: 2,
-			OnCast: func(sim *Simulation, c *Cast) {
-				c.ManaCost *= .6 // reduced by 40%
-			},
-			OnCastComplete: func(sim *Simulation, c *Cast) {
-				if c.ManaCost <= 0 {
-					return // Don't consume charges from free spells.
-				}
-				aura.stacks--
-				if aura.stacks == 0 {
-					sim.removeAura(MagicIDEleFocus)
-				}
-			},
-		}
-		sim.objpool.auras[MagicIDEleFocus] = aura
-	}
-	// Whenever we use the cached aura we just reset its expire time and reset the count.
-	aura.Expires = sim.CurrentTime + time.Second*15
-	// Set stacks back to 2 whenever we crit.
-	aura.stacks = 2
-	return *aura
+  return Aura{
+    ID:             MagicIDEleFocus,
+    Expires:        sim.CurrentTime + time.Second*15,
+    stacks:         2,
+    OnCast:         elementalFocusOnCast,
+    OnCastComplete: elementalFocusOnCastComplete,
+  }
 }
 
 func TryActivateEleMastery(sim *Simulation) {

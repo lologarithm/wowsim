@@ -15,10 +15,6 @@ var longEncounter = Encounter{
 	Duration:     300,
 	NumClTargets: 1,
 }
-var longEncounterMultiTarget = Encounter{
-	Duration:     300,
-	NumClTargets: 3,
-}
 
 var basicOptions = Options{
 	RSeed:        RSeed,
@@ -224,8 +220,8 @@ func TestClearcastAgent(t *testing.T) {
 		Gear:      p1Gear,
 		AgentType: AGENT_TYPE_CL_ON_CLEARCAST,
 
-		ExpectedDpsShort: 1584,
-		ExpectedDpsLong:  1276,
+		ExpectedDpsShort: 1667,
+		ExpectedDpsLong:  1358.5,
 	})
 }
 
