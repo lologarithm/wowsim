@@ -542,13 +542,13 @@ func TryActivateDrums(sim *Simulation) {
 }
 
 func TryActivateBloodlust(sim *Simulation) {
-	if sim.Options.NumBloodlust <= sim.bloodlustCasts || sim.isOnCD(MagicIDBloodlust) {
+	if sim.Options.NumBloodlust <= sim.cache.bloodlustCasts || sim.isOnCD(MagicIDBloodlust) {
 		return
 	}
 
 	dur := time.Second * 40 // assumes that multiple BLs are different shaman.
 	sim.setCD(MagicIDBloodlust, dur)
-	sim.bloodlustCasts++ // TODO: will this break anything?
+	sim.cache.bloodlustCasts++ // TODO: will this break anything?
 	sim.addAura(Aura{
 		ID:      MagicIDBloodlust,
 		Expires: sim.CurrentTime + dur,
@@ -844,7 +844,7 @@ func TryActivateDestructionPotion(sim *Simulation) {
 
 	// Only use dest potion if not using mana or if we haven't used it once.
 	// If we are using mana, only use destruction potion on the pull.
-	if sim.destructionPotion && sim.Options.Consumes.SuperManaPotion {
+	if sim.cache.destructionPotion && sim.Options.Consumes.SuperManaPotion {
 		return
 	}
 
@@ -852,7 +852,7 @@ func TryActivateDestructionPotion(sim *Simulation) {
 	const critBonus = 44.16
 	const dur = time.Second * 15
 
-	sim.destructionPotion = true
+	sim.cache.destructionPotion = true
 	sim.setCD(MagicIDPotion, time.Second*120)
 	sim.Stats[StatSpellDmg] += spBonus
 	sim.Stats[StatSpellCrit] += critBonus

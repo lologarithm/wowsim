@@ -24,11 +24,9 @@ type Simulation struct {
 	Equip        Equipment // Current Gear
 	activeEquip  []*Item   // cache of gear that can activate.
 
-	bloodlustCasts    int
-	destructionPotion bool
-	Options           Options
-	Duration          time.Duration
-	GCDMin            time.Duration
+	Options  Options
+	Duration time.Duration
+	GCDMin   time.Duration
 
 	CDs           [MagicIDLen]time.Duration // Map of MagicID to sim duration at which CD is done.
 	auras         [MagicIDLen]Aura          // this is array instead of map to speed up browser perf.
@@ -43,8 +41,8 @@ type Simulation struct {
 
 	Debug func(string, ...interface{})
 
-	// caches to speed up perf
-	cache *pool
+	// caches to speed up perf and store temp state
+	cache *cache
 }
 
 type SimMetrics struct {
@@ -78,8 +76,8 @@ func NewSim(equipSpec EquipmentSpec, options Options) *Simulation {
 		rseed:         options.RSeed,
 		rando:         rand.New(rand.NewSource(options.RSeed)),
 		Debug:         nil,
-		cache: &pool{
-			casts: make([]*Cast, 0, 1000),
+		cache: &cache{
+			castPool: make([]*Cast, 0, 1000),
 		},
 	}
 	sim.cache.dpsReportTime = durationFromSeconds(sim.Options.DPSReportTime)
@@ -93,7 +91,7 @@ func NewSim(equipSpec EquipmentSpec, options Options) *Simulation {
 		sim.cache.elcDmgBonus += (0.01 * sim.Options.Talents.Concussion)
 		sim.cache.dmgBonus += (0.01 * sim.Options.Talents.Concussion)
 	}
-	sim.cache.fill()
+	sim.cache.fillCasts()
 
 	for i, eq := range equip {
 		if eq.Activate != nil {
@@ -123,8 +121,8 @@ func (sim *Simulation) reset() {
 	// sim.rando.Seed(sim.rseed)
 
 	sim.Stats = sim.InitialStats
-	sim.destructionPotion = false
-	sim.bloodlustCasts = 0
+	sim.cache.destructionPotion = false
+	sim.cache.bloodlustCasts = 0
 	sim.CurrentTime = 0.0
 	sim.CurrentMana = sim.Stats[StatMana]
 	sim.CDs = [MagicIDLen]time.Duration{}
