@@ -106,7 +106,7 @@ func NewCast(sim *Simulation, sp *Spell) *Cast {
 		// TODO: Add LightningMaster to talent list (this will never not be selected for an elemental shaman)
 		castTime -= time.Millisecond * 500 // Talent Lightning Mastery
 	}
-	hasteBonus := (1 + ((sim.Stats[StatHaste] + sim.Buffs[StatHaste]) / 1576))
+	hasteBonus := 1 + (sim.Stats[StatHaste] / 1576)
 	castTime = time.Duration(float64(castTime) / hasteBonus)
 	cast.CastTime = castTime
 

@@ -19,10 +19,10 @@ type Simulation struct {
 
 	Agent Agent
 
-	Stats       Stats
-	Buffs       Stats     // temp increases
-	Equip       Equipment // Current Gear
-	activeEquip []*Item   // cache of gear that can activate.
+	InitialStats Stats
+	Stats        Stats
+	Equip        Equipment // Current Gear
+	activeEquip  []*Item   // cache of gear that can activate.
 
 	bloodlustCasts    int
 	destructionPotion bool
@@ -57,21 +57,21 @@ type SimMetrics struct {
 	ManaAtEnd      int
 }
 
-// New sim contructs a simulator with the given stats / equipment / options.
-//   Technically we can calculate stats from equip/options but want the ability to override those stats
-//   mostly for stat weight purposes.
-func NewSim(stats Stats, equip Equipment, options Options) *Simulation {
+// New sim contructs a simulator with the given equipment / options.
+func NewSim(equipSpec EquipmentSpec, options Options) *Simulation {
 	if options.GCDMin == 0 {
 		options.GCDMin = 0.75 // default to 0.75s GCD
 	}
 
+	equip := NewEquipmentSet(equipSpec)
+	initialStats := CalculateTotalStats(options, equip)
+
 	sim := &Simulation{
-		Stats:         stats,
 		Options:       options,
+		InitialStats:  initialStats,
 		Duration:      durationFromSeconds(options.Encounter.Duration),
 		GCDMin:        durationFromSeconds(options.GCDMin),
 		CDs:           [MagicIDLen]time.Duration{},
-		Buffs:         Stats{},
 		auras:         [MagicIDLen]Aura{},
 		activeAuraIDs: make([]int32, 0, 10),
 		Equip:         equip,
@@ -111,11 +111,11 @@ func (sim *Simulation) reset() {
 	// sim.rseed++
 	// sim.rando.Seed(sim.rseed)
 
+	sim.Stats = sim.InitialStats
 	sim.destructionPotion = false
 	sim.bloodlustCasts = 0
 	sim.CurrentTime = 0.0
 	sim.CurrentMana = sim.Stats[StatMana]
-	sim.Buffs = Stats{}
 	sim.CDs = [MagicIDLen]time.Duration{}
 	sim.auras = [MagicIDLen]Aura{}
 	sim.activeAuraIDs = make([]int32, 0, 10)
@@ -270,22 +270,22 @@ func (sim *Simulation) Cast(cast *Cast) {
 			sim.auras[id].OnCastComplete(sim, cast)
 		}
 	}
-	hit := 0.83 + ((sim.Stats[StatSpellHit] + sim.Buffs[StatSpellHit]) / 1260.0) + cast.Hit // 12.6 hit == 1% hit
-	hit = math.Min(hit, 0.99)                                                               // can't get away from the 1% miss
+	hit := 0.83 + (sim.Stats[StatSpellHit] / 1260.0) + cast.Hit // 12.6 hit == 1% hit
+	hit = math.Min(hit, 0.99)                                   // can't get away from the 1% miss
 
 	dbgCast := cast.Spell.Name
 	if sim.Debug != nil {
 		sim.Debug("Completed Cast (%s)\n", dbgCast)
 	}
 	if sim.rando.Float64() < hit {
-		sp := sim.Stats[StatSpellDmg] + sim.Buffs[StatSpellDmg] + cast.Spellpower
+		sp := sim.Stats[StatSpellDmg] + cast.Spellpower
 		dmg := (sim.rando.Float64() * cast.Spell.DmgDiff) + cast.Spell.MinDmg + (sp * cast.Spell.Coeff)
 		if cast.DidDmg != 0 { // use the pre-set dmg
 			dmg = cast.DidDmg
 		}
 		cast.DidHit = true
 
-		crit := ((sim.Stats[StatSpellCrit] + sim.Buffs[StatSpellCrit]) / 2208.0) + cast.Crit // 22.08 crit == 1% crit
+		crit := (sim.Stats[StatSpellCrit] / 2208.0) + cast.Crit // 22.08 crit == 1% crit
 		if sim.rando.Float64() < crit {
 			cast.DidCrit = true
 			critBonus := 1.5 // fall back crit damage
@@ -433,7 +433,7 @@ func (sim *Simulation) hasAura(id int32) bool {
 
 // Returns rate of mana regen, as mana / second
 func (sim *Simulation) manaRegenPerSecond() float64 {
-	return ((sim.Stats[StatMP5] + sim.Buffs[StatMP5]) / 5.0)
+	return sim.Stats[StatMP5] / 5.0
 }
 
 func (sim *Simulation) isOnCD(magicID int32) bool {

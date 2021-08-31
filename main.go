@@ -133,8 +133,10 @@ func main() {
 	}
 	if agentTypeStr == nil {
 		simRequest.Options.AgentType = tbc.AGENT_TYPE_ADAPTIVE
+	} else if agentType, ok := agentTypesMap[*agentTypeStr]; ok {
+		simRequest.Options.AgentType = agentType
 	} else {
-		simRequest.Options.AgentType = agentTypesMap[*agentTypeStr]
+		panic(fmt.Sprintf("Invalid agent type: %s", *agentTypeStr))
 	}
 	simRequest.Options.Encounter.Duration = *duration
 	simRequest.Options.RSeed = time.Now().Unix()

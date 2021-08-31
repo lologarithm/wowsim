@@ -2,8 +2,6 @@ package tbc
 
 type pool struct {
 	casts []*Cast
-
-	auras [MagicIDLen]*Aura
 }
 
 func (p *pool) NewCast() *Cast {
