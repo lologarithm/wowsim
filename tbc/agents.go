@@ -273,6 +273,8 @@ func (agent *AdaptiveAgent) Reset(sim *Simulation) {
 	agent.manaSnapshots = [manaSnapshotsBufferSize]ManaSnapshot{}
 	agent.firstSnapshotIndex = 0
 	agent.numSnapshots = 0
+	agent.baseAgent.Reset(sim)
+	agent.surplusAgent.Reset(sim)
 }
 
 func NewAdaptiveAgent(sim *Simulation) *AdaptiveAgent {
