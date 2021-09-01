@@ -52,6 +52,22 @@ func main() {
 			}
 			resp.Write(uijs)
 			return
+		} else if strings.HasSuffix(req.URL.Path, "favicon.ico") {
+			var uijs []byte
+			var err error
+			if *useFS {
+				// read file straight off disk
+				uijs, err = ioutil.ReadFile("favicon.ico")
+			} else {
+				uijs, err = uifs.ReadFile("ui/favicon.ico")
+				// modify so that simworker is replaced with networker.
+				uijs = bytes.Replace(uijs, []byte(`this.worker = new window.Worker('simworker.js');`), []byte(`this.worker = new window.Worker('networker.js');`), 1)
+			}
+			if err != nil {
+				log.Printf("Failed to open file..., %s", err)
+			}
+			resp.Write(uijs)
+			return
 		}
 		fs.ServeHTTP(resp, req)
 	})
