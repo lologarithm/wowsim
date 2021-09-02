@@ -470,6 +470,62 @@ function runSim(gearSpec) {
     });
 }
 
+// Populates the 'Rotation' tab in the results pane.
+function runRotationSim(gearSpec) {
+    const simRequest = {
+      Options: getOptions(),
+      Gear: gearSpec,
+      Iterations: parseInt(document.getElementById("rotationIters").value),
+    };
+    simRequest.Options.AgentType = AGENT_TYPES[document.getElementById("rotationRotation").value];
+    simRequest.Options.Encounter = {
+        Duration: parseInt(document.getElementById("rotationDur").value),
+        NumClTargets: parseInt(document.getElementById("rotationNumClTargets").value),
+    };
+
+    const pendingMetricHTML = `<div id="runningsim" uk-spinner="ratio: 1.5" style="margin:26%"></div>`;
+
+    const resultsElem = document.getElementById("rotationToplineResults");
+    resultsElem.innerHTML = pendingMetricHTML;
+
+    const rotStatsElem = document.getElementById("rotationStats");
+    rotStatsElem.innerHTML = "";
+
+    const start = new Date();
+    workerPool.runSimulation(simRequest).then(simResult => {
+        const end = new Date();
+        console.log(`The sim took ${end - start} ms`);
+        console.log("AI Stats: ", simResult);
+        resultsElem.innerHTML = `<div><h3>Average</h3><text class="simnums">${Math.round(simResult.DpsAvg)}</text> +/- ${Math.round(simResult.DpsStDev)} dps<br /></div>`
+
+        Object.entries(simResult.Casts).forEach(castEntry => {
+            const castID = castEntry[0];
+            const cast = castEntry[1];
+            if (cast.Count == 0) {
+                return;
+            }
+            rotStatsElem.innerHTML += `<text style="cursor:pointer" title="Avg Dmg: ${Math.round(cast.Dmg / cast.Count)} Crit: ${Math.round(cast.Crits / cast.Count * 100)}%">${castIDToName[castID]}: ${Math.round(cast.Count / simRequest.Iterations)}</text>`;
+        });
+        const percentOom = simResult.NumOom / simRequest.Iterations;
+        if (percentOom > 0.02) {
+            var dangerStyle = "";
+            if (percentOom > 0.05 && percentOom <= 0.25) {
+                dangerStyle = "border-color: #FDFD96;"
+            } else if (percentOom > 0.25) {
+                dangerStyle = "border-color: #FF6961;"
+            }
+            rotStatsElem.innerHTML += `<text title="Downranking is not currently implemented." style="${dangerStyle};cursor: pointer">${Math.round(percentOom * 100)}% of simulations went OOM.`
+        }
+
+        const chartDiv = document.getElementById("rotationChart");
+        const bounds = chartDiv.getBoundingClientRect();
+        const chartCanvas = createDpsChartFromSimResult(simResult, bounds);
+
+        chartDiv.innerHTML = "";
+        chartDiv.appendChild(chartCanvas);
+    });
+}
+
 function createDpsChartFromSimResult(simResult, chartBounds) {
     const chartCanvas = document.createElement("canvas");
     const ctx = chartCanvas.getContext('2d');
@@ -519,70 +575,6 @@ function createDpsChartFromSimResult(simResult, chartBounds) {
         }
     });
     return chartCanvas;
-}
-
-// Populates the 'Hasted Rotations' tab in results pane.
-function hastedRotations(gearSpec) {
-    const sharedOptions = getOptions();
-    sharedOptions.NumBloodlust = 0;
-    sharedOptions.NumDrums = 0;
-    sharedOptions.Encounter.Duration = 40;
-    sharedOptions.Buffs.Custom[STAT_IDX.HASTE] = 0;
-
-    const sharedSimRequest = {
-      Options: sharedOptions,
-      Gear: gearSpec,
-      Iterations: 1000,
-    };
-
-    const hastes = [0, 50, 100, 200, 300, 400, 500, 600, 700, 788];
-    const agentTypes = [
-        AGENT_TYPES.FIXED_4LB_1CL,
-        AGENT_TYPES.FIXED_5LB_1CL,
-        AGENT_TYPES.FIXED_6LB_1CL,
-    ];
-
-    // TODO: Fix this to match the new return values now that process is done in go WASM code.
-
-    workerPool.computeStats({
-        Options: sharedOptions,
-        Gear: gearSpec,
-    }).then(computeStatsResult => {
-        const finalHasteValue = computeStatsResult.FinalStats[STAT_IDX.HASTE];
-        const rows = document.getElementById("hasterots").firstElementChild.firstElementChild.children;
-        hastes.forEach((haste, i) => {
-            // Subtract haste from gear/etc
-            const hasteValue = haste - finalHasteValue;
-
-            const row = rows[i];
-            row.children[1].innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
-            row.children[2].innerText = "";
-
-            const batchSimRequest = {
-                Requests: agentTypes.map(agentType => {
-                    const simRequest = deepCopy(sharedSimRequest);
-                    simRequest.Options.AgentType = agentType;
-                    simRequest.Options.Buffs.Custom[STAT_IDX.HASTE] = hasteValue;
-                    return simRequest;
-                }),
-            };
-            workerPool.runBatchSimulation(batchSimRequest).then(batchSimResult => {
-                let maxIdx = 0;
-                let bestResult = null;
-                batchSimResult.Results.forEach((simResult, idx) => {
-                    if (!bestResult || simResult.DpsAvg > bestResult.DpsAvg) {
-                        maxIdx = idx;
-                        bestResult = simResult;
-                    }
-                });
-
-                const rotTitle = "CL / " + (maxIdx + 4).toString() + "xLB";
-                row.children[0].innerText = haste;
-                row.children[1].innerText = rotTitle;
-                row.children[2].innerText = Math.round(bestResult.DpsAvg) + " +/- " + Math.round(bestResult.DpsStDev);
-            });
-        });
-    });
 }
 
 function stDevToConf90(stDev, N) {
@@ -806,9 +798,9 @@ function popgear(gearList) {
         runSim(toGearSpec(gearUI.currentGear));
     });
 
-    var hastebut = document.getElementById("hastebut");
-    hastebut.addEventListener("click", (event) => {
-        hastedRotations(toGearSpec(gearUI.currentGear));
+    var rotationRunButton = document.getElementById("rotationRunButton");
+    rotationRunButton.addEventListener("click", (event) => {
+        runRotationSim(toGearSpec(gearUI.currentGear));
     });
 
     var caclweights = document.getElementById("calcstatweight");

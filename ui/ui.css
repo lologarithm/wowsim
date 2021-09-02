@@ -5,7 +5,7 @@
     right: -200;
     top: 0;
 }
-#rotstats text {
+#rotstats text, #rotationStats text {
     border-right: 3px solid #1e87f0;
     border-left: 3px solid #1e87f0;
     padding-left: 2px;
@@ -168,18 +168,6 @@ h4 {
     /* background-color: #404040; */
     /* color: #F0F0F0; */
     background-color: #E0E0E0;
-}
-
-.hastetable {
-    margin: 15px auto;
-    border-collapse: collapse;
-    /* background-color: #505050; */
-    border:1px solid #D0D0D0;
-}
-
-.hastetable td {
-    padding: 10px;
-    border:1px solid #D0D0D0;
 }
 
 #root {

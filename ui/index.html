@@ -167,7 +167,7 @@
             <div id="calcdiv" style="height: calc(50% - 100px)">
                 <ul id="calctabs" uk-tab="connect: #calcs">
                     <li class="uk-active"><a href="#">Sim</a></li>
-                    <li><a href="#">Hasted Rotations</a></li>
+                    <li><a href="#">Rotations</a></li>
                     <li><a href="#">Gear & Stat Weights</a></li>
                     <li><a href="#">Sim Logs</a></li>
                 </ul>
@@ -177,11 +177,11 @@
                             Iterations: <input id="iters" type="text" value="1000" style="width: 60px"></input>
                             Duration: <input id="dur" type="text" value="300" style="width: 60px"></input>
                             # Cl Targets:
-			    <select id="numClTargets" class="buffdrop" style="width: 50px" value="1">
-			        <option class="buffdrop" selected>1</option>
-			        <option class="buffdrop">2</option>
-			        <option class="buffdrop">3</option>
-			    </select>
+                            <select id="numClTargets" class="buffdrop" style="width: 50px" value="1">
+                                <option class="buffdrop" selected>1</option>
+                                <option class="buffdrop">2</option>
+                                <option class="buffdrop">3</option>
+                            </select>
                             <button id="simrunbut">Run Simulation</button>
                         </div>
                         <div id="simout" style="width: 99%;height: calc(100% - 40px);border:1px solid black;margin-top: 10px;">
@@ -192,36 +192,44 @@
                             </div>
                             <div id="rotout" style="float: left;width: calc(100% - 130px);height: 100%;">
                                 <div id="rotstats" style="height: 30px;width: 100%;border-bottom: 1px solid black;"></div>
-                                <div id="rotchart">
-                                </div>
+                                <div id="rotchart"></div>
                             </div>
                         </div>
                     </li>
                     <li>
                         <div style="text-align: right;">
-                            <button id="hastebut">Optimize Haste Rotation</button>
+                            Rotation:
+                            <select id="rotationRotation" class="buffdrop">
+                                <option class="buffdrop" value="ADAPTIVE" selected title="Dynamically adapts based on available mana.">Adaptive</option>
+                                <option class="buffdrop" value="CL_ON_CLEARCAST" title="Casts CL only after Clearcast procs.">CL On Clearcast</option>
+                                <option class="buffdrop" value="FIXED_CL_ON_CD" title="Casts CL if off CD, otherwise LB.">CL On CD</option>
+                                <option class="buffdrop" value="FIXED_LB_ONLY"  title="Only casts LB.">LB Only</option>
+                                <option class="buffdrop" value="FIXED_3LB_1CL"  title="Casts CL followed by 3 LBs.">CL + 3LB</option>
+                                <option class="buffdrop" value="FIXED_4LB_1CL"  title="Casts CL followed by 4 LBs.">CL + 4LB</option>
+                                <option class="buffdrop" value="FIXED_5LB_1CL"  title="Casts CL followed by 5 LBs.">CL + 5LB</option>
+                                <option class="buffdrop" value="FIXED_6LB_1CL"  title="Casts CL followed by 6 LBs.">CL + 6LB</option>
+                                <option class="buffdrop" value="FIXED_7LB_1CL"  title="Casts CL followed by 7 LBs.">CL + 7LB</option>
+                                <option class="buffdrop" value="FIXED_8LB_1CL"  title="Casts CL followed by 8 LBs.">CL + 8LB</option>
+                                <option class="buffdrop" value="FIXED_9LB_1CL"  title="Casts CL followed by 9 LBs.">CL + 9LB</option>
+                                <option class="buffdrop" value="FIXED_10LB_1CL" title="Casts CL followed by 10 LBs.">CL + 10LB</option>
+                            </select>
+                            Iterations: <input id="rotationIters" type="text" value="1000" style="width: 60px"></input>
+                            Duration: <input id="rotationDur" type="text" value="300" style="width: 60px"></input>
+                            # Cl Targets:
+                            <select id="rotationNumClTargets" class="buffdrop" style="width: 50px" value="1">
+                                <option class="buffdrop" selected>1</option>
+                                <option class="buffdrop">2</option>
+                                <option class="buffdrop">3</option>
+                            </select>
+                            <button id="rotationRunButton">Run Simulation</button>
                         </div>
-                        <ul style="float:right">
-                            <li>Does not use bloodlust (ignores BL settings above)</li>
-                            <li>Uses all other options, but replaces the haste stat.</li>
-                            <li>Do not recommend using Quags Eye</li>
-                            <li>Not mana optimized, this is showing max dps for a 60s fight</li>
-                            <li>Even a very small amount of haste like 20 makes CL / 4LB > CL / 3LB</li>
-                        </ul>
-                        <div id="hasterots" style="float:left">
-                            <table class="hastetable" style="margin-top: 0px">
-                                <tr><th>Haste</th><th>Rotation</th><th>DPS</th></tr>
-                                <tr><td></td><td></td><td></td></tr>
-                                <tr><td></td><td></td><td></td></tr>
-                                <tr><td></td><td></td><td></td></tr>
-                                <tr><td></td><td></td><td></td></tr>
-                                <tr><td></td><td></td><td></td></tr>
-                                <tr><td></td><td></td><td></td></tr>
-                                <tr><td></td><td></td><td></td></tr>
-                                <tr><td></td><td></td><td></td></tr>
-                                <tr><td></td><td></td><td></td></tr>
-                                <tr><td></td><td></td><td></td></tr>
-                            </table>
+                        <div id="rotationOut" style="width: 99%;height: calc(100% - 40px);border:1px solid black;margin-top: 10px;">
+                            <div id="rotationToplineResults" style="height: 100%;float: left;width: 125px;border-right: 1px solid black;">
+                            </div>
+                            <div id="rotationDetailedResults" style="float: left;width: calc(100% - 130px);height: 100%;">
+                                <div id="rotationStats" style="height: 30px;width: 100%;border-bottom: 1px solid black;"></div>
+                                <div id="rotationChart" style="height: 100%;width: 100%"></div>
+                            </div>
                         </div>
                     </li>
                     <li>
@@ -229,11 +237,11 @@
                             <label>Iterations:<input id="switer" type="text" value="1000" style="width: 60px"></input></label>
                             <label>Duration:<input id="swdur" type="text" value="300" style="width: 60px"></input></label>
                             # Cl Targets:
-			    <select id="swnumClTargets" class="buffdrop" style="width: 50px" value="1">
-			        <option class="buffdrop" selected>1</option>
-			        <option class="buffdrop">2</option>
-			        <option class="buffdrop">3</option>
-			    </select>
+                            <select id="swnumClTargets" class="buffdrop" style="width: 50px" value="1">
+                                <option class="buffdrop" selected>1</option>
+                                <option class="buffdrop">2</option>
+                                <option class="buffdrop">3</option>
+                            </select>
                             <button id="calcstatweight">Calculate</button>
                         </div>
                         <table id="statweights" style="width: 60%;margin: 0px auto;">
@@ -272,11 +280,11 @@
                         <div style="text-align: right">
                             Duration: <input id="logdur" type="text" value="300" style="width: 60px"></input>
                             # Cl Targets:
-			    <select id="lognumClTargets" class="buffdrop" style="width: 50px" value="1">
-			        <option class="buffdrop" selected>1</option>
-			        <option class="buffdrop">2</option>
-			        <option class="buffdrop">3</option>
-			    </select>
+                            <select id="lognumClTargets" class="buffdrop" style="width: 50px" value="1">
+                                <option class="buffdrop" selected>1</option>
+                                <option class="buffdrop">2</option>
+                                <option class="buffdrop">3</option>
+                            </select>
                             <button id="simlogrun">Run Simulation</button>
                         </div>
                         <pre id="simlogs" class="dtd" style="width: 99%;border:1px solid black;">
@@ -288,7 +296,7 @@
         <div id="pullout">
             <div class="dtl" style="height:100%;width:100%;padding:10px">
                 <div id="themetoggle" style="height:20px; bottom: 10px; cursor: pointer;" onclick="toggletheme()">
-                    <text>v1.1.13</text>
+                    <text>v1.1.14</text>
                     <img id="themebulb" style="height: 20px; width: 20px" src="icons/light-bulb.svg"></img>
                 </div>
                 <div style="margin-top:10px">
