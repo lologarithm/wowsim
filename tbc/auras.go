@@ -13,8 +13,7 @@ const neverExpires = time.Duration(math.MaxInt64)
 type Aura struct {
 	ID          int32
 	Expires     time.Duration // time at which aura will be removed
-	ICD         InternalCD
-	activeIndex int32 // Position of this aura's index in the sim.activeAuraIDs array
+	activeIndex int32         // Position of this aura's index in the sim.activeAuraIDs array
 
 	// The number of stacks, or charges, of this aura. If this aura doesn't care
 	// about charges, is just 0.
@@ -200,10 +199,6 @@ type InternalCD time.Duration
 func (icd InternalCD) isOnCD(sim *Simulation) bool {
 	return time.Duration(icd) > sim.CurrentTime
 }
-
-// func (icd *InternalCD) setCD(sim *Simulation, duration time.Duration) {
-// 	*icd = InternalCD(sim.CurrentTime + duration)
-// }
 
 func NewICD() InternalCD {
 	return InternalCD(0)
@@ -602,22 +597,17 @@ func TryActivateRacial(sim *Simulation) {
 func ActivateSkycall(sim *Simulation) Aura {
 	const hasteBonus = 101
 	const dur = time.Second * 10
-	active := false
 	return Aura{
 		ID:      MagicIDSkycall,
 		Expires: neverExpires,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			if c.Spell.ID == MagicIDLB12 && sim.rando.Float64() < 0.15 {
-				if !active {
-					sim.Stats[StatHaste] += hasteBonus
-					active = true
-				}
+				sim.Stats[StatHaste] += hasteBonus
 				sim.addAura(Aura{
 					ID:      MagicIDEnergized,
 					Expires: sim.CurrentTime + dur,
 					OnExpire: func(sim *Simulation, c *Cast) {
 						sim.Stats[StatHaste] -= hasteBonus
-						active = false
 					},
 				})
 			}
@@ -941,21 +931,16 @@ func ActivateSextant(sim *Simulation) Aura {
 func ActivateEyeOfMag(sim *Simulation) Aura {
 	const spellBonus = 170.0
 	const dur = time.Second * 10
-	active := false
 	return Aura{
 		ID:      MagicIDEyeOfMag,
 		Expires: neverExpires,
 		OnSpellMiss: func(sim *Simulation, c *Cast) {
-			if !active {
-				sim.Stats[StatSpellDmg] += spellBonus
-				active = true
-			}
+			sim.Stats[StatSpellDmg] += spellBonus
 			sim.addAura(Aura{
 				ID:      MagicIDRecurringPower,
 				Expires: sim.CurrentTime + dur,
 				OnExpire: func(sim *Simulation, c *Cast) {
 					sim.Stats[StatSpellDmg] -= spellBonus
-					active = false
 				},
 			})
 		},
