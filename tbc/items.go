@@ -825,6 +825,16 @@ var items = []Item{
 
 	{ID: 32963, Slot: EquipWeapon, Name: "Merciless Gladiator's Gavel / Spellblade", Phase: 2, Quality: ItemQualityEpic, SourceZone: "PvP", SourceDrop: "", Stats: Stats{StatStm: 27, StatInt: 18, StatSpellDmg: 225, StatSpellHit: 15}},
 	{ID: 32524, Slot: EquipBack, Name: "Shroud of the Highborne", Phase: 3, Quality: ItemQualityEpic, SourceZone: "Black Temple", SourceDrop: "Illidan Stormrage", Stats: Stats{StatStm: 24, StatInt: 23, StatSpellDmg: 23, StatHaste: 32}},
+	{ID: 33357, Slot: EquipFeet, Name: "Footpads of Madness", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "Jan'alai", Stats: Stats{StatStm: 25, StatInt: 22, StatSpellDmg: 50, StatHaste: 25}},
+	{ID: 33533, Slot: EquipLegs, Name: "Avalanche Leggings", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "Halazzi",
+		Stats:       Stats{StatStm: 31, StatInt: 40, StatSpellDmg: 46, StatSpellCrit: 30},
+		GemSlots:    []GemColor{GemColorRed, GemColorYellow, GemColorBlue},
+		SocketBonus: Stats{StatSpellDmg: 5},
+	},
+	{ID: 33354, Slot: EquipWeapon, Name: "Wub's Cursed Hexblade", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatInt: 21, StatSpellDmg: 217, StatSpellHit: 13, StatSpellCrit: 20, StatMP5: 6}},
+	{ID: 33283, Slot: EquipWeapon, Name: "Amani Punisher", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatStm: 30, StatInt: 21, StatSpellDmg: 217, StatSpellHit: 20}},
+	{ID: 33466, Slot: EquipNeck, Name: "Loop of Cursed Bones", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatStm: 19, StatInt: 20, StatSpellDmg: 32, StatHaste: 27}},
+	{ID: 33591, Slot: EquipBack, Name: "Shadowcaster's Drape", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatStm: 22, StatInt: 20, StatSpellDmg: 27, StatHaste: 25}},
 }
 
 type ItemSet struct {
