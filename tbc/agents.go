@@ -42,10 +42,56 @@ func NewCastAction(sim *Simulation, sp *Spell) AgentAction {
 }
 
 // ################################################################
+//                              LB ONLY
+// ################################################################
+type LBOnlyAgent struct {
+	lb *Spell
+}
+
+func (agent *LBOnlyAgent) ChooseAction(sim *Simulation) AgentAction {
+	return NewCastAction(sim, agent.lb)
+}
+
+func (agent *LBOnlyAgent) OnActionAccepted(sim *Simulation, action AgentAction) {}
+func (agent *LBOnlyAgent) Reset(sim *Simulation)                                {}
+
+func NewLBOnlyAgent(sim *Simulation) *LBOnlyAgent {
+	return &LBOnlyAgent{
+		lb: spellmap[MagicIDLB12],
+	}
+}
+
+// ################################################################
+//                             CL ON CD
+// ################################################################
+type CLOnCDAgent struct {
+	lb *Spell
+	cl *Spell
+}
+
+func (agent *CLOnCDAgent) ChooseAction(sim *Simulation) AgentAction {
+	if sim.isOnCD(MagicIDCL6) {
+		return NewCastAction(sim, agent.lb)
+	} else {
+		return NewCastAction(sim, agent.cl)
+	}
+}
+
+func (agent *CLOnCDAgent) OnActionAccepted(sim *Simulation, action AgentAction) {}
+func (agent *CLOnCDAgent) Reset(sim *Simulation)                                {}
+
+func NewCLOnCDAgent(sim *Simulation) *CLOnCDAgent {
+	return &CLOnCDAgent{
+		lb: spellmap[MagicIDLB12],
+		cl: spellmap[MagicIDCL6],
+	}
+}
+
+// ################################################################
 //                          FIXED ROTATION
 // ################################################################
 type FixedRotationAgent struct {
-	numLBsPerCL       int // If -1, uses LB only
+	numLBsPerCL       int
 	numLBsSinceLastCL int
 	lb                *Spell
 	cl                *Spell
@@ -62,10 +108,6 @@ func (agent *FixedRotationAgent) temporaryHasteActive(sim *Simulation) bool {
 }
 
 func (agent *FixedRotationAgent) ChooseAction(sim *Simulation) AgentAction {
-	if agent.numLBsPerCL == -1 {
-		return NewCastAction(sim, agent.lb)
-	}
-
 	if agent.numLBsSinceLastCL < agent.numLBsPerCL {
 		return NewCastAction(sim, agent.lb)
 	}
@@ -150,8 +192,9 @@ type AdaptiveAgent struct {
 	manaSnapshots      [manaSnapshotsBufferSize]ManaSnapshot
 	numSnapshots       int32
 	firstSnapshotIndex int32
-	lb                 *Spell
-	cl                 *Spell
+
+	baseAgent    Agent // The agent used most of the time
+	surplusAgent Agent // The agent used when we have extra mana
 }
 
 const manaSpendingWindowNumSeconds = 60
@@ -196,10 +239,6 @@ func (agent *AdaptiveAgent) takeSnapshot(sim *Simulation) {
 }
 
 func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
-	if sim.isOnCD(MagicIDCL6) {
-		return NewCastAction(sim, agent.lb)
-	}
-
 	agent.purgeExpiredSnapshots(sim)
 	oldestSnapshot := agent.getOldestSnapshot()
 
@@ -217,28 +256,47 @@ func (agent *AdaptiveAgent) ChooseAction(sim *Simulation) AgentAction {
 		sim.Debug("[AI] CL Ready: Mana/s: %0.1f, Est Mana Cost: %0.1f, CurrentMana: %0.1f\n", manaSpendingRate, projectedManaCost, sim.CurrentMana)
 	}
 
-	// If we have enough mana to burn and CL is off CD, use it.
+	// If we have enough mana to burn, use the surplus agent.
 	if projectedManaCost < sim.CurrentMana {
-		return NewCastAction(sim, agent.cl)
+		return agent.surplusAgent.ChooseAction(sim)
+	} else {
+		return agent.baseAgent.ChooseAction(sim)
 	}
-
-	return NewCastAction(sim, agent.lb)
 }
 func (agent *AdaptiveAgent) OnActionAccepted(sim *Simulation, action AgentAction) {
 	agent.takeSnapshot(sim)
+	agent.baseAgent.OnActionAccepted(sim, action)
+	agent.surplusAgent.OnActionAccepted(sim, action)
 }
 
 func (agent *AdaptiveAgent) Reset(sim *Simulation) {
 	agent.manaSnapshots = [manaSnapshotsBufferSize]ManaSnapshot{}
 	agent.firstSnapshotIndex = 0
 	agent.numSnapshots = 0
+	agent.baseAgent.Reset(sim)
+	agent.surplusAgent.Reset(sim)
 }
 
 func NewAdaptiveAgent(sim *Simulation) *AdaptiveAgent {
-	return &AdaptiveAgent{
-		lb: spellmap[MagicIDLB12],
-		cl: spellmap[MagicIDCL6],
+	agent := &AdaptiveAgent{}
+
+	clearcastSimRequest := SimRequest{
+		Options:    sim.Options,
+		Gear:       sim.EquipSpec,
+		Iterations: 100,
 	}
+	clearcastSimRequest.Options.AgentType = AGENT_TYPE_CL_ON_CLEARCAST
+	clearcastResult := RunSimulation(clearcastSimRequest)
+
+	if clearcastResult.NumOom >= 5 {
+		agent.baseAgent = NewAgent(sim, AGENT_TYPE_FIXED_LB_ONLY)
+		agent.surplusAgent = NewAgent(sim, AGENT_TYPE_CL_ON_CLEARCAST)
+	} else {
+		agent.baseAgent = NewAgent(sim, AGENT_TYPE_CL_ON_CLEARCAST)
+		agent.surplusAgent = NewAgent(sim, AGENT_TYPE_FIXED_CL_ON_CD)
+	}
+
+	return agent
 }
 
 type AgentType int
@@ -254,6 +312,7 @@ const (
 	AGENT_TYPE_FIXED_9LB_1CL
 	AGENT_TYPE_FIXED_10LB_1CL
 	AGENT_TYPE_FIXED_LB_ONLY
+	AGENT_TYPE_FIXED_CL_ON_CD
 	AGENT_TYPE_ADAPTIVE
 	AGENT_TYPE_CL_ON_CLEARCAST
 )
@@ -268,6 +327,7 @@ var ALL_AGENT_TYPES = []AgentType{
 	AGENT_TYPE_FIXED_9LB_1CL,
 	AGENT_TYPE_FIXED_10LB_1CL,
 	AGENT_TYPE_FIXED_LB_ONLY,
+	AGENT_TYPE_FIXED_CL_ON_CD,
 	AGENT_TYPE_ADAPTIVE,
 	AGENT_TYPE_CL_ON_CLEARCAST,
 }
@@ -291,7 +351,9 @@ func NewAgent(sim *Simulation, agentType AgentType) Agent {
 	case AGENT_TYPE_FIXED_10LB_1CL:
 		return NewFixedRotationAgent(sim, 10)
 	case AGENT_TYPE_FIXED_LB_ONLY:
-		return NewFixedRotationAgent(sim, -1)
+		return NewLBOnlyAgent(sim)
+	case AGENT_TYPE_FIXED_CL_ON_CD:
+		return NewCLOnCDAgent(sim)
 	case AGENT_TYPE_ADAPTIVE:
 		return NewAdaptiveAgent(sim)
 	case AGENT_TYPE_CL_ON_CLEARCAST:

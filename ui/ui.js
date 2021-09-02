@@ -34,8 +34,9 @@ const AGENT_TYPES = {
   "FIXED_9LB_1CL": 6,
   "FIXED_10LB_1CL": 7,
   "FIXED_LB_ONLY": 8,
-  "ADAPTIVE": 9,
-  "CL_ON_CLEARCAST": 10
+  "FIXED_CL_ON_CD": 9,
+  "ADAPTIVE": 10,
+  "CL_ON_CLEARCAST": 11
 };
 
 // This must be kept in sync with the const values in stats.go

@@ -22,7 +22,8 @@ type Simulation struct {
 	InitialStats Stats
 	Stats        Stats
 	Equip        Equipment // Current Gear
-	activeEquip  []*Item   // cache of gear that can activate.
+	EquipSpec    EquipmentSpec
+	activeEquip  []*Item // cache of gear that can activate.
 
 	Options  Options
 	Duration time.Duration
@@ -73,6 +74,7 @@ func NewSim(equipSpec EquipmentSpec, options Options) *Simulation {
 		auras:         [MagicIDLen]Aura{},
 		activeAuraIDs: make([]int32, 0, 10),
 		Equip:         equip,
+		EquipSpec:     equipSpec,
 		rseed:         options.RSeed,
 		rando:         rand.New(rand.NewSource(options.RSeed)),
 		Debug:         nil,
