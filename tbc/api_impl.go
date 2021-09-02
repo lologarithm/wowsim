@@ -152,7 +152,7 @@ func runSimulationImpl(request SimRequest) SimResult {
 	for i := 0; i < request.Iterations; i++ {
 		metrics := sim.Run()
 		aggregator.addMetrics(request.Options, metrics)
-		sim.objpool.ReturnCasts(metrics.Casts)
+		sim.cache.ReturnCasts(metrics.Casts)
 	}
 
 	result := aggregator.getResult()

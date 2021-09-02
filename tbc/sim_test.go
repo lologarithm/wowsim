@@ -163,7 +163,7 @@ func TestSimulateP1(t *testing.T) {
 		Gear:      p1Gear,
 		AgentType: AGENT_TYPE_ADAPTIVE,
 
-		ExpectedDpsShort: 1538.5,
+		ExpectedDpsShort: 1539.5,
 		ExpectedDpsLong:  1238,
 	})
 }
@@ -192,8 +192,8 @@ func TestLBOnlyAgent(t *testing.T) {
 		Gear:      p1Gear,
 		AgentType: AGENT_TYPE_FIXED_LB_ONLY,
 
-		ExpectedDpsShort: 1582,
-		ExpectedDpsLong:  1228.5,
+		ExpectedDpsShort: 1581.1,
+		ExpectedDpsLong:  1227.6,
 	})
 }
 
@@ -206,8 +206,8 @@ func TestFixedAgent(t *testing.T) {
 		Gear:      p1Gear,
 		AgentType: AGENT_TYPE_FIXED_4LB_1CL,
 
-		ExpectedDpsShort: 1488.5,
-		ExpectedDpsLong:  1283.6,
+		ExpectedDpsShort: 1489.3,
+		ExpectedDpsLong:  1284.2,
 	})
 }
 
@@ -221,17 +221,20 @@ func TestClearcastAgent(t *testing.T) {
 		AgentType: AGENT_TYPE_CL_ON_CLEARCAST,
 
 		ExpectedDpsShort: 1667,
-		ExpectedDpsLong:  1358.5,
+		ExpectedDpsLong:  1359.1,
 	})
 }
 
 func BenchmarkSimulate(b *testing.B) {
-	RunSimulation(SimRequest{
-		Options:     fullOptions,
-		Gear:        p1Gear,
-		Iterations:  b.N,
-		IncludeLogs: false,
-	})
+
+	for i := 0; i < b.N; i++ {
+		RunSimulation(SimRequest{
+			Options:     fullOptions,
+			Gear:        p1Gear,
+			Iterations:  1000,
+			IncludeLogs: false,
+		})
+	}
 }
 
 type AllEncountersTestOptions struct {
