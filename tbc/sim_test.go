@@ -226,12 +226,15 @@ func TestClearcastAgent(t *testing.T) {
 }
 
 func BenchmarkSimulate(b *testing.B) {
-	RunSimulation(SimRequest{
-		Options:     fullOptions,
-		Gear:        p1Gear,
-		Iterations:  b.N,
-		IncludeLogs: false,
-	})
+
+	for i := 0; i < b.N; i++ {
+		RunSimulation(SimRequest{
+			Options:     fullOptions,
+			Gear:        p1Gear,
+			Iterations:  1000,
+			IncludeLogs: false,
+		})
+	}
 }
 
 type AllEncountersTestOptions struct {

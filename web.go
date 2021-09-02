@@ -1,13 +1,19 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"embed"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
+	"runtime"
+	"runtime/pprof"
 	"strings"
 	"time"
 
@@ -57,14 +63,64 @@ func main() {
 	})
 
 	http.HandleFunc("/api", handleAPI)
+	url := fmt.Sprintf("http://localhost%s/ui", *host)
+	log.Printf("Launching interface on %s", url)
 
-	log.Printf("Launching interface on http://localhost%s/ui", *host)
+	go func() {
+		var cmd *exec.Cmd
+		if runtime.GOOS == "windows" {
+			cmd = exec.Command("explorer", url)
+		} else if runtime.GOOS == "darwin" {
+			cmd = exec.Command("open", url)
+		} else if runtime.GOOS == "linux" {
+			cmd = exec.Command("xdg-open", url)
+		}
+		err := cmd.Start()
+		if err != nil {
+			log.Printf("Error launching browser: %#v", err.Error())
+		}
+		log.Printf("Closing: %s", http.ListenAndServe(*host, nil))
+	}()
 
-	log.Printf("Closing: %s", http.ListenAndServe(*host, nil))
+	fmt.Printf("Enter Command... '?' for list\n")
+	for {
+		fmt.Printf("> ")
+		reader := bufio.NewReader(os.Stdin)
+		text, _ := reader.ReadString('\n')
+		if len(text) == 0 {
+			continue
+		}
+		command := strings.TrimSpace(text)
+		switch command {
+		case "profile":
+			filename := fmt.Sprintf("profile_%d.cpu", time.Now().Unix())
+			fmt.Printf("Running profiling for 15 seconds, output to %s\n", filename)
+			f, err := os.Create(filename)
+			if err != nil {
+				log.Fatal("could not create CPU profile: ", err)
+			}
+			if err := pprof.StartCPUProfile(f); err != nil {
+				log.Fatal("could not start CPU profile: ", err)
+			}
+			go func() {
+				time.Sleep(time.Second * 15)
+				pprof.StopCPUProfile()
+				f.Close()
+				fmt.Printf("Profiling complete.\n> ")
+			}()
+		case "quit":
+			os.Exit(1)
+		case "?":
+			fmt.Printf("Commands:\n\tprofile - start a CPU profile for debugging performance\n\tquit - exits\n\n")
+		case "":
+			// nothing.
+		default:
+			fmt.Printf("Unknown command: '%s'", command)
+		}
+	}
 }
 
 func handleAPI(w http.ResponseWriter, r *http.Request) {
-	st := time.Now()
 	// Assumes input is a JSON object as a string
 	request := tbc.ApiRequest{}
 	body, _ := ioutil.ReadAll(r.Body)
@@ -78,6 +134,4 @@ func handleAPI(w http.ResponseWriter, r *http.Request) {
 		panic("Error marshaling result: " + err.Error())
 	}
 	w.Write(resultData)
-
-	log.Printf("API request took %v", time.Since(st))
 }
