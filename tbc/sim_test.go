@@ -135,8 +135,8 @@ func TestSimulatePreRaidNoBuffs(t *testing.T) {
 		Gear:      preRaidGear,
 		AgentType: AGENT_TYPE_ADAPTIVE,
 
-		ExpectedDpsShort: 868.5,
-		ExpectedDpsLong:  271,
+		ExpectedDpsShort: 867,
+		ExpectedDpsLong:  277,
 	})
 }
 
@@ -150,7 +150,7 @@ func TestSimulatePreRaid(t *testing.T) {
 		AgentType: AGENT_TYPE_ADAPTIVE,
 
 		ExpectedDpsShort: 1406,
-		ExpectedDpsLong:  1032,
+		ExpectedDpsLong:  1017,
 	})
 }
 
@@ -164,7 +164,7 @@ func TestSimulateP1(t *testing.T) {
 		AgentType: AGENT_TYPE_ADAPTIVE,
 
 		ExpectedDpsShort: 1539.5,
-		ExpectedDpsLong:  1238,
+		ExpectedDpsLong:  1359,
 	})
 }
 
@@ -180,7 +180,7 @@ func TestMultiTarget(t *testing.T) {
 			},
 			AGENT_TYPE_ADAPTIVE),
 		p1Gear,
-		1372)
+		1678.5)
 }
 
 func TestLBOnlyAgent(t *testing.T) {
