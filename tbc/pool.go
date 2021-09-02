@@ -6,10 +6,10 @@ type cache struct {
 	castPool []*Cast
 
 	// Cached pre-calculated values
-	dmgBonus      float64 // precalculated dmg modifier
-	elcDmgBonus   float64 // electric spell dmg modifier
-	dpsReportTime time.Duration
-	spellHit      float64
+	dmgBonus      float64       // precalculated dmg modifier
+	elcDmgBonus   float64       // electric spell dmg modifier
+	dpsReportTime time.Duration // Precalculated time.Duration for dps reporting time.
+	spellHit      float64       // precalculated % spell hit. Currently done in sim.reset
 
 	// temp sim state
 	bloodlustCasts    int
