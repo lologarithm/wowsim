@@ -676,16 +676,16 @@ function showGearRecommendations(weights) {
                 row.style.backgroundColor = "#808080";
             }
             var col1 = document.createElement("td");
-            var nameLink = document.createElement("a")
+            var nameLink = document.createElement("a");
             nameLink.setAttribute("href", "https://tbc.wowhead.com/item=" + v.ID);
             nameLink.innerText = v.Name;
-            col1.appendChild(nameLink)
+            col1.appendChild(nameLink);
 
             var col2 = document.createElement("td");
             var eptext = document.createElement("text");
             eptext.innerText = Math.round(v.Weight);
             var epdifftext = document.createElement("text");
-            var diff = Math.round(v.Weight - curSlotWeights[entry[0]])
+            var diff = Math.round(v.Weight - curSlotWeights[entry[0]]);
             epdifftext.innerText = " (" + diff + ")";
             if (diff > 0) {
                 epdifftext.style.color = "green";
