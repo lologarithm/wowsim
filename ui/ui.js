@@ -655,6 +655,7 @@ function showGearRecommendations(weights) {
     });
     let curSlot = -1;
     let slotTable;
+    let simFuncs = {};
     Object.entries(itemWeightsBySlot).forEach((entry) => {
         if (entry[0] == 14) {
             // Skip trinkets for now. Trinkets will be separate
@@ -663,9 +664,26 @@ function showGearRecommendations(weights) {
         if (curSlot != entry[0]) {
             slotTable = document.getElementById("up" + slotToID[entry[0]].replace("equip", ""));
             slotTable.innerHTML = ""; // clear table so we can regen.
+            simFuncs[entry[0]] = [];
+
+            const simAllRow = document.createElement("tr");
+            simAllRow.appendChild(document.createElement("td"));
+            simAllRow.appendChild(document.createElement("td"));
+            simAllRow.appendChild(document.createElement("td"));
+            const lastCol = document.createElement("td");
+            lastCol.style.float = "right";
+            const simAllButton = document.createElement("button");
+            simAllButton.innerText = "Sim All";
+            simAllButton.onclick = (e) => {
+                simFuncs[entry[0]].forEach((f) => {
+                    f();
+                });
+            };
+            lastCol.appendChild(simAllButton);
+            simAllRow.appendChild(lastCol);
+            slotTable.appendChild(simAllRow);
             curSlot = entry[0];
         }
-        
         
         // get current item slot.
         let alt = 0;
@@ -702,7 +720,7 @@ function showGearRecommendations(weights) {
             simbut.innerText = "Sim";
 
             const item = Object.assign({ Name: "" }, gearUI.allitems[v.Name]);
-            simbut.addEventListener("click", (e) => {
+            let simfunc = (e) => {
                 col4.innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
                 const newgear = {};
                 const slotID = slotToID[item.Slot];
@@ -724,7 +742,11 @@ function showGearRecommendations(weights) {
                             });
                         }
                         item.Enchant = entry[1].Enchant;
-                    } else {
+                    } else if (entry[0] == "equipoffhand" && item.subSlot == 2 ) {
+                        // If the item is a 2h and the piece of gear to copy is an offhand, dont include it.
+                        return;
+                    }
+                    else {
                         newgear[entry[0]] = entry[1];
                     }
                 });
@@ -741,7 +763,9 @@ function showGearRecommendations(weights) {
                 workerPool.runSimulation(simRequest).then(simResult => {
                     col4.innerText = Math.round(simResult.DpsAvg).toString() + " +/- " + Math.round(simResult.DpsStDev).toString();
                 });
-            });
+            }
+            simFuncs[curSlot].push(simfunc);
+            simbut.addEventListener("click", simfunc);
             col3.appendChild(simbut);
             row.appendChild(col1);
             row.appendChild(col2);

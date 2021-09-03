@@ -121,6 +121,9 @@
 #calcdiv {
     flex: 1;
 }
+#statweights td {
+    max-width: 65px;
+}
 .equipselitem {
     cursor: pointer;
 }
