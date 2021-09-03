@@ -650,33 +650,23 @@ function showGearRecommendations(weights) {
         if (curEquip != null && curEquip.Name == item.Name) {
             curSlotWeights[item.Slot] = itemEP;
         }
-        itemWeightsBySlot[item.Slot].push({ Name: item.Name, Weight: itemEP });
+        itemWeightsBySlot[item.Slot].push({ Name: item.Name, Weight: itemEP, ID: item.ID });
         itemWeightsBySlot[item.Slot] = itemWeightsBySlot[item.Slot].sort((a, b) => b.Weight - a.Weight);
     });
-    var uptab = document.getElementById("upgrades");
-    uptab.innerHTML = "";
-
     var curSlot = -1;
+    var slotTable;
     Object.entries(itemWeightsBySlot).forEach((entry) => {
         if (entry[0] == 14) {
             // Skip trinkets for now. Trinkets will be separate
             return;
         }
         if (curSlot != entry[0]) {
-            var row = document.createElement("tr");
-            var col1 = document.createElement("td");
-            slotToID[entry[0]].replace("equip", "");
-            var title = slotToID[entry[0]].replace("equip", "");
-            col1.innerHTML = "<h3>" + title.charAt(0).toUpperCase() + title.substr(1) + "</h3>";
-
-            var col2 = document.createElement("td");
-            var col3 = document.createElement("td");
-            row.appendChild(col1);
-            row.appendChild(col2);
-            row.appendChild(col3);
-            uptab.appendChild(row);
+            slotTable = document.getElementById("up" + slotToID[entry[0]].replace("equip", ""));
+            slotTable.innerHTML = ""; // clear table so we can regen.
             curSlot = entry[0];
         }
+        
+        
         // get current item slot.
         var alt = 0;
         entry[1].forEach((v) => {
@@ -686,9 +676,26 @@ function showGearRecommendations(weights) {
                 row.style.backgroundColor = "#808080";
             }
             var col1 = document.createElement("td");
-            col1.innerText = v.Name;
+            var nameLink = document.createElement("a")
+            nameLink.setAttribute("href", "https://tbc.wowhead.com/item=" + v.ID);
+            nameLink.innerText = v.Name;
+            col1.appendChild(nameLink)
+
             var col2 = document.createElement("td");
-            col2.innerText = Math.round(v.Weight - curSlotWeights[curSlot]);
+            var eptext = document.createElement("text");
+            eptext.innerText = Math.round(v.Weight);
+            var epdifftext = document.createElement("text");
+            var diff = Math.round(v.Weight - curSlotWeights[entry[0]])
+            epdifftext.innerText = " (" + diff + ")";
+            if (diff > 0) {
+                epdifftext.style.color = "green";
+            }  else if (diff < 0) {
+                epdifftext.style.color = "red";
+            }
+            col2.appendChild(eptext);
+            col2.appendChild(epdifftext);
+
+
             var col3 = document.createElement("td");
             var col4 = document.createElement("td");
             var simbut = document.createElement("button");
@@ -740,7 +747,7 @@ function showGearRecommendations(weights) {
             row.appendChild(col2);
             row.appendChild(col3);
             row.appendChild(col4);
-            uptab.appendChild(row);
+            slotTable.appendChild(row);
         })
     });
 }
