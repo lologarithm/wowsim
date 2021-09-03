@@ -61,7 +61,9 @@ func NewSim(equipSpec EquipmentSpec, options Options) *Simulation {
 	if options.GCDMin == 0 {
 		options.GCDMin = 0.75 // default to 0.75s GCD
 	}
-
+	if options.RSeed == 0 {
+		options.RSeed = time.Now().Unix()
+	}
 	equip := NewEquipmentSet(equipSpec)
 	initialStats := CalculateTotalStats(options, equip)
 
