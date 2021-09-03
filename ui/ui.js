@@ -653,8 +653,8 @@ function showGearRecommendations(weights) {
         itemWeightsBySlot[item.Slot].push({ Name: item.Name, Weight: itemEP, ID: item.ID });
         itemWeightsBySlot[item.Slot] = itemWeightsBySlot[item.Slot].sort((a, b) => b.Weight - a.Weight);
     });
-    var curSlot = -1;
-    var slotTable;
+    let curSlot = -1;
+    let slotTable;
     Object.entries(itemWeightsBySlot).forEach((entry) => {
         if (entry[0] == 14) {
             // Skip trinkets for now. Trinkets will be separate
@@ -668,24 +668,24 @@ function showGearRecommendations(weights) {
         
         
         // get current item slot.
-        var alt = 0;
+        let alt = 0;
         entry[1].forEach((v) => {
             alt++;
-            var row = document.createElement("tr");
+            const row = document.createElement("tr");
             if (alt % 2 == 0) {
                 row.style.backgroundColor = "#808080";
             }
-            var col1 = document.createElement("td");
-            var nameLink = document.createElement("a");
+            const col1 = document.createElement("td");
+            const nameLink = document.createElement("a");
             nameLink.setAttribute("href", "https://tbc.wowhead.com/item=" + v.ID);
             nameLink.innerText = v.Name;
             col1.appendChild(nameLink);
 
-            var col2 = document.createElement("td");
-            var eptext = document.createElement("text");
+            const col2 = document.createElement("td");
+            const eptext = document.createElement("text");
             eptext.innerText = Math.round(v.Weight);
-            var epdifftext = document.createElement("text");
-            var diff = Math.round(v.Weight - curSlotWeights[entry[0]]);
+            const epdifftext = document.createElement("text");
+            const diff = Math.round(v.Weight - curSlotWeights[entry[0]]);
             epdifftext.innerText = " (" + diff + ")";
             if (diff > 0) {
                 epdifftext.style.color = "green";
@@ -696,16 +696,16 @@ function showGearRecommendations(weights) {
             col2.appendChild(epdifftext);
 
 
-            var col3 = document.createElement("td");
-            var col4 = document.createElement("td");
-            var simbut = document.createElement("button");
+            const col3 = document.createElement("td");
+            const col4 = document.createElement("td");
+            const simbut = document.createElement("button");
             simbut.innerText = "Sim";
 
-            var item = Object.assign({ Name: "" }, gearUI.allitems[v.Name]);
+            const item = Object.assign({ Name: "" }, gearUI.allitems[v.Name]);
             simbut.addEventListener("click", (e) => {
                 col4.innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
-                var newgear = {};
-                var slotID = slotToID[item.Slot];
+                const newgear = {};
+                const slotID = slotToID[item.Slot];
                 if (slotID == "equipfinger") {
                     slotID = "equipfinger1"; // hardcode finger 1 replacement.
                 }
