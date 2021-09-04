@@ -723,7 +723,7 @@ function showGearRecommendations(weights) {
             let simfunc = (e) => {
                 col4.innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
                 const newgear = {};
-                const slotID = slotToID[item.Slot];
+                let slotID = slotToID[item.Slot];
                 if (slotID == "equipfinger") {
                     slotID = "equipfinger1"; // hardcode finger 1 replacement.
                 }
