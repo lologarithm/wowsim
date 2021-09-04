@@ -660,16 +660,17 @@ func ActivateIED(sim *Simulation) Aura {
 
 func ActivateMSD(sim *Simulation) Aura {
 	const hasteBonus = 320.0
-	const dur = time.Second * 35
+	const dur = time.Second * 4
+	const icdDur = time.Second * 35
 	icd := NewICD()
 	return Aura{
 		ID:      MagicIDMysticSkyfire,
 		Expires: neverExpires,
 		OnCastComplete: func(sim *Simulation, c *Cast) {
 			if !icd.isOnCD(sim) && sim.rando.Float64() < 0.15 {
-				icd = InternalCD(sim.CurrentTime + dur)
+				icd = InternalCD(sim.CurrentTime + icdDur)
 				sim.Stats[StatHaste] += hasteBonus
-				sim.addAura(AuraStatRemoval(sim.CurrentTime, time.Second*4, hasteBonus, StatHaste, MagicIDMysticFocus))
+				sim.addAura(AuraStatRemoval(sim.CurrentTime, dur, hasteBonus, StatHaste, MagicIDMysticFocus))
 			}
 		},
 	}
@@ -919,8 +920,8 @@ func ActivateSextant(sim *Simulation) Aura {
 		ID:      MagicIDSextant,
 		Expires: neverExpires,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
-			if !icd.isOnCD(sim) && c.DidCrit && sim.rando.Float64() < 0.2 {
-				icd = InternalCD(sim.CurrentTime + dur)
+			if c.DidCrit && !icd.isOnCD(sim) && sim.rando.Float64() < 0.2 {
+				icd = InternalCD(sim.CurrentTime + icdDur)
 				sim.Stats[StatSpellDmg] += spellBonus
 				sim.addAura(AuraStatRemoval(sim.CurrentTime, dur, spellBonus, StatSpellDmg, MagicIDUnstableCurrents))
 			}
@@ -960,7 +961,7 @@ func ActivateElderScribes(sim *Simulation) Aura {
 		OnSpellHit: func(sim *Simulation, c *Cast) {
 			// This code is starting to look a lot like other ICD buff items. Perhaps we could DRY this out.
 			if !icd.isOnCD(sim) && sim.rando.Float64() < proc {
-				icd = InternalCD(sim.CurrentTime + dur)
+				icd = InternalCD(sim.CurrentTime + icdDur)
 				sim.Stats[StatSpellDmg] += spellBonus
 				sim.addAura(AuraStatRemoval(sim.CurrentTime, dur, spellBonus, StatSpellDmg, MagicIDElderScribeProc))
 			}
