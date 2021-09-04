@@ -63,7 +63,7 @@ func main() {
 			var err error
 			if *useFS {
 				// read file straight off disk
-				uijs, err = ioutil.ReadFile("favicon.ico")
+				uijs, err = ioutil.ReadFile("ui/favicon.ico")
 			} else {
 				uijs, err = uifs.ReadFile("ui/favicon.ico")
 				// modify so that simworker is replaced with networker.

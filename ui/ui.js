@@ -650,55 +650,80 @@ function showGearRecommendations(weights) {
         if (curEquip != null && curEquip.Name == item.Name) {
             curSlotWeights[item.Slot] = itemEP;
         }
-        itemWeightsBySlot[item.Slot].push({ Name: item.Name, Weight: itemEP });
+        itemWeightsBySlot[item.Slot].push({ Name: item.Name, Weight: itemEP, ID: item.ID });
         itemWeightsBySlot[item.Slot] = itemWeightsBySlot[item.Slot].sort((a, b) => b.Weight - a.Weight);
     });
-    var uptab = document.getElementById("upgrades");
-    uptab.innerHTML = "";
-
-    var curSlot = -1;
+    let curSlot = -1;
+    let slotTable;
+    let simFuncs = {};
     Object.entries(itemWeightsBySlot).forEach((entry) => {
         if (entry[0] == 14) {
             // Skip trinkets for now. Trinkets will be separate
             return;
         }
         if (curSlot != entry[0]) {
-            var row = document.createElement("tr");
-            var col1 = document.createElement("td");
-            slotToID[entry[0]].replace("equip", "");
-            var title = slotToID[entry[0]].replace("equip", "");
-            col1.innerHTML = "<h3>" + title.charAt(0).toUpperCase() + title.substr(1) + "</h3>";
+            slotTable = document.getElementById("up" + slotToID[entry[0]].replace("equip", ""));
+            slotTable.innerHTML = ""; // clear table so we can regen.
+            simFuncs[entry[0]] = [];
 
-            var col2 = document.createElement("td");
-            var col3 = document.createElement("td");
-            row.appendChild(col1);
-            row.appendChild(col2);
-            row.appendChild(col3);
-            uptab.appendChild(row);
+            const simAllRow = document.createElement("tr");
+            simAllRow.appendChild(document.createElement("td"));
+            simAllRow.appendChild(document.createElement("td"));
+            simAllRow.appendChild(document.createElement("td"));
+            const lastCol = document.createElement("td");
+            lastCol.style.float = "right";
+            const simAllButton = document.createElement("button");
+            simAllButton.innerText = "Sim All";
+            simAllButton.onclick = (e) => {
+                simFuncs[entry[0]].forEach((f) => {
+                    f();
+                });
+            };
+            lastCol.appendChild(simAllButton);
+            simAllRow.appendChild(lastCol);
+            slotTable.appendChild(simAllRow);
             curSlot = entry[0];
         }
+        
         // get current item slot.
-        var alt = 0;
+        let alt = 0;
         entry[1].forEach((v) => {
             alt++;
-            var row = document.createElement("tr");
+            const row = document.createElement("tr");
             if (alt % 2 == 0) {
                 row.style.backgroundColor = "#808080";
             }
-            var col1 = document.createElement("td");
-            col1.innerText = v.Name;
-            var col2 = document.createElement("td");
-            col2.innerText = Math.round(v.Weight - curSlotWeights[curSlot]);
-            var col3 = document.createElement("td");
-            var col4 = document.createElement("td");
-            var simbut = document.createElement("button");
+            const col1 = document.createElement("td");
+            const nameLink = document.createElement("a");
+            nameLink.setAttribute("href", "https://tbc.wowhead.com/item=" + v.ID);
+            nameLink.innerText = v.Name;
+            col1.appendChild(nameLink);
+
+            const col2 = document.createElement("td");
+            const eptext = document.createElement("text");
+            eptext.innerText = Math.round(v.Weight);
+            const epdifftext = document.createElement("text");
+            const diff = Math.round(v.Weight - curSlotWeights[entry[0]]);
+            epdifftext.innerText = " (" + diff + ")";
+            if (diff > 0) {
+                epdifftext.style.color = "green";
+            }  else if (diff < 0) {
+                epdifftext.style.color = "red";
+            }
+            col2.appendChild(eptext);
+            col2.appendChild(epdifftext);
+
+
+            const col3 = document.createElement("td");
+            const col4 = document.createElement("td");
+            const simbut = document.createElement("button");
             simbut.innerText = "Sim";
 
-            var item = Object.assign({ Name: "" }, gearUI.allitems[v.Name]);
-            simbut.addEventListener("click", (e) => {
+            const item = Object.assign({ Name: "" }, gearUI.allitems[v.Name]);
+            let simfunc = (e) => {
                 col4.innerHTML = "<div uk-spinner=\"ratio: 0.5\"></div>";
-                var newgear = {};
-                var slotID = slotToID[item.Slot];
+                const newgear = {};
+                const slotID = slotToID[item.Slot];
                 if (slotID == "equipfinger") {
                     slotID = "equipfinger1"; // hardcode finger 1 replacement.
                 }
@@ -717,7 +742,11 @@ function showGearRecommendations(weights) {
                             });
                         }
                         item.Enchant = entry[1].Enchant;
-                    } else {
+                    } else if (entry[0] == "equipoffhand" && item.subSlot == 2 ) {
+                        // If the item is a 2h and the piece of gear to copy is an offhand, dont include it.
+                        return;
+                    }
+                    else {
                         newgear[entry[0]] = entry[1];
                     }
                 });
@@ -734,13 +763,15 @@ function showGearRecommendations(weights) {
                 workerPool.runSimulation(simRequest).then(simResult => {
                     col4.innerText = Math.round(simResult.DpsAvg).toString() + " +/- " + Math.round(simResult.DpsStDev).toString();
                 });
-            });
+            }
+            simFuncs[curSlot].push(simfunc);
+            simbut.addEventListener("click", simfunc);
             col3.appendChild(simbut);
             row.appendChild(col1);
             row.appendChild(col2);
             row.appendChild(col3);
             row.appendChild(col4);
-            uptab.appendChild(row);
+            slotTable.appendChild(row);
         })
     });
 }

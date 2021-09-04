@@ -244,7 +244,7 @@
                             </select>
                             <button id="calcstatweight">Calculate</button>
                         </div>
-                        <table id="statweights" style="width: 60%;margin: 0px auto;">
+                        <table id="statweights" style="width: 90%;margin: 0px auto;max-width: 1080px;">
                             <tr style="font-size: 1.3em;font-weight: 700;text-align: center;">
                                 <th></th>
                                 <th>Dmg</th>
@@ -255,7 +255,7 @@
                                 <th>MP5</th>
                             </tr>
                             <tr style="font-size: 1.2em;text-align: center;">
-                                <td style="font-size: 1em;text-align:right;" id="">Mean Weight</td>
+                                <td style="font-size: 1em;text-align:right" id="">Weight</td>
                                 <td id="w0">0</td>
                                 <td id="w1">0</td>
                                 <td id="w2">0</td>
@@ -264,7 +264,7 @@
                                 <td id="w5">0</td>
                             </tr>
                             <tr style="font-size: 1.2em;text-align: center;">
-                                <td style="font-size: 1em;text-align:right;" id="">90% Confidence Weight Range</td>
+                                <td style="font-size: 1em;text-align:right" id="">90% Conf</td>
                                 <td id="wc0">-</td>
                                 <td id="wc1">0</td>
                                 <td id="wc2">0</td>
@@ -273,8 +273,44 @@
                                 <td id="wc5">0</td>
                             </tr>
                         </table>
-                        <table id="upgrades" style="margin: 0px auto;">
-                        </table>
+                        <div uk-grid id="upgrades" style="margin: 0px auto;">
+                            <div class="uk-width-auto">
+                                <ul class="uk-tab-left" id="upgradetabs" uk-tab="connect: #upgradeslots">
+                                    <li class="uk-active"><a href="#">Head</a></li>
+                                    <li><a href="#">Neck</a></li>
+                                    <li><a href="#">Shoulder</a></li>
+                                    <li><a href="#">Back</a></li>
+                                    <li><a href="#">Chest</a></li>
+                                    <li><a href="#">Wrist</a></li>
+                                    <li><a href="#">Hands</a></li>
+                                    <li><a href="#">Waist</a></li>
+                                    <li><a href="#">Legs</a></li>
+                                    <li><a href="#">Feet</a></li>
+                                    <li><a href="#">Finger</a></li>
+                                    <li><a href="#">Weapon</a></li>
+                                    <li><a href="#">Offhand</a></li>
+                                    <li><a href="#">Totem</a></li>
+                                </ul>
+                            </div>
+                            <div class="uk-width-expand">
+                                <ul id="upgradeslots" class="uk-switcher uk-margin" style="height: 100%;overflow: auto;margin-bottom:0px">
+                                    <li><table id="uphead" style="margin: 0px auto"></table></li>
+                                    <li><table id="upneck" style="margin: 0px auto"></table></li>
+                                    <li><table id="upshoulder" style="margin: 0px auto"></table></li>
+                                    <li><table id="upback" style="margin: 0px auto"></table></li>
+                                    <li><table id="upchest" style="margin: 0px auto"></table></li>
+                                    <li><table id="upwrist" style="margin: 0px auto"></table></li>
+                                    <li><table id="uphands" style="margin: 0px auto"></table></li>
+                                    <li><table id="upwaist" style="margin: 0px auto"></table></li>
+                                    <li><table id="uplegs" style="margin: 0px auto"></table></li>
+                                    <li><table id="upfeet" style="margin: 0px auto"></table></li>
+                                    <li><table id="upfinger" style="margin: 0px auto"></table></li>
+                                    <li><table id="upweapon" style="margin: 0px auto"></table></li>
+                                    <li><table id="upoffhand" style="margin: 0px auto"></table></li>
+                                    <li><table id="uptotem" style="margin: 0px auto"></table></li>
+                                </ul>
+                            </div>
+                        </div>
                     </li>
                     <li style="height:100%">
                         <div style="text-align: right">
@@ -290,13 +326,13 @@
                         <pre id="simlogs" class="dtd" style="width: 99%;border:1px solid black;">
                         </pre>
                     </li>
-                </ul>    
+                </ul>
             </div>
         </div>
         <div id="pullout">
             <div class="dtl" style="height:100%;width:100%;padding:10px">
                 <div id="themetoggle" style="height:20px; bottom: 10px; cursor: pointer;" onclick="toggletheme()">
-                    <text>v1.1.14</text>
+                    <text>v1.1.15</text>
                     <img id="themebulb" style="height: 20px; width: 20px" src="icons/light-bulb.svg"></img>
                 </div>
                 <div style="margin-top:10px">

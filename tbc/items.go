@@ -324,6 +324,7 @@ func NewEquipmentSet(equipSpec EquipmentSpec) Equipment {
 const (
 	SubslotUnknown byte = iota
 	SubslotShield
+	SubslotTwoHand
 )
 
 // slot consts
@@ -531,16 +532,16 @@ var items = []Item{
 	{ID: 27910, Slot: EquipOffhand, SubSlot: SubslotShield, Name: "Silvermoon Crest Shield", Phase: 1, Quality: ItemQualityRare, SourceZone: "SLabs - Murmur", SourceDrop: "", Stats: Stats{20, 0, 0, 0, 23, 0, 5}},
 	{ID: 30984, Slot: EquipOffhand, SubSlot: SubslotShield, Name: "Spellbreaker's Buckler", Phase: 1, Quality: ItemQualityRare, SourceZone: "Akama's Promise - SMV Quest", SourceDrop: "", Stats: Stats{10, 22, 0, 0, 29, 0, 0}},
 	{ID: 27534, Slot: EquipOffhand, Name: "Hortus' Seal of Brilliance", Phase: 1, Quality: ItemQualityRare, SourceZone: "SH - Warchief Kargath Bladefist", SourceDrop: "", Stats: Stats{20, 18, 0, 0, 23, 0, 0}},
-	{ID: 29355, Slot: EquipWeapon, Name: "Terokk's Shadowstaff", Phase: 1, Quality: ItemQualityEpic, SourceZone: "H SH - Talon King Ikiss", SourceDrop: "", Stats: Stats{42, 40, 37, 0, 168, 0, 0}},
-	{ID: 29130, Slot: EquipWeapon, Name: "Auchenai Staff", Phase: 1, Quality: ItemQualityRare, SourceZone: "The Aldor - Revered", SourceDrop: "", Stats: Stats{46, 0, 26, 19, 121, 0, 0}},
-	{ID: 28341, Slot: EquipWeapon, Name: "Warpstaff of Arcanum", Phase: 1, Quality: ItemQualityRare, SourceZone: "Bot - Warp Splinter", SourceDrop: "", Stats: Stats{38, 37, 26, 16, 121, 0, 0}},
-	{ID: 31308, Slot: EquipWeapon, Name: "The Bringer of Death", Phase: 1, Quality: ItemQualityRare, SourceZone: "BoE World Drop", SourceDrop: "", Stats: Stats{31, 32, 42, 0, 121, 0, 0}},
-	{ID: 28188, Slot: EquipWeapon, Name: "Bloodfire Greatstaff", Phase: 1, Quality: ItemQualityRare, SourceZone: "BM - Aeonus", SourceDrop: "", Stats: Stats{42, 42, 28, 0, 121, 0, 0}},
-	{ID: 30011, Slot: EquipWeapon, Name: "Ameer's Impulse Taser", Phase: 1, Quality: ItemQualityRare, SourceZone: "Nexus-King Salhadaar - Netherstorm Quest", SourceDrop: "", Stats: Stats{27, 27, 27, 17, 103, 0, 0}},
-	{ID: 27842, Slot: EquipWeapon, Name: "Grand Scepter of the Nexus-Kings", Phase: 1, Quality: ItemQualityRare, SourceZone: "H MT - Nexus-Prince Shaffar", SourceDrop: "", Stats: Stats{43, 45, 0, 19, 121, 0, 0}},
+	{ID: 29355, Slot: EquipWeapon, SubSlot: SubslotTwoHand, Name: "Terokk's Shadowstaff", Phase: 1, Quality: ItemQualityEpic, SourceZone: "H SH - Talon King Ikiss", SourceDrop: "", Stats: Stats{42, 40, 37, 0, 168, 0, 0}},
+	{ID: 29130, Slot: EquipWeapon, SubSlot: SubslotTwoHand, Name: "Auchenai Staff", Phase: 1, Quality: ItemQualityRare, SourceZone: "The Aldor - Revered", SourceDrop: "", Stats: Stats{46, 0, 26, 19, 121, 0, 0}},
+	{ID: 28341, Slot: EquipWeapon, SubSlot: SubslotTwoHand, Name: "Warpstaff of Arcanum", Phase: 1, Quality: ItemQualityRare, SourceZone: "Bot - Warp Splinter", SourceDrop: "", Stats: Stats{38, 37, 26, 16, 121, 0, 0}},
+	{ID: 31308, Slot: EquipWeapon, SubSlot: SubslotTwoHand, Name: "The Bringer of Death", Phase: 1, Quality: ItemQualityRare, SourceZone: "BoE World Drop", SourceDrop: "", Stats: Stats{31, 32, 42, 0, 121, 0, 0}},
+	{ID: 28188, Slot: EquipWeapon, SubSlot: SubslotTwoHand, Name: "Bloodfire Greatstaff", Phase: 1, Quality: ItemQualityRare, SourceZone: "BM - Aeonus", SourceDrop: "", Stats: Stats{42, 42, 28, 0, 121, 0, 0}},
+	{ID: 30011, Slot: EquipWeapon, SubSlot: SubslotTwoHand, Name: "Ameer's Impulse Taser", Phase: 1, Quality: ItemQualityRare, SourceZone: "Nexus-King Salhadaar - Netherstorm Quest", SourceDrop: "", Stats: Stats{27, 27, 27, 17, 103, 0, 0}},
+	{ID: 27842, Slot: EquipWeapon, SubSlot: SubslotTwoHand, Name: "Grand Scepter of the Nexus-Kings", Phase: 1, Quality: ItemQualityRare, SourceZone: "H MT - Nexus-Prince Shaffar", SourceDrop: "", Stats: Stats{43, 45, 0, 19, 121, 0, 0}},
 
 	{ID: 28346, Slot: EquipOffhand, Name: "Gladiator's Endgame", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Arena Season 1 Reward", SourceDrop: "", Stats: Stats{14, 21, 0, 0, 19, 0, 0}},
-	{ID: 24557, Slot: EquipWeapon, Name: "Gladiator's War Staff", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Arena Season 1 Reward", SourceDrop: "", Stats: Stats{35, 48, 36, 21, 199, 0, 0}},
+	{ID: 24557, Slot: EquipWeapon, SubSlot: SubslotTwoHand, Name: "Gladiator's War Staff", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Arena Season 1 Reward", SourceDrop: "", Stats: Stats{35, 48, 36, 21, 199, 0, 0}},
 
 	{ID: 29389, Slot: EquipTotem, Name: "Totem of the Pulsing Earth", Phase: 1, Quality: ItemQualityEpic, SourceZone: "15 Badge of Justice - G'eras", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}, Activate: ActivateTotemOfPulsingEarth, ActivateCD: neverExpires},
 	// {Slot: EquipTotem, Name: "Totem of Impact", Phase: 1, Quality: ItemQualityRare, SourceZone: "15 Mark of Thrallmar/ Honor Hold", SourceDrop: "", Stats: Stats{0, 0, 0, 0, 0, 0, 0}},
@@ -651,9 +652,9 @@ var items = []Item{
 	{ID: 30723, Slot: EquipWeapon, Name: "Talon of the Tempest", Phase: 1, Quality: ItemQualityEpic, SourceZone: "World Boss", SourceDrop: "Doomwalker", Stats: Stats{StatStm: 0, StatInt: 10, StatSpellDmg: 194, StatSpellCrit: 19, StatSpellHit: 9}, GemSlots: []GemColor{GemColorYellow, GemColorYellow}, SocketBonus: Stats{StatInt: 3}},
 	{ID: 34009, Slot: EquipWeapon, Name: "Hammer of Judgement", Phase: 3, Quality: ItemQualityEpic, SourceZone: "Hyjal", SourceDrop: "Trash", Stats: Stats{StatStm: 33, StatInt: 22, StatSpellDmg: 236, StatSpellHit: 22}},
 	{ID: 32237, Slot: EquipWeapon, Name: "The Maelstrom's Fury", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Najentus", Stats: Stats{StatStm: 33, StatInt: 21, StatSpellDmg: 236, StatSpellCrit: 22}},
-	{ID: 28633, Slot: EquipWeapon, Name: "Staff of Infinite Mysteries", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Curator", Stats: Stats{StatStm: 61, StatInt: 51, StatSpellDmg: 185, StatSpellHit: 23}},
-	{ID: 29988, Slot: EquipWeapon, Name: "The Nexus Key", Phase: 2, Quality: ItemQualityEpic, SourceZone: "TK", SourceDrop: "Kaelthas", Stats: Stats{StatStm: 76, StatInt: 52, StatSpellDmg: 236, StatSpellCrit: 51}},
-	{ID: 32374, Slot: EquipWeapon, Name: "Zhar'doom, Greatstaff of the Devourer", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Illidan", Stats: Stats{StatStm: 70, StatInt: 47, StatSpellDmg: 259, StatHaste: 55, StatSpellCrit: 36}},
+	{ID: 28633, Slot: EquipWeapon, SubSlot: SubslotTwoHand, Name: "Staff of Infinite Mysteries", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Curator", Stats: Stats{StatStm: 61, StatInt: 51, StatSpellDmg: 185, StatSpellHit: 23}},
+	{ID: 29988, Slot: EquipWeapon, SubSlot: SubslotTwoHand, Name: "The Nexus Key", Phase: 2, Quality: ItemQualityEpic, SourceZone: "TK", SourceDrop: "Kaelthas", Stats: Stats{StatStm: 76, StatInt: 52, StatSpellDmg: 236, StatSpellCrit: 51}},
+	{ID: 32374, Slot: EquipWeapon, SubSlot: SubslotTwoHand, Name: "Zhar'doom, Greatstaff of the Devourer", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Illidan", Stats: Stats{StatStm: 70, StatInt: 47, StatSpellDmg: 259, StatHaste: 55, StatSpellCrit: 36}},
 	{ID: 28734, Slot: EquipOffhand, Name: "Jewel of Infinite Possibilities", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Netherspite", Stats: Stats{StatStm: 19, StatInt: 18, StatSpellDmg: 23, StatSpellHit: 21}},
 	{ID: 28611, Slot: EquipOffhand, SubSlot: SubslotShield, Name: "Dragonheart Flameshield", Phase: 1, Quality: ItemQualityEpic, SourceZone: "Kara", SourceDrop: "Nightbane", Stats: Stats{StatStm: 19, StatInt: 33, StatSpellDmg: 23, StatMP5: 7}},
 	{ID: 34011, Slot: EquipOffhand, SubSlot: SubslotShield, Name: "Illidari Runeshield", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Trash", Stats: Stats{StatStm: 45, StatInt: 39, StatSpellDmg: 34}},

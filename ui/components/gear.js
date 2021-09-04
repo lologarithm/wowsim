@@ -80,6 +80,13 @@ class GearUI {
                     item.Enchant = null; 
                     item.Gems = null;
                     this.currentGear[slot] = item;
+
+                    // If the item is a 2h, remove any offhand that is currently equipped.
+                    if (item.subSlot == 2  && this.currentGear["equipoffhand"] != null) {
+                        this.currentGear["equipoffhand"] = null;
+                        this.itemCompSlots["equipoffhand"].updateEquipped(null);
+                    }
+                    
                     itemComp.updateEquipped(item);
                 } else if (change.gem != null) {
                     if (this.currentGear[slot].Gems == null) {

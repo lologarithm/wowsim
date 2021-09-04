@@ -603,7 +603,6 @@ function itemQualityCssClass(itemQuality) {
             return 'qualityUncommon';
         case 2:
             return 'qualityRare';
-            this.name.style.color = "#589BE1"
         case 3:
             return 'qualityEpic';
         case 4:
