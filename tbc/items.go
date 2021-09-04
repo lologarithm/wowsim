@@ -836,6 +836,19 @@ var items = []Item{
 	{ID: 33283, Slot: EquipWeapon, Name: "Amani Punisher", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatStm: 30, StatInt: 21, StatSpellDmg: 217, StatSpellHit: 20}},
 	{ID: 33466, Slot: EquipNeck, Name: "Loop of Cursed Bones", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatStm: 19, StatInt: 20, StatSpellDmg: 32, StatHaste: 27}},
 	{ID: 33591, Slot: EquipBack, Name: "Shadowcaster's Drape", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatStm: 22, StatInt: 20, StatSpellDmg: 27, StatHaste: 25}},
+	{ID: 32817, Slot: EquipWrist, Name: "Veteran's Mail Bracers", Phase: 2, Quality: ItemQualityEpic, SourceZone: "", SourceDrop: "",
+		Stats:       Stats{StatStm: 25, StatInt: 14, StatSpellDmg: 22, StatSpellCrit: 17},
+		GemSlots:    []GemColor{GemColorYellow},
+		SocketBonus: Stats{}, // resil bonus
+	},
+	{ID: 32792, Slot: EquipFeet, Name: "Veteran's Mail Sabatons", Phase: 2, Quality: ItemQualityEpic, SourceZone: "", SourceDrop: "", Stats: Stats{StatStm: 39, StatInt: 27, StatSpellDmg: 32, StatSpellCrit: 26}},
+	{ID: 32328, Slot: EquipWrist, Name: "Botanist's Gloves of Growth", Phase: 3, Quality: ItemQualityEpic, SourceZone: "BT", SourceDrop: "Teron Gorefiend",
+		Stats:       Stats{StatStm: 22, StatInt: 21, StatSpellDmg: 28, StatHaste: 37},
+		GemSlots:    []GemColor{GemColorYellow, GemColorBlue},
+		SocketBonus: Stats{StatSpellDmg: 3},
+	},
+	{ID: 33281, Slot: EquipNeck, Name: "Brooch of Nature's Mercy", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatInt: 24, StatSpellDmg: 25, StatHaste: 33}},
+	{ID: 33334, Slot: EquipOffhand, Name: "Fetish of the Primal Gods", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatStm: 24, StatInt: 17, StatSpellDmg: 37, StatHaste: 17}},
 }
 
 type ItemSet struct {
