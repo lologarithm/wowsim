@@ -40,7 +40,7 @@ var Gems = []Gem{
 	{ID: 30564, Name: "Veiled Pyrestone", Quality: ItemQualityEpic, Phase: 3, Color: GemColorOrange, Stats: Stats{StatSpellHit: 5, StatSpellDmg: 6}},
 	{ID: 30560, Name: "Rune Covered Chrysoprase", Quality: ItemQualityEpic, Phase: 1, Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatSpellCrit: 5}},
 	{ID: 24065, Name: "Dazzling Talasite", Quality: ItemQualityRare, Phase: 1, Color: GemColorGreen, Stats: Stats{StatMP5: 2, StatInt: 4}},
-	{ID: 35759, Name: "Forceful Seaspray Emerald", Quality: ItemQualityEpic, Phase: 3, Color: GemColorGreen, Stats: Stats{StatHaste: 6, StatStm: 7}},
+	{ID: 35759, Name: "Forceful Seaspray Emerald", Quality: ItemQualityEpic, Phase: 3, Color: GemColorGreen, Stats: Stats{StatHaste: 5, StatStm: 7}},
 	{ID: 24056, Name: "Glowing Nightseye", Quality: ItemQualityRare, Phase: 1, Color: GemColorPurple, Stats: Stats{StatSpellDmg: 5, StatStm: 6}},
 	{ID: 30555, Name: "Glowing Tanzanite", Quality: ItemQualityEpic, Phase: 1, Color: GemColorPurple, Stats: Stats{StatSpellDmg: 6, StatStm: 6}},
 	{ID: 32215, Name: "Glowing Shadowsong Amethyst", Quality: ItemQualityEpic, Phase: 3, Color: GemColorPurple, Stats: Stats{StatSpellDmg: 6, StatStm: 7}},
