@@ -849,6 +849,11 @@ var items = []Item{
 	},
 	{ID: 33281, Slot: EquipNeck, Name: "Brooch of Nature's Mercy", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatInt: 24, StatSpellDmg: 25, StatHaste: 33}},
 	{ID: 33334, Slot: EquipOffhand, Name: "Fetish of the Primal Gods", Phase: 4, Quality: ItemQualityEpic, SourceZone: "ZA", SourceDrop: "", Stats: Stats{StatStm: 24, StatInt: 17, StatSpellDmg: 37, StatHaste: 17}},
+	{ID: 34344, Slot: EquipHands, Name: "Handguards of Defiled Worlds", Phase: 5, Quality: ItemQualityEpic, SourceZone: "SW", SourceDrop: "",
+		Stats:       Stats{StatStm: 33, StatInt: 32, StatSpellDmg: 47, StatHaste: 36, StatSpellHit: 27},
+		GemSlots:    []GemColor{GemColorYellow, GemColorRed},
+		SocketBonus: Stats{StatSpellDmg: 4},
+	},
 }
 
 type ItemSet struct {
