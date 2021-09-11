@@ -483,6 +483,9 @@ func ActivateNexusHorn(sim *Simulation) Aura {
 		ID:      MagicIDNexusHorn,
 		Expires: neverExpires,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
+			if c.Spell.ID == MagicIDTLCLB {
+				return // TLC can't proc Sextant
+			}
 			if !icd.isOnCD(sim) && c.DidCrit && sim.rando.Float64() < 0.2 {
 				icd = InternalCD(sim.CurrentTime + dur)
 				sim.Stats[StatSpellDmg] += spellBonus
