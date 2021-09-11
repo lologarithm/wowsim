@@ -371,6 +371,9 @@ func AuraJudgementOfWisdom() Aura {
 		ID:      MagicIDJoW,
 		Expires: neverExpires,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
+			if c.Spell.ID == MagicIDTLCLB {
+				return // TLC can't proc JoW
+			}
 			if sim.Debug != nil {
 				sim.Debug(" +Judgement Of Wisdom: 37 mana (74 @ 50%% proc)\n")
 			}
@@ -920,6 +923,9 @@ func ActivateSextant(sim *Simulation) Aura {
 		ID:      MagicIDSextant,
 		Expires: neverExpires,
 		OnSpellHit: func(sim *Simulation, c *Cast) {
+			if c.Spell.ID == MagicIDTLCLB {
+				return // TLC can't proc Sextant
+			}
 			if c.DidCrit && !icd.isOnCD(sim) && sim.rando.Float64() < 0.2 {
 				icd = InternalCD(sim.CurrentTime + icdDur)
 				sim.Stats[StatSpellDmg] += spellBonus
