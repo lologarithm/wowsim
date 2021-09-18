@@ -399,12 +399,12 @@ function runSim(gearSpec) {
       
       const simRequest = deepCopy(sharedSimRequest);
       simRequest.Options.AgentType = AGENT_TYPES.FIXED_LB_ONLY;
-      simRequest.Options.Encounter.Duration = 600;
+      simRequest.Options.Encounter.Duration = 1200; // dont care about fights longer than 20min
       simRequest.Options.DPSReportTime = sharedOptions.Encounter.Duration;
       simRequest.Options.ExitOnOOM = true;
 
       workerPool.runSimulation(simRequest).then(simResult => {
-          const oomAtText = simResult.OomAtAvg ? Math.round(simResult.OomAtAvg) : ">600";
+          const oomAtText = (simResult.NumOom > (simRequest.Iterations/3)) ? Math.round(simResult.OomAtAvg) : ">"+simRequest.Options.Encounter.Duration;
           console.log("LB Stats: ", simResult);
           resultsElem.innerHTML = `<div><h3>Mana</h3><text class="simnums">${oomAtText}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(simResult.DpsAvg)} DPS</text></div>`
       });
@@ -416,7 +416,10 @@ function runSim(gearSpec) {
 
       const simRequest = deepCopy(sharedSimRequest);
       simRequest.Options.AgentType = AGENT_TYPES.FIXED_3LB_1CL;
-      simRequest.Options.Encounter.Duration = 600;
+      if (simRequest.Options.Encounter.Duration < 600) {
+        simRequest.Options.Encounter.Duration = 600; // only go up to 10min if the duration is less.
+      }
+      
       simRequest.Options.DPSReportTime = 30;
 
       workerPool.runSimulation(simRequest).then(simResult => {
@@ -450,14 +453,14 @@ function runSim(gearSpec) {
             rotstats.innerHTML += `<text style="cursor:pointer" title="Avg Dmg: ${Math.round(cast.Dmg / cast.Count)} Crit: ${Math.round(cast.Crits / cast.Count * 100)}%">${castIDToName[castID]}: ${Math.round(cast.Count / simRequest.Iterations)}</text>`;
         });
         const percentOom = simResult.NumOom / simRequest.Iterations;
-        if (percentOom > 0.02) {
+        if (percentOom > 0.001) {
             var dangerStyle = "";
             if (percentOom > 0.05 && percentOom <= 0.25) {
                 dangerStyle = "border-color: #FDFD96;"
             } else if (percentOom > 0.25) {
                 dangerStyle = "border-color: #FF6961;"
             }
-            rotstats.innerHTML += `<text title="Downranking is not currently implemented." style="${dangerStyle};cursor: pointer">${Math.round(percentOom * 100)}% of simulations went OOM.`
+            rotstats.innerHTML += `<text title="Downranking is not currently implemented." style="${dangerStyle};cursor: pointer">${Math.round(percentOom * 1000)/10}% of simulations went OOM.`
         }
 
         const rotout = document.getElementById("rotout");
