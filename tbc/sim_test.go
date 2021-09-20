@@ -164,7 +164,7 @@ func TestSimulateP1(t *testing.T) {
 		AgentType: AGENT_TYPE_ADAPTIVE,
 
 		ExpectedDpsShort: 1527,
-		ExpectedDpsLong:  1359,
+		ExpectedDpsLong:  1226.6,
 	})
 }
 
@@ -180,7 +180,7 @@ func TestMultiTarget(t *testing.T) {
 			},
 			AGENT_TYPE_ADAPTIVE),
 		p1Gear,
-		1678.5)
+		1533)
 }
 
 func TestLBOnlyAgent(t *testing.T) {
@@ -206,8 +206,8 @@ func TestFixedAgent(t *testing.T) {
 		Gear:      p1Gear,
 		AgentType: AGENT_TYPE_FIXED_4LB_1CL,
 
-		ExpectedDpsShort: 1489.3,
-		ExpectedDpsLong:  1284.2,
+		ExpectedDpsShort: 1477,
+		ExpectedDpsLong:  1220.6,
 	})
 }
 
@@ -220,8 +220,8 @@ func TestClearcastAgent(t *testing.T) {
 		Gear:      p1Gear,
 		AgentType: AGENT_TYPE_CL_ON_CLEARCAST,
 
-		ExpectedDpsShort: 1667,
-		ExpectedDpsLong:  1359.1,
+		ExpectedDpsShort: 1468.4,
+		ExpectedDpsLong:  1214.2,
 	})
 }
 
