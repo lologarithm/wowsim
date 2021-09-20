@@ -163,7 +163,7 @@ func TestSimulateP1(t *testing.T) {
 		Gear:      p1Gear,
 		AgentType: AGENT_TYPE_ADAPTIVE,
 
-		ExpectedDpsShort: 1539.5,
+		ExpectedDpsShort: 1527,
 		ExpectedDpsLong:  1359,
 	})
 }
@@ -193,7 +193,7 @@ func TestLBOnlyAgent(t *testing.T) {
 		AgentType: AGENT_TYPE_FIXED_LB_ONLY,
 
 		ExpectedDpsShort: 1581.1,
-		ExpectedDpsLong:  1227.6,
+		ExpectedDpsLong:  1210.4,
 	})
 }
 

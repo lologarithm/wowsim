@@ -84,8 +84,10 @@ func AuraName(a int32) string {
 		return "Potion"
 	case MagicIDRune:
 		return "Rune"
-	case MagicIDAllTrinket:
-		return "AllTrinket"
+	case MagicIDAtkTrinket:
+		return "Atk Trinket"
+	case MagicIDHealTrinket:
+		return "Heal Trinket"
 	case MagicIDSpellPower:
 		return "SpellPower"
 	case MagicIDRubySerpent:
@@ -279,7 +281,8 @@ const (
 	MagicIDNACTrink
 	MagicIDPotion
 	MagicIDRune
-	MagicIDAllTrinket
+	MagicIDAtkTrinket
+	MagicIDHealTrinket
 	MagicIDScryerTrink
 	MagicIDRubySerpentTrink
 	MagicIDXiriTrink
@@ -733,8 +736,6 @@ func ActivateManaEtched(sim *Simulation) Aura {
 }
 
 func ActivateTLC(sim *Simulation) Aura {
-	const spellBonus = 110.0
-	const duration = time.Second * 15
 	const icdDur = time.Millisecond * 2500
 	tlcspell := spellmap[MagicIDTLCLB]
 

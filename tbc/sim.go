@@ -472,20 +472,19 @@ func (sim *Simulation) setCD(magicID int32, newCD time.Duration) {
 
 // Pops any on-use trinkets / gear
 func (sim *Simulation) TryActivateEquipment() {
+	const trinketSharedCD = time.Second * 20
+
 	for _, item := range sim.activeEquip {
 		if item.Activate == nil || item.ActivateCD == neverExpires { // ignore non-activatable, and always active items.
 			continue
 		}
-		if sim.isOnCD(item.CoolID) {
-			continue
-		}
-		if item.Slot == EquipTrinket && sim.isOnCD(MagicIDAllTrinket) {
+		if sim.isOnCD(item.CoolID) || (item.SharedID != 0 && sim.isOnCD(item.SharedID)) {
 			continue
 		}
 		sim.addAura(item.Activate(sim))
 		sim.setCD(item.CoolID, item.ActivateCD)
-		if item.Slot == EquipTrinket {
-			sim.setCD(MagicIDAllTrinket, time.Second*30)
+		if item.SharedID != 0 {
+			sim.setCD(item.SharedID, trinketSharedCD)
 		}
 	}
 }
