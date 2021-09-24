@@ -861,6 +861,11 @@ var items = []Item{
 	{ID: 32779, Slot: EquipFinger, Name: "Band of Frigid Elements", Phase: 2, Quality: ItemQualityEpic, SourceZone: "", SourceDrop: "",
 		Stats: Stats{StatInt: 13, StatSpellDmg: 34, StatSpellCrit: 17},
 	},
+	{ID: 32655, Slot: EquipWrist, Name: "Crystalweave Bracers", Phase: 2, Quality: ItemQualityEpic, SourceZone: "", SourceDrop: "",
+		Stats:       Stats{StatInt: 16, StatSpellDmg: 23, StatSpellCrit: 12},
+		GemSlots:    []GemColor{GemColorRed},
+		SocketBonus: Stats{StatSpellDmg: 2},
+	},
 }
 
 type ItemSet struct {
