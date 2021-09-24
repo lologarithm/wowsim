@@ -858,7 +858,7 @@ var items = []Item{
 	{ID: 29302, Slot: EquipFinger, Name: "Band of Eternity", Phase: 2, Quality: ItemQualityEpic, SourceZone: "", SourceDrop: "",
 		Stats: Stats{StatStm: 24, StatInt: 22, StatSpellDmg: 29, StatSpellCrit: 21},
 	},
-	{ID: 32779, Slot: EquipFinger, Name: "Band of Frigid Elements", Phase: 2, Quality: ItemQualityEpic, SourceZone: "", SourceDrop: "",
+	{ID: 32779, Slot: EquipFinger, Name: "Band of Frigid Elements", Phase: 2, Quality: ItemQualityRare, SourceZone: "", SourceDrop: "",
 		Stats: Stats{StatInt: 13, StatSpellDmg: 34, StatSpellCrit: 17},
 	},
 	{ID: 32655, Slot: EquipWrist, Name: "Crystalweave Bracers", Phase: 2, Quality: ItemQualityEpic, SourceZone: "", SourceDrop: "",
