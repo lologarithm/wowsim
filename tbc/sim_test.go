@@ -1,6 +1,7 @@
 package tbc
 
 import (
+	"log"
 	"testing"
 )
 
@@ -149,8 +150,8 @@ func TestSimulatePreRaid(t *testing.T) {
 		Gear:      preRaidGear,
 		AgentType: AGENT_TYPE_ADAPTIVE,
 
-		ExpectedDpsShort: 1399,
-		ExpectedDpsLong:  1082,
+		ExpectedDpsShort: 1398.5,
+		ExpectedDpsLong:  1096.3,
 	})
 }
 
@@ -275,6 +276,8 @@ func doSimulateTest(label string, t *testing.T, options Options, gear EquipmentS
 		Iterations:  1,
 		IncludeLogs: false,
 	})
+
+	log.Printf("LOGS:\n%s\n", result.Logs)
 
 	tolerance := 0.5
 	if result.DpsAvg < expectedDps-tolerance || result.DpsAvg > expectedDps+tolerance {

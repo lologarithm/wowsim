@@ -59,7 +59,7 @@ type SimMetrics struct {
 // New sim contructs a simulator with the given equipment / options.
 func NewSim(equipSpec EquipmentSpec, options Options) *Simulation {
 	if options.GCDMin == 0 {
-		options.GCDMin = 0.75 // default to 0.75s GCD
+		options.GCDMin = 1.0 // default to 0.75s GCD
 	}
 	if options.RSeed == 0 {
 		options.RSeed = time.Now().Unix()
@@ -280,8 +280,10 @@ func (sim *Simulation) Cast(cast *Cast) {
 	if sim.Debug != nil {
 		sim.Debug("Current Mana %0.0f, Cast Cost: %0.0f\n", sim.CurrentMana, cast.ManaCost)
 	}
-	sim.CurrentMana -= cast.ManaCost
-	sim.metrics.ManaSpent += cast.ManaCost
+	if cast.ManaCost > 0 {
+		sim.CurrentMana -= cast.ManaCost
+		sim.metrics.ManaSpent += cast.ManaCost
+	}
 
 	for _, id := range sim.activeAuraIDs {
 		if sim.auras[id].OnCastComplete != nil {
