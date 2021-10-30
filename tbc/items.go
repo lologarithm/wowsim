@@ -866,6 +866,16 @@ var items = []Item{
 		GemSlots:    []GemColor{GemColorRed},
 		SocketBonus: Stats{StatSpellDmg: 2},
 	},
+	{ID: 33067, Slot: EquipNeck, Name: "Veteran's Pendant of Conquest", Phase: 2, Quality: ItemQualityEpic, SourceZone: "PVP", SourceDrop: "",
+		Stats:       Stats{StatStm: 27, StatInt: 12, StatSpellDmg: 21, StatSpellCrit: 18},
+		GemSlots:    []GemColor{GemColorYellow},
+		SocketBonus: Stats{StatStm: 3},
+	},
+	{ID: 35319, Slot: EquipNeck, Name: "Vindicator's Pendant of Subjugation", Phase: 3, Quality: ItemQualityEpic, SourceZone: "PVP", SourceDrop: "",
+		Stats:       Stats{StatStm: 31, StatInt: 15, StatSpellDmg: 25, StatHaste: 21},
+		GemSlots:    []GemColor{GemColorYellow},
+		SocketBonus: Stats{StatStm: 3},
+	},
 }
 
 type ItemSet struct {
