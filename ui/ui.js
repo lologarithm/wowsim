@@ -25,164 +25,164 @@ const defaultGear = [
 
 // This must be kept in sync with the enum in agents.go
 const AGENT_TYPES = {
-  "FIXED_3LB_1CL": 0,
-  "FIXED_4LB_1CL": 1,
-  "FIXED_5LB_1CL": 2,
-  "FIXED_6LB_1CL": 3,
-  "FIXED_7LB_1CL": 4,
-  "FIXED_8LB_1CL": 5,
-  "FIXED_9LB_1CL": 6,
-  "FIXED_10LB_1CL": 7,
-  "FIXED_LB_ONLY": 8,
-  "FIXED_CL_ON_CD": 9,
-  "ADAPTIVE": 10,
-  "CL_ON_CLEARCAST": 11
+    "FIXED_3LB_1CL": 0,
+    "FIXED_4LB_1CL": 1,
+    "FIXED_5LB_1CL": 2,
+    "FIXED_6LB_1CL": 3,
+    "FIXED_7LB_1CL": 4,
+    "FIXED_8LB_1CL": 5,
+    "FIXED_9LB_1CL": 6,
+    "FIXED_10LB_1CL": 7,
+    "FIXED_LB_ONLY": 8,
+    "FIXED_CL_ON_CD": 9,
+    "ADAPTIVE": 10,
+    "CL_ON_CLEARCAST": 11
 };
 
 // This must be kept in sync with the const values in stats.go
 const STAT_IDX = {
-  INT:        0,
-  STAM:       1,
-  SPELL_CRIT: 2,
-  SPELL_HIT:  3,
-  SPELL_DMG:  4,
-  HASTE:      5,
-  MP5:        6,
-  MANA:       7,
-  SPELL_PEN:  8,
-  SPIRIT:     9
+    INT: 0,
+    STAM: 1,
+    SPELL_CRIT: 2,
+    SPELL_HIT: 3,
+    SPELL_DMG: 4,
+    HASTE: 5,
+    MP5: 6,
+    MANA: 7,
+    SPELL_PEN: 8,
+    SPIRIT: 9
 };
 const STATS_LEN = 10;
 
 class SimWorker {
-  constructor() {
-    this.numTasksRunning = 0;
-    this.taskIdsToPromiseFuncs = {};
-    this.worker = new window.Worker('simworker.js');
+    constructor() {
+        this.numTasksRunning = 0;
+        this.taskIdsToPromiseFuncs = {};
+        this.worker = new window.Worker('simworker.js');
 
-    let resolveReady = null;
-    this.onReady = new Promise((_resolve, _reject) => {
-      resolveReady = _resolve;
-    });
+        let resolveReady = null;
+        this.onReady = new Promise((_resolve, _reject) => {
+            resolveReady = _resolve;
+        });
 
-    this.worker.onmessage = event => {
-      if (event.data.msg == "ready") {
-          this.worker.postMessage({ msg: "setID", payload: "1" });
-          resolveReady();
-      } else if (event.data.msg == "idconfirm") {
-        // Do nothing
-      } else {
-          const id = event.data.id;
-          if (!this.taskIdsToPromiseFuncs[id]) {
-            console.warn("Unrecognized result id: " + id);
-            return;
-          }
+        this.worker.onmessage = event => {
+            if (event.data.msg == "ready") {
+                this.worker.postMessage({ msg: "setID", payload: "1" });
+                resolveReady();
+            } else if (event.data.msg == "idconfirm") {
+                // Do nothing
+            } else {
+                const id = event.data.id;
+                if (!this.taskIdsToPromiseFuncs[id]) {
+                    console.warn("Unrecognized result id: " + id);
+                    return;
+                }
 
-          const promiseFuncs = this.taskIdsToPromiseFuncs[id];
-          delete this.taskIdsToPromiseFuncs[id];
-          this.numTasksRunning--;
+                const promiseFuncs = this.taskIdsToPromiseFuncs[id];
+                delete this.taskIdsToPromiseFuncs[id];
+                this.numTasksRunning--;
 
-          promiseFuncs[0](event.data.payload);
-      }
-    };
-  }
+                promiseFuncs[0](event.data.payload);
+            }
+        };
+    }
 
-  makeTaskId() {
-      let id = '';
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      for (let i = 0; i < 16; i++) {
-          id += characters.charAt(Math.floor(Math.random() * characters.length));
-      }
-      return id;
-  }
+    makeTaskId() {
+        let id = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        for (let i = 0; i < 16; i++) {
+            id += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        return id;
+    }
 
-  async doApiCall(request) {
-    this.numTasksRunning++;
-    await this.onReady;
+    async doApiCall(request) {
+        this.numTasksRunning++;
+        await this.onReady;
 
-    const taskPromise = new Promise((resolve, reject) => {
-      const id = this.makeTaskId();
-      this.taskIdsToPromiseFuncs[id] = [resolve, reject];
-      
-      this.worker.postMessage({
-        msg: "apiCall",
-        id: id,
-        payload: request
-      });
-    });
-    return await taskPromise;
-  }
+        const taskPromise = new Promise((resolve, reject) => {
+            const id = this.makeTaskId();
+            this.taskIdsToPromiseFuncs[id] = [resolve, reject];
+
+            this.worker.postMessage({
+                msg: "apiCall",
+                id: id,
+                payload: request
+            });
+        });
+        return await taskPromise;
+    }
 }
 
 class WorkerPool {
-  constructor(numWorkers) {
-    this.workers = [];
-    for (let i = 0; i < numWorkers; i++) {
-      this.workers.push(new SimWorker());
+    constructor(numWorkers) {
+        this.workers = [];
+        for (let i = 0; i < numWorkers; i++) {
+            this.workers.push(new SimWorker());
+        }
     }
-  }
 
-  getLeastBusyWorker() {
-    return this.workers.reduce(
-        (curMinWorker, nextWorker) => curMinWorker.numTasksRunning < nextWorker.numTasksRunning ?
-            curMinWorker : nextWorker);
-  }
+    getLeastBusyWorker() {
+        return this.workers.reduce(
+            (curMinWorker, nextWorker) => curMinWorker.numTasksRunning < nextWorker.numTasksRunning ?
+                curMinWorker : nextWorker);
+    }
 
-  async makeApiCall(request) {
-    return await this.getLeastBusyWorker().doApiCall(request);
-  }
+    async makeApiCall(request) {
+        return await this.getLeastBusyWorker().doApiCall(request);
+    }
 
-  /**
-   * The following methods are convenience wrappers for calling each API function.
-   */
-  async getGearList() {
-    const result = await this.makeApiCall({
-      GearList: {},
-    });
+    /**
+     * The following methods are convenience wrappers for calling each API function.
+     */
+    async getGearList() {
+        const result = await this.makeApiCall({
+            GearList: {},
+        });
 
-    return result["GearList"];
-  }
+        return result["GearList"];
+    }
 
-  async computeStats(computeStatsRequest) {
-    const result = await this.makeApiCall({
-      ComputeStats: computeStatsRequest,
-    });
+    async computeStats(computeStatsRequest) {
+        const result = await this.makeApiCall({
+            ComputeStats: computeStatsRequest,
+        });
 
-    return result["ComputeStats"];
-  }
+        return result["ComputeStats"];
+    }
 
-  async statWeights(statWeightsRequest) {
-    const result = await this.makeApiCall({
-      StatWeights: statWeightsRequest,
-    });
+    async statWeights(statWeightsRequest) {
+        const result = await this.makeApiCall({
+            StatWeights: statWeightsRequest,
+        });
 
-    return result["StatWeights"];
-  }
+        return result["StatWeights"];
+    }
 
-  async runSimulation(simRequest) {
-    const result = await this.makeApiCall({
-      Sim: simRequest,
-    });
+    async runSimulation(simRequest) {
+        const result = await this.makeApiCall({
+            Sim: simRequest,
+        });
 
-    return result["Sim"];
-  }
+        return result["Sim"];
+    }
 
-  async runBatchSimulation(batchSimRequest) {
-    const result = await this.makeApiCall({
-      BatchSim: batchSimRequest,
-    });
+    async runBatchSimulation(batchSimRequest) {
+        const result = await this.makeApiCall({
+            BatchSim: batchSimRequest,
+        });
 
-    return result["BatchSim"];
-  }
+        return result["BatchSim"];
+    }
 
-  async packOptions(packOptionsRequest) {
-    const result = await this.makeApiCall({
-      PackOptions: packOptionsRequest,
-    });
-    const packOptionsResult = result["PackOptions"];
+    async packOptions(packOptionsRequest) {
+        const result = await this.makeApiCall({
+            PackOptions: packOptionsRequest,
+        });
+        const packOptionsResult = result["PackOptions"];
 
-    return Uint8Array.from(atob(packOptionsResult.Data), c => c.charCodeAt(0));
-  }
+        return Uint8Array.from(atob(packOptionsResult.Data), c => c.charCodeAt(0));
+    }
 }
 
 const workerPool = new WorkerPool(2);
@@ -234,29 +234,29 @@ function getOptions() {
     options.Totems.ManaStream = document.getElementById("totms").checked;
 
     options.Buffs.Custom = new Array(STATS_LEN).fill(0);
-    options.Buffs.Custom[STAT_IDX.INT]        = parseInt(document.getElementById("custint").value) || 0;
-    options.Buffs.Custom[STAT_IDX.SPELL_DMG]  = parseInt(document.getElementById("custsp").value) || 0;
+    options.Buffs.Custom[STAT_IDX.INT] = parseInt(document.getElementById("custint").value) || 0;
+    options.Buffs.Custom[STAT_IDX.SPELL_DMG] = parseInt(document.getElementById("custsp").value) || 0;
     options.Buffs.Custom[STAT_IDX.SPELL_CRIT] = parseInt(document.getElementById("custsc").value) || 0;
-    options.Buffs.Custom[STAT_IDX.SPELL_HIT]  = parseInt(document.getElementById("custsh").value) || 0;
-    options.Buffs.Custom[STAT_IDX.HASTE]      = parseInt(document.getElementById("custha").value) || 0;
-    options.Buffs.Custom[STAT_IDX.MP5]        = parseInt(document.getElementById("custmp5").value) || 0;
-    options.Buffs.Custom[STAT_IDX.MANA]       = parseInt(document.getElementById("custmana").value) || 0;
+    options.Buffs.Custom[STAT_IDX.SPELL_HIT] = parseInt(document.getElementById("custsh").value) || 0;
+    options.Buffs.Custom[STAT_IDX.HASTE] = parseInt(document.getElementById("custha").value) || 0;
+    options.Buffs.Custom[STAT_IDX.MP5] = parseInt(document.getElementById("custmp5").value) || 0;
+    options.Buffs.Custom[STAT_IDX.MANA] = parseInt(document.getElementById("custmana").value) || 0;
 
     options.Talents = {
-      LightningOverload:  5,
-      ElementalPrecision: 3,
-      NaturesGuidance:    3,
-      TidalMastery:       5,
-      ElementalMastery:   true,
-      UnrelentingStorm:   3,
-      CallOfThunder:      5,
-      Concussion:         5,
-      Convection:         5,
+        LightningOverload: 5,
+        ElementalPrecision: 3,
+        NaturesGuidance: 3,
+        TidalMastery: 5,
+        ElementalMastery: true,
+        UnrelentingStorm: 3,
+        CallOfThunder: 5,
+        Concussion: 5,
+        Convection: 5,
     };
 
     options.Encounter = {
-      Duration: 0,
-      NumClTargets: 1,
+        Duration: 0,
+        NumClTargets: 1,
     };
 
     return options;
@@ -267,8 +267,8 @@ function getOptions() {
 //  maybe its time to re-evaluate my life choices.
 function setOptions(data) {
     if (data.byteLength < 3) {
-      console.log('Empty options data loaded');
-      return;
+        console.log('Empty options data loaded');
+        return;
     }
 
     document.getElementById("buffbl").selectedIndex = data[1];
@@ -355,7 +355,7 @@ const castIDToName = {
 
 // Only works for POD-type objects
 function deepCopy(obj) {
-  return JSON.parse(JSON.stringify(obj));
+    return JSON.parse(JSON.stringify(obj));
 }
 
 function runSimWithLogs(gearSpec) {
@@ -365,10 +365,10 @@ function runSimWithLogs(gearSpec) {
     options.Encounter.NumClTargets = parseInt(document.getElementById("lognumClTargets").value);
 
     const simRequest = {
-      Options: options,
-      Gear: gearSpec,
-      Iterations: 1,
-      IncludeLogs: true,
+        Options: options,
+        Gear: gearSpec,
+        Iterations: 1,
+        IncludeLogs: true,
     };
 
     workerPool.runSimulation(simRequest).then(simResult => {
@@ -386,47 +386,47 @@ function runSim(gearSpec) {
     };
 
     const sharedSimRequest = {
-      Options: sharedOptions,
-      Gear: gearSpec,
-      Iterations: parseInt(document.getElementById("iters").value),
+        Options: sharedOptions,
+        Gear: gearSpec,
+        Iterations: parseInt(document.getElementById("iters").value),
     };
 
     const pendingMetricHTML = `<div id="runningsim" uk-spinner="ratio: 1.5" style="margin:26%"></div>`;
 
     {
-      const resultsElem = document.getElementById("simrotlb");
-      resultsElem.innerHTML = pendingMetricHTML;
-      
-      const simRequest = deepCopy(sharedSimRequest);
-      simRequest.Options.AgentType = AGENT_TYPES.FIXED_LB_ONLY;
-      simRequest.Options.Encounter.Duration = 1200; // dont care about fights longer than 20min
-      simRequest.Options.DPSReportTime = sharedOptions.Encounter.Duration;
-      simRequest.Options.ExitOnOOM = true;
+        const resultsElem = document.getElementById("simrotlb");
+        resultsElem.innerHTML = pendingMetricHTML;
 
-      workerPool.runSimulation(simRequest).then(simResult => {
-          const oomAtText = (simResult.NumOom > (simRequest.Iterations/3)) ? Math.round(simResult.OomAtAvg) : ">"+simRequest.Options.Encounter.Duration;
-          console.log("LB Stats: ", simResult);
-          resultsElem.innerHTML = `<div><h3>Mana</h3><text class="simnums">${oomAtText}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(simResult.DpsAvg)} DPS</text></div>`
-      });
+        const simRequest = deepCopy(sharedSimRequest);
+        simRequest.Options.AgentType = AGENT_TYPES.FIXED_LB_ONLY;
+        simRequest.Options.Encounter.Duration = 1200; // dont care about fights longer than 20min
+        simRequest.Options.DPSReportTime = sharedOptions.Encounter.Duration;
+        simRequest.Options.ExitOnOOM = true;
+
+        workerPool.runSimulation(simRequest).then(simResult => {
+            const oomAtText = (simResult.NumOom > (simRequest.Iterations / 3)) ? Math.round(simResult.OomAtAvg) : ">" + simRequest.Options.Encounter.Duration;
+            console.log("LB Stats: ", simResult);
+            resultsElem.innerHTML = `<div><h3>Mana</h3><text class="simnums">${oomAtText}</text> sec<br /><text style="font-size:0.7em">to oom casting LB only ${Math.round(simResult.DpsAvg)} DPS</text></div>`
+        });
     }
 
     {
-      const resultsElem = document.getElementById("simrotpri");
-      resultsElem.innerHTML = pendingMetricHTML;
+        const resultsElem = document.getElementById("simrotpri");
+        resultsElem.innerHTML = pendingMetricHTML;
 
-      const simRequest = deepCopy(sharedSimRequest);
-      simRequest.Options.AgentType = AGENT_TYPES.FIXED_3LB_1CL;
-      if (simRequest.Options.Encounter.Duration < 600) {
-        simRequest.Options.Encounter.Duration = 600; // only go up to 10min if the duration is less.
-      }
-      
-      simRequest.Options.DPSReportTime = 30;
+        const simRequest = deepCopy(sharedSimRequest);
+        simRequest.Options.AgentType = AGENT_TYPES.FIXED_3LB_1CL;
+        if (simRequest.Options.Encounter.Duration < 600) {
+            simRequest.Options.Encounter.Duration = 600; // only go up to 10min if the duration is less.
+        }
 
-      workerPool.runSimulation(simRequest).then(simResult => {
-          const oomAtText = simResult.OomAtAvg ? Math.round(simResult.OomAtAvg) : ">600";
-          const dps = Math.max(simResult.DpsAvg, simResult.DpsAtOomAvg);
-          resultsElem.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(dps)}</text> dps<br /><text style="font-size:0.7em">${oomAtText}s to oom using CL on CD.</text></div>`
-      });
+        simRequest.Options.DPSReportTime = 30;
+
+        workerPool.runSimulation(simRequest).then(simResult => {
+            const oomAtText = simResult.OomAtAvg ? Math.round(simResult.OomAtAvg) : ">600";
+            const dps = Math.max(simResult.DpsAvg, simResult.DpsAtOomAvg);
+            resultsElem.innerHTML = `<div><h3>Peak</h3><text class="simnums">${Math.round(dps)}</text> dps<br /><text style="font-size:0.7em">${oomAtText}s to oom using CL on CD.</text></div>`
+        });
     }
 
     const resultsElem = document.getElementById("simrotai");
@@ -460,7 +460,7 @@ function runSim(gearSpec) {
             } else if (percentOom > 0.25) {
                 dangerStyle = "border-color: #FF6961;"
             }
-            rotstats.innerHTML += `<text title="Downranking is not currently implemented." style="${dangerStyle};cursor: pointer">${Math.round(percentOom * 1000)/10}% of simulations went OOM.`
+            rotstats.innerHTML += `<text title="Downranking is not currently implemented." style="${dangerStyle};cursor: pointer">${Math.round(percentOom * 1000) / 10}% of simulations went OOM.`
         }
 
         const rotout = document.getElementById("rotout");
@@ -476,9 +476,9 @@ function runSim(gearSpec) {
 // Populates the 'Rotation' tab in the results pane.
 function runRotationSim(gearSpec) {
     const simRequest = {
-      Options: getOptions(),
-      Gear: gearSpec,
-      Iterations: parseInt(document.getElementById("rotationIters").value),
+        Options: getOptions(),
+        Gear: gearSpec,
+        Iterations: parseInt(document.getElementById("rotationIters").value),
     };
     simRequest.Options.AgentType = AGENT_TYPES[document.getElementById("rotationRotation").value];
     simRequest.Options.Encounter = {
@@ -581,21 +581,21 @@ function createDpsChartFromSimResult(simResult, chartBounds) {
 }
 
 function stDevToConf90(stDev, N) {
-  return 1.645 * stDev / Math.sqrt(N);
+    return 1.645 * stDev / Math.sqrt(N);
 }
 
 // Populates the 'Gear & Stat Weights' tab in results pane.
 function calcStatWeights(gearSpec) {
     const statWeightsRequest = {
-      Options: getOptions(),
-      Gear: gearSpec,
-      Iterations: parseInt(document.getElementById("switer").value),
+        Options: getOptions(),
+        Gear: gearSpec,
+        Iterations: parseInt(document.getElementById("switer").value),
     };
     statWeightsRequest.Options.Encounter.Duration = parseInt(document.getElementById("swdur").value);
     statWeightsRequest.Options.Encounter.NumClTargets = parseInt(document.getElementById("swnumClTargets").value);
 
     const statsTested = [
-        STAT_IDX.SPELL_DMG, 
+        STAT_IDX.SPELL_DMG,
         STAT_IDX.INT,
         STAT_IDX.SPELL_CRIT,
         STAT_IDX.SPELL_HIT,
@@ -606,8 +606,8 @@ function calcStatWeights(gearSpec) {
     const weightConfidenceElems = statsTested.map((stat, i) => document.getElementById("wc" + i.toString()));
 
     statsTested.forEach((stat, i) => {
-      weightElems[i].innerHTML = "<div uk-spinner=\"ratio: 1\"></div>";
-      weightConfidenceElems[i].innerHTML = "";
+        weightElems[i].innerHTML = "<div uk-spinner=\"ratio: 1\"></div>";
+        weightConfidenceElems[i].innerHTML = "";
     });
 
     workerPool.statWeights(statWeightsRequest).then(statWeightsResult => {
@@ -687,7 +687,7 @@ function showGearRecommendations(weights) {
             slotTable.appendChild(simAllRow);
             curSlot = entry[0];
         }
-        
+
         // get current item slot.
         let alt = 0;
         entry[1].forEach((v) => {
@@ -710,7 +710,7 @@ function showGearRecommendations(weights) {
             epdifftext.innerText = " (" + diff + ")";
             if (diff > 0) {
                 epdifftext.style.color = "green";
-            }  else if (diff < 0) {
+            } else if (diff < 0) {
                 epdifftext.style.color = "red";
             }
             col2.appendChild(eptext);
@@ -745,7 +745,7 @@ function showGearRecommendations(weights) {
                             });
                         }
                         item.Enchant = entry[1].Enchant;
-                    } else if (entry[0] == "equipoffhand" && item.subSlot == 2 ) {
+                    } else if (entry[0] == "equipoffhand" && item.subSlot == 2) {
                         // If the item is a 2h and the piece of gear to copy is an offhand, dont include it.
                         return;
                     }
@@ -754,14 +754,14 @@ function showGearRecommendations(weights) {
                     }
                 });
                 const simRequest = {
-                  Options: getOptions(),
-                  Gear: toGearSpec(newgear),
-                  Iterations: parseInt(document.getElementById("switer").value),
+                    Options: getOptions(),
+                    Gear: toGearSpec(newgear),
+                    Iterations: parseInt(document.getElementById("switer").value),
                 };
                 simRequest.Options.AgentType = AGENT_TYPES.ADAPTIVE;
                 simRequest.Options.Encounter = {
-                  Duration: parseInt(document.getElementById("swdur").value),
-                  NumClTargets: parseInt(document.getElementById("swnumClTargets").value),
+                    Duration: parseInt(document.getElementById("swdur").value),
+                    NumClTargets: parseInt(document.getElementById("swnumClTargets").value),
                 };
                 workerPool.runSimulation(simRequest).then(simResult => {
                     col4.innerText = Math.round(simResult.DpsAvg).toString() + " +/- " + Math.round(simResult.DpsStDev).toString();
@@ -888,29 +888,29 @@ function toGearSpec(gear) {
         }
 
         if (USE_ITEM_NAMES) {
-          gearSpec.push({
-            Name: item.Name,
-            Enchant: {
-              Name: (item.Enchant || {}).Name
-            },
-            Gems: (item.Gems || []).map(gem => {
-              return {
-                Name: gem.Name
-              };
-            })
-          });
+            gearSpec.push({
+                Name: item.Name,
+                Enchant: {
+                    Name: (item.Enchant || {}).Name
+                },
+                Gems: (item.Gems || []).map(gem => {
+                    return {
+                        Name: gem.Name
+                    };
+                })
+            });
         } else {
-          gearSpec.push({
-            ID: item.ID,
-            Enchant: {
-              ID: (item.Enchant || {}).ID
-            },
-            Gems: (item.Gems || []).map(gem => {
-              return {
-                ID: gem.ID
-              };
-            })
-          });
+            gearSpec.push({
+                ID: item.ID,
+                Enchant: {
+                    ID: (item.Enchant || {}).ID
+                },
+                Gems: (item.Gems || []).map(gem => {
+                    return {
+                        ID: gem.ID
+                    };
+                })
+            });
         }
     });
     return gearSpec;
@@ -942,8 +942,8 @@ function updateGearStats(gearlist) {
     options.AgentType = AGENT_TYPES.ADAPTIVE;
 
     const computeStatsRequest = {
-      Options: options,
-      Gear: gearSpec,
+        Options: options,
+        Gear: gearSpec,
     };
 
     workerPool.computeStats(computeStatsRequest).then(computeStatsResult => {
@@ -1202,6 +1202,124 @@ function pakoInflate(v) {
 
 
 var currentHash = "";
+
+function exportNewSim() {
+    var options = getOptions();
+
+    var newOptions = {
+        "sim": {
+            "raidBuffs": {
+                "arcaneBrilliance": options.Buffs.ArcaneInt,
+                "divineSpirit": options.Buffs.ImprovedDivineSpirit ? "TristateEffectImproved" : "TristateEffectMissing",
+                "giftOfTheWild": options.Buffs.GiftOftheWild ? "TristateEffectImproved" : "TristateEffectMissing",
+            },
+            "partyBuffs": {
+                "moonkinAura": options.Buffs.Moonkin ? "TristateEffectRegular" : "TristateEffectMissing",
+                "eyeOfTheNight": options.Buffs.EyeOfNight,
+                "chainOfTheTwilightOwl": options.Buffs.TwilightOwl
+            },
+            "individualBuffs": {
+                "blessingOfKings": options.Buffs.BlessingOfKings,
+                "blessingOfWisdom": options.Buffs.ImprovedBlessingOfWisdom ? "TristateEffectImproved" : "TristateEffectMissing",
+                "shadowPriestDps": options.Buffs.SpriestDPS,
+            },
+            "encounter": {
+                "duration": 300
+            },
+            "numTargets": 1
+        },
+        "player": {
+            "consumes": {
+                "flaskOfBlindingLight": options.Consumes.FlaskOfBlindingLight,
+                "brilliantWizardOil": options.Consumes.BrilliantWizardOil,
+                "blackenedBasilisk": options.Consumes.BlackendBasilisk,
+                "defaultPotion": options.Consumes.SuperManaPotion ? "SuperManaPotion" : "UnknownPotion",
+                "darkRune": options.Consumes.DarkRune,
+                "drums": options.NumDrums > 0 ? "DrumsOfBattle" : "DrumsUnknown",
+            },
+            "gear": {
+                "items": []
+            },
+            "race": 2,
+            "rotation": {
+                "type": "Adaptive"
+            },
+            "talents": "55030105100213351051--05105301005",
+            "specOptions": {
+                "waterShield": true,
+                "bloodlust": true,
+                "manaSpringTotem": true,
+                "totemOfWrath": true,
+                "wrathOfAirTotem": true
+            }
+        },
+        "target": {
+            "armor": 0,
+            "mobType": 2,
+            "debuffs": {
+                "judgementOfWisdom": options.Buffs.JudgementOfWisdom,
+                "misery": options.Buffs.Misery,
+                "improvedSealOfTheCrusader": options.Buffs.ImpSealOfCrusader
+            }
+        }
+    };
+
+    if (options.Buffs.MoonkinRavenGoddess) {
+        newOptions.sim.partyBuffs.moonkinAura = "TristateEffectImproved";
+    }
+
+    switch (options.Buffs.Race) {
+        case 1:
+            newOptions.player.race = 2; //draenei
+            break;
+        case 2:
+            newOptions.player.race = 9; // troll10
+            break;
+        case 3:
+            newOptions.player.race = 10; // troll30
+            break;
+        case 4:
+            newOptions.player.race = 7; // orc
+            break;
+    }
+    const gearSpec = toGearSpec(gearUI.currentGear);
+
+    gearSpec.forEach((item) => {
+        if (item.Enchant) {
+            switch (item.Enchant.ID) {
+                case 33997: // gloves sp
+                    item.Enchant.ID = 28272;
+                    break;
+                case 27917: // wrist sp
+                    item.Enchant.ID = 22534;
+                    break;
+                case 27975: // weapon SP
+                    item.Enchant.ID = 22555;
+                    break;
+                case 27945: // shield int
+                    item.Enchant.ID = 22539;
+                    break;
+                case 35445: // ring sp
+                    item.Enchant.ID = 22536;
+                    break;
+            }
+        }
+
+        newOptions.player.gear.items.push({
+            id: item.ID,
+            enchant: (item.Enchant || {}).ID,
+            gems: (item.Gems || []).map(gem => {
+                return gem.ID;
+            })
+        })
+    });
+
+    console.log(newOptions);
+
+    const hashed = btoa(JSON.stringify(newOptions))
+
+    window.open("https://wowsims.github.io/tbc/elemental_shaman/#" + hashed, '_blank');
+}
 
 function exportGear(compressed) {
     const gearSpec = toGearSpec(gearUI.currentGear); // converts to array with minimal data for serialization.\
