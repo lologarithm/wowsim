@@ -1316,7 +1316,7 @@ function exportNewSim() {
 
     console.log(newOptions);
 
-    const hashed = btoa(JSON.stringify(newOptions))
+    const hashed = btoa(JSON.stringify(newOptions));
 
     window.open("https://wowsims.github.io/tbc/elemental_shaman/#" + hashed, '_blank');
 }
@@ -1397,4 +1397,9 @@ function loadSettings() {
         }
     }
     // gcdmin = localStorage.getItem('settings.gcdmin');
+}
+
+if (!localStorage.getItem("new_sim_alert")) {
+    alert("Check out the new simulator at https://wowsims.github.io/tbc/elemental_shaman/ or open the gear menu on the right and click the 'To New Sim' button to transfer your current gear set.");
+    localStorage.setItem("new_sim_alert", "true");
 }
