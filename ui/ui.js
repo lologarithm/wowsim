@@ -1400,6 +1400,6 @@ function loadSettings() {
 }
 
 if (!localStorage.getItem("new_sim_alert")) {
-    alert("Check out the new simulator at https://wowsims.github.io/tbc/elemental_shaman/ or open the gear menu on the right and click the 'To New Sim' button.");
+    alert("Check out the new simulator at https://wowsims.github.io/tbc/elemental_shaman/ or open the gear menu on the right and click the 'To New Sim' button to transfer your current gear set.");
     localStorage.setItem("new_sim_alert", "true");
 }
