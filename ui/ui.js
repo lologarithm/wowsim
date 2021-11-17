@@ -1314,11 +1314,10 @@ function exportNewSim() {
         })
     });
 
-    console.log(newOptions);
-
-    const hashed = btoa(JSON.stringify(newOptions));
-
-    window.open("https://wowsims.github.io/tbc/elemental_shaman/#" + hashed, '_blank');
+    const jsonStr = JSON.stringify(newOptions);
+    const val = pako.deflate(jsonStr, { to: 'string' });
+    const encoded = btoa(String.fromCharCode(...val));
+    window.open("https://wowsims.github.io/tbc/elemental_shaman/#" + encoded, '_blank');
 }
 
 function exportGear(compressed) {
